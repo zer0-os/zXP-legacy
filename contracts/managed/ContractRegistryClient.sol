@@ -8,6 +8,7 @@ import "./interfaces/IContractRegistry.sol";
   * @dev Base contract for ContractRegistry clients
 */
 contract ContractRegistryClient is Owned, Utils {
+    bytes32 internal constant CONTRACT_REGISTRY = "ContractRegistry";
     bytes32 internal constant ITEMS = "Items";
     bytes32 internal constant MANAGER = "Manager";        
     bytes32 internal constant ZXP = "Zxp";
@@ -36,7 +37,7 @@ contract ContractRegistryClient is Owned, Utils {
       *
       * @param  _registry   address of a contract-registry contract
     */
-    constructor(IContractRegistry _registry) internal validAddress(address(_registry)) {
+    constructor(IContractRegistry _registry) validAddress(address(_registry)) {
         registry = IContractRegistry(_registry);
         prevRegistry = IContractRegistry(_registry);
     }

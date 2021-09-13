@@ -5,7 +5,8 @@ import "./Item.sol";
 contract Engine is Item{
     uint256 fuelType;
     uint256 fuel;
-    function refuel(uint256 addedFuel) external {
-        fuel += addedFuel;
+    constructor(bytes32 _generator) Item(_generator) {}
+    function refuel() external payable {
+        fuel += msg.value;
     }
 }
