@@ -6,7 +6,7 @@ import "./Owned.sol";
 
 //Sorts game objects by season
 //Awards xp
-contract GameManager is Owned, ContractRegistry{
+contract GameManager is Owned{
     ZXP zxp;
     address admin;
     

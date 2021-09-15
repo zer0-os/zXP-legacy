@@ -1,11 +1,10 @@
 pragma solidity ^0.8.0;
 
-contract ZXP{
-    mapping(address => uint256) public userXP;
-    mapping(uint256 => uint256) public itemXP;
+import "./Owned.sol";
 
+contract ZXP is Owned{
     function awardUserXP(address awardee, uint256 amount) internal {
-        userXP[awardee] += amount;
+        charXP[awardee] += amount;
     }
     
     function awardItemXP(uint256 awardee, uint256 amount) internal {

@@ -9,8 +9,8 @@ import "./interfaces/IContractRegistry.sol";
 */
 contract ContractRegistryClient is Owned, Utils {
     bytes32 internal constant CONTRACT_REGISTRY = "ContractRegistry";
-    bytes32 internal constant ITEMS = "Items";
-    bytes32 internal constant MANAGER = "Manager";        
+    bytes32 internal constant ITEM_MANAGER = "ItemManager";
+    bytes32 internal constant GAME_MANAGER = "GameManager";        
     bytes32 internal constant ZXP = "Zxp";
 
     IContractRegistry public registry;      // address of the current contract-registry
