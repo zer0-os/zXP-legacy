@@ -1,7 +1,6 @@
 pragma solidity ^0.8.0;
 
-
-import "./items/Item.sol";
+import "./items/base/Item.sol";
 import "./Owned.sol";
 import "./ContractRegistryClient.sol";
 import "./interfaces/IContractRegistry.sol";
@@ -19,12 +18,4 @@ contract ItemManager is Owned, ContractRegistryClient{
     function generate() external {}
     
     function attach(Item item) external {}
-
-    function advanceSeason(bytes32 _contractName, address _contractAddress) public
-        ownerOnly
-        validAddress(_contractAddress)
-    {
-        super.registerAddress(_contractName, _contractAddress);
-        contractSeason[addressOf(_contractName)]++;
-    }
 }

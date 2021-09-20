@@ -20,7 +20,7 @@ contract Owned is IOwned {
     /**
       * @dev initializes a new Owned instance
     */
-    constructor() public {
+    constructor() {
         owner = msg.sender;
     }
 
