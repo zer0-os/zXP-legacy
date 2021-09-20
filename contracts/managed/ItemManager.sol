@@ -14,8 +14,6 @@ contract ItemManager is Owned, ContractRegistryClient{
     }
 
     constructor(IContractRegistry registry) ContractRegistryClient(registry) {}
-
-    function generate() external {}
     
-    function attach(Item item) external {}
+    function attach(Item item) external ownerOnly() {}
 }
