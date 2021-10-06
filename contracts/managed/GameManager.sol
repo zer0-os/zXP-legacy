@@ -7,5 +7,5 @@ import "./Owned.sol";
 //Sorts game objects by season
 //Awards xp
 contract GameManager is Owned{
-    
+    //Game logic
 }
