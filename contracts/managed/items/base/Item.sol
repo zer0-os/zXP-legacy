@@ -7,17 +7,23 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 contract Item is ContractRegistryClient{
     uint256 public xp;
     uint256 public currentSeason;
+    bytes32 public itemType;
     bytes32 public generator;
+    
     mapping(bytes32 => uint256) public nftToItem;
     mapping(uint256 => address) public itemToNftContract;
     mapping(uint256 => uint256) public itemToNftId;
     mapping(uint256 => uint256) public itemToSeason;
     
     constructor(
+        bytes32 itemTypeName,
         bytes32 generatorName,
         IContractRegistry registry
     )
-    ContractRegistryClient(registry) {generator = generatorName;}
+    ContractRegistryClient(registry) {
+        itemType = itemTypeName;
+        generator = generatorName;
+    }
 
     ///Attaches ItemType to NFT
     function attach(address nftContractAddress, uint256 nftId, uint256 wheelId) external virtual only(ITEM_MANAGER) {

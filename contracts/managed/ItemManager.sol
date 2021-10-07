@@ -12,7 +12,8 @@ contract ItemManager is Owned, Licenser, ContractRegistryClient{
         require(msg.sender == ERC721(item.itemToNftContract(itemId)).ownerOf(item.itemToNftId(itemId)));
         _;
     }
-    modifier consumeLicense(){
+    modifier consumeLicense(bytes32 itemType, uint256 itemId){
+        licensee[itemType][itemId] = address(0);
         _;
     }
     
@@ -24,7 +25,7 @@ contract ItemManager is Owned, Licenser, ContractRegistryClient{
 
     constructor(IContractRegistry registry) ContractRegistryClient(registry) {}
     
-    function attach(Item item, uint256 itemId, address nftContractAddress, uint256 nftId, uint256 wheelId) external onlyNftOwner(item, itemId) consumeLicense() {
+    function attach(Item item, uint256 itemId, address nftContractAddress, uint256 nftId, uint256 wheelId) external onlyNftOwner(item, itemId) consumeLicense(item.itemType, itemId) {
         item.attach(nftContractAddress, nftId, wheelId);
     }
     

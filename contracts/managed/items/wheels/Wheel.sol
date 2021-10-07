@@ -8,7 +8,7 @@ import "../../interfaces/IContractRegistry.sol";
 contract Wheel is Item{
     mapping(uint256 => bool) wheelScrapped;
 
-    constructor(bytes32 _generator, IContractRegistry registry) Item(_generator, registry) {}
+    constructor(bytes32 _generator, IContractRegistry registry) Item("Wheel", _generator, registry) {}
 
     function scrap(uint256 wheelId) external only("ItemManager") {
         wheelScrapped[wheelId] = true;
