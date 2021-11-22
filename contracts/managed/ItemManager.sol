@@ -15,6 +15,7 @@ contract ItemManager is Owned, Licenser, ItemRegistryClient{
         _;
     }
     modifier consumeLicense(bytes32 itemType, uint256 itemId){
+        require(licensee[itemType][itemId] == msg.sender);
         licensee[itemType][itemId] = address(0);
         _;
     }

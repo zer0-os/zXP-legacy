@@ -66,6 +66,8 @@ contract ItemRegistry is IItemRegistry, Owned, Utils {
         ownerOnly
         validAddress(_contractAddress)
     {
+        //Prevent overwrite
+        require(addressOf(_contractName, 0) == address(0), "ERR_NAME_TAKEN");
         // validate input
         require(_contractName.length > 0, "ERR_INVALID_NAME");
 
@@ -103,15 +105,16 @@ contract ItemRegistry is IItemRegistry, Owned, Utils {
         ownerOnly
         validAddress(_newContractAddress)
     {
+        
+        // validate input
+        require(_contractName.length > 0, "ERR_INVALID_NAME");
+        // validate contract name is registered
+        require(items[_contractName][0].contractAddress != address(0), "ERR_UNREGISTERED_NAME");
+        
         //Increment season on item
         Item item = Item(addressOf(_contractName, 0));
         item.incrementSeason();
         item.awardXP(xpAward);
-        // validate input
-        require(_contractName.length > 0, "ERR_INVALID_NAME");
-
-        require(items[_contractName][0].contractAddress != address(0));
-
         // update the address in the registry
         items[_contractName][items[_contractName][0].currentSeason + 1].contractAddress = _newContractAddress;
 
