@@ -10,7 +10,7 @@ contract Wheel is Item{
 
     constructor(bytes32 _generator, IItemRegistry registry) Item("Wheel", registry) {}
 
-    function scrap(uint256 wheelId) external only(ITEM_MANAGER, 0) {
+    function scrap(uint256 wheelId) external only(ITEM_MANAGER) {
         wheelScrapped[wheelId] = true;
     }
 

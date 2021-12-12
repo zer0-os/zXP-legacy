@@ -17,7 +17,7 @@ contract Item is ItemRegistryClient{
     mapping(uint256 => uint256) public itemToSeason;
     
     modifier onlyItemManager(){
-        require(msg.sender == itemManager);
+        require(msg.sender == addressOf(ITEM_MANAGER), "Unauthorized item manager");
         _;
     }
     constructor(
@@ -28,8 +28,8 @@ contract Item is ItemRegistryClient{
         itemType = itemTypeName;
     }
 
-    ///Attaches ItemType to NFT - Makes NFT owner the implicit owner of an Item of ItemType
-    function attach(address nftContractAddress, uint256 nftId, uint256 itemId) external virtual onlyItemManager() {
+    ///Attaches ItemType to NFT - Makes NFT owner the implicit owner of an Item of ItemType.
+    function attach(address nftContractAddress, uint256 nftId, uint256 itemId) external onlyItemManager() {
         require(nftToItem[keccak256(abi.encode(nftContractAddress, nftId))] == 0, "itemID taken");
         nftToItem[keccak256(abi.encode(nftContractAddress, nftId))] = itemId;
         itemToNftContract[itemId] = nftContractAddress;

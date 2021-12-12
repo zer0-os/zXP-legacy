@@ -21,9 +21,10 @@ contract ItemRegistry is IItemRegistry, Owned, Utils {
     struct RegistryItem {
         address contractAddress;    // contract address
         uint256 nameIndex;          // index of the item in the list of contract names
-        uint256 currentSeason;
+        //uint256 currentSeason;
     }
 
+    mapping(bytes32 => RegistryItem) private managers; /// Managers dont need seasons, may be reregistered at will by admin
     mapping (bytes32 => mapping(uint256 => RegistryItem)) private items;    // name -> season -> RegistryItem mapping
     string[] public contractNames;                      // list of all registered contract names
 
@@ -51,10 +52,12 @@ contract ItemRegistry is IItemRegistry, Owned, Utils {
       *
       * @return contract address
     */
-    function addressOf(bytes32 _contractName, uint256 season) public view override returns (address) {
+    function addressOf(bytes32 _contractName) public view override returns (address) {
+        return managers[_contractName].contractAddress;
+    }
+    function addressOfItem(bytes32 _contractName, uint256 season) public view override returns (address) {
         return items[_contractName][season].contractAddress;
     }
-
     /**
       * @dev registers a new address for the contract name in the registry
       *
@@ -67,7 +70,7 @@ contract ItemRegistry is IItemRegistry, Owned, Utils {
         validAddress(_contractAddress)
     {
         //Prevent overwrite
-        require(addressOf(_contractName, 0) == address(0), "ERR_NAME_TAKEN");
+        require(addressOfItem(_contractName, 0) == address(0), "ERR_NAME_TAKEN");
         // validate input
         require(_contractName.length > 0, "ERR_INVALID_NAME");
 
@@ -85,7 +88,7 @@ contract ItemRegistry is IItemRegistry, Owned, Utils {
             contractNames.push(bytes32ToString(_contractName));
 
             // set season
-            items[_contractName][0].currentSeason = 0;
+            //items[_contractName][0].currentSeason = 0;
         }
 
         // update the address in the registry
@@ -112,14 +115,76 @@ contract ItemRegistry is IItemRegistry, Owned, Utils {
         require(items[_contractName][0].contractAddress != address(0), "ERR_UNREGISTERED_NAME");
         
         //Increment season on item
-        Item item = Item(addressOf(_contractName, 0));
+        Item item = Item(addressOfItem(_contractName, 0));
         item.incrementSeason();
         item.awardXP(xpAward);
         // update the address in the registry
-        items[_contractName][items[_contractName][0].currentSeason + 1].contractAddress = _newContractAddress;
+        items[_contractName][Item(items[_contractName][0].contractAddress).currentSeason() + 1].contractAddress = _newContractAddress;
 
         // dispatch the address update event
         emit AddressUpdate(_contractName, _newContractAddress);
+    }
+
+    function registerAddress(bytes32 _contractName, address _contractAddress)
+        public
+        ownerOnly
+        validAddress(_contractAddress)
+    {
+        // validate input
+        require(_contractName.length > 0, "ERR_INVALID_NAME");
+
+        // check if any change is needed
+        address currentAddress = managers[_contractName].contractAddress;
+        if (_contractAddress == currentAddress)
+            return;
+
+        if (currentAddress == address(0)) {
+            // update the item's index in the list
+            managers[_contractName].nameIndex = contractNames.length;
+
+            // add the contract name to the name list
+            contractNames.push(bytes32ToString(_contractName));
+        }
+
+        // update the address in the registry
+        managers[_contractName].contractAddress = _contractAddress;
+
+        // dispatch the address update event
+        emit AddressUpdate(_contractName, _contractAddress);
+    }
+
+    /**
+      * @dev removes an existing contract address from the registry
+      *
+      * @param _contractName contract name
+    */
+    function unregisterAddress(bytes32 _contractName) public ownerOnly {
+        // validate input
+        require(_contractName.length > 0, "ERR_INVALID_NAME");
+        require(managers[_contractName].contractAddress != address(0), "ERR_INVALID_NAME");
+
+        // remove the address from the registry
+        managers[_contractName].contractAddress = address(0);
+
+        // if there are multiple items in the registry, move the last element to the deleted element's position
+        // and modify last element's registryItem.nameIndex in the items collection to point to the right position in contractNames
+        if (contractNames.length > 1) {
+            string memory lastContractNameString = contractNames[contractNames.length - 1];
+            uint256 unregisterIndex = managers[_contractName].nameIndex;
+
+            contractNames[unregisterIndex] = lastContractNameString;
+            bytes32 lastContractName = stringToBytes32(lastContractNameString);
+            RegistryItem storage registryItem = managers[lastContractName];
+            registryItem.nameIndex = unregisterIndex;
+        }
+
+        // remove the last element from the name list
+        contractNames.pop();
+        // zero the deleted element's index
+        managers[_contractName].nameIndex = 0;
+
+        // dispatch the address update event
+        emit AddressUpdate(_contractName, address(0));
     }
 
     /**
@@ -149,12 +214,5 @@ contract ItemRegistry is IItemRegistry, Owned, Utils {
             result := mload(add(_string,32))
         }
         return result;
-    }
-
-    /**
-      * @dev deprecated, backward compatibility
-    */
-    function getAddress(bytes32 _contractName, uint256 season) public view returns (address) {
-        return addressOf(_contractName, season);
     }
 }

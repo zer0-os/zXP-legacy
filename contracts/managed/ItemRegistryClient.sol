@@ -23,14 +23,14 @@ contract ItemRegistryClient is Owned, Utils {
       *
       * @param _contractName    contract name
     */
-    modifier only(bytes32 _contractName, uint256 _season) {
-        _only(_contractName, _season);
+    modifier only(bytes32 _contractName) {
+        _only(_contractName);
         _;
     }
 
     // error message binary size optimization
-    function _only(bytes32 _contractName, uint256 _season) internal view {
-        require(msg.sender == addressOf(_contractName, _season), "ERR_ACCESS_DENIED_regcli");
+    function _only(bytes32 _contractName) internal view {
+        require(msg.sender == addressOf(_contractName), "ERR_ACCESS_DENIED_regcli");
     }
 
     /**
@@ -51,13 +51,13 @@ contract ItemRegistryClient is Owned, Utils {
         require(msg.sender == owner || !onlyOwnerCanUpdateRegistry, "ERR_ACCESS_DENIED_regup");
 
         // get the new contract-registry
-        IItemRegistry newRegistry = IItemRegistry(addressOf(ITEM_REGISTRY, 0));
+        IItemRegistry newRegistry = IItemRegistry(addressOf(ITEM_REGISTRY));
 
         // verify that the new contract-registry is different and not zero
         require(newRegistry != registry && address(newRegistry) != address(0), "ERR_INVALID_REGISTRY");
 
         // verify that the new contract-registry is pointing to a non-zero contract-registry
-        require(newRegistry.addressOf(ITEM_REGISTRY, 0) != address(0), "ERR_INVALID_REGISTRY");
+        require(newRegistry.addressOf(ITEM_REGISTRY) != address(0), "ERR_INVALID_REGISTRY");
 
         // save a backup of the current contract-registry before replacing it
         prevRegistry = registry;
@@ -91,7 +91,10 @@ contract ItemRegistryClient is Owned, Utils {
       *
       * @return contract address
     */
-    function addressOf(bytes32 _contractName, uint256 _season) internal view returns (address) {
-        return registry.addressOf(_contractName, _season);
+    function addressOf(bytes32 _contractName) internal view returns (address) {
+        return registry.addressOf(_contractName);
+    }
+    function addressOfItem(bytes32 _contractName, uint256 season) internal view returns (address) {
+        return registry.addressOfItem(_contractName, season);
     }
 }
