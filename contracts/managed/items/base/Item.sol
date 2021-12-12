@@ -28,13 +28,13 @@ contract Item is ItemRegistryClient{
         itemType = itemTypeName;
     }
 
-    ///Attaches ItemType to NFT
-    function attach(address nftContractAddress, uint256 nftId, uint256 wheelId) external virtual onlyItemManager() {
-        require(nftToItem[keccak256(abi.encode(nftContractAddress, nftId))] == 0, "Wheel: WheelID taken");
-        nftToItem[keccak256(abi.encode(nftContractAddress, nftId))] = wheelId;
-        itemToNftContract[wheelId] = nftContractAddress;
-        itemToNftId[wheelId] = nftId;
-        itemToSeason[wheelId] = currentSeason;
+    ///Attaches ItemType to NFT - Makes NFT owner the implicit owner of an Item of ItemType
+    function attach(address nftContractAddress, uint256 nftId, uint256 itemId) external virtual onlyItemManager() {
+        require(nftToItem[keccak256(abi.encode(nftContractAddress, nftId))] == 0, "itemID taken");
+        nftToItem[keccak256(abi.encode(nftContractAddress, nftId))] = itemId;
+        itemToNftContract[itemId] = nftContractAddress;
+        itemToNftId[itemId] = nftId;
+        itemToSeason[itemId] = currentSeason;
     }
 
     function incrementSeason() external onlyItemManager() {
