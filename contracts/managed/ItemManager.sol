@@ -8,10 +8,6 @@ import "./interfaces/IItemRegistry.sol";
 contract ItemManager is Owned, ItemRegistryClient{
     mapping(bytes32 => bool) public licensed; //keccak256(itemtype, id, licensee) to licensed?
     //Item logic  
-    modifier onlyNftOwner(Item item, uint256 itemId){
-        require(msg.sender == ERC721(item.itemToNftContract(itemId)).ownerOf(item.itemToNftId(itemId)));
-        _;
-    }
     ///on consumption, the license hash submitted by the admin in issue must match the hashed item data requested by user
     modifier consumeLicense(bytes32 itemType, uint256 itemId){
         require(licensed[keccak256(abi.encode(itemType, itemId, msg.sender))] == true, "Unlicensed");
@@ -27,7 +23,7 @@ contract ItemManager is Owned, ItemRegistryClient{
 
     constructor(IItemRegistry registry) ItemRegistryClient(registry) {}
     
-    function attach(Item item, uint256 itemId, address nftContractAddress, uint256 nftId) external {//onlyNftOwner(item, itemId) consumeLicense(item.itemType(), itemId) {
+    function attachItemToNft(Item item, uint256 itemId, address nftContractAddress, uint256 nftId) external consumeLicense(item.itemType(), itemId) {
         item.attach(nftContractAddress, nftId, itemId);
         emit Attached(address(item), itemId, nftContractAddress, nftId);
     }

@@ -49,7 +49,7 @@ describe("zXP", function () {
     expect(await im.licensed(ethers.utils.keccak256(ethers.utils.defaultAbiCoder.encode(["bytes32", "uint256", "address"],[ethers.utils.formatBytes32String("Wheel"), 12345, addy])))).to.equal(true);
     //await issuetx.wait();
     //Attach wheel zero 
-    expect(await im.adminAttach(wheel.address, 12345, token.address, 0)).to.emit(im, "Attached");
+    expect(await im.attachItemToNft(wheel.address, 12345, token.address, 0)).to.emit(im, "Attached");
     //await attachtx.wait();
     //console.log(attachtx);
     console.log(ethers.utils.keccak256(ethers.utils.defaultAbiCoder.encode(["address","uint256"],[token.address, 0])));
