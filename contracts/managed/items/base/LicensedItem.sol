@@ -5,13 +5,15 @@ import "../../ZXP.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "../../interfaces/IItemRegistry.sol";
 
-contract Item is ItemRegistryClient{
+contract LicensedItem is ItemRegistryClient{
     uint256 public xp;
     uint256 public currentSeason;
     bytes32 public itemType;
     bytes32 public generator;
-    address public nftcontract;
     
+    mapping(bytes32 => uint256) public nftToItem;
+    mapping(uint256 => address) public itemToNftContract;
+    mapping(uint256 => uint256) public itemToNftId;
     mapping(uint256 => uint256) public itemToSeason;
     
     modifier onlyItemManager(){
@@ -27,8 +29,12 @@ contract Item is ItemRegistryClient{
     }
 
     ///Attaches ItemType to NFT - Makes NFT owner the implicit owner of an Item of ItemType.
-    function attach(address nftContractAddress) external onlyItemManager() {
-        nftcontract = nftContractAddress;
+    function attach(address nftContractAddress, uint256 nftId, uint256 itemId) external onlyItemManager() {
+        require(nftToItem[keccak256(abi.encode(nftContractAddress, nftId))] == 0, "itemID taken");
+        nftToItem[keccak256(abi.encode(nftContractAddress, nftId))] = itemId;
+        itemToNftContract[itemId] = nftContractAddress;
+        itemToNftId[itemId] = nftId;
+        itemToSeason[itemId] = currentSeason;
     }
 
     function incrementSeason() external onlyItemManager() {

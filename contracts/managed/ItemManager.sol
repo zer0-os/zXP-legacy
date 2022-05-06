@@ -1,6 +1,7 @@
 pragma solidity ^0.8.0;
 
 import "./items/base/Item.sol";
+import "./items/base/LicensedItem.sol";
 import "./Owned.sol";
 import "./ItemRegistryClient.sol";
 import "./interfaces/IItemRegistry.sol";
@@ -23,7 +24,12 @@ contract ItemManager is Owned, ItemRegistryClient{
 
     constructor(IItemRegistry registry) ItemRegistryClient(registry) {}
     
-    function attachItemToNft(Item item, uint256 itemId, address nftContractAddress, uint256 nftId) external consumeLicense(item.itemType(), itemId) {
+    function attachItemToNftContract(Item item, address nftContractAddress){
+        item.attach(nftContractAddress);
+        //emit Attached()
+    }
+
+    function attachLicensedItemToNft(LicensedItem item, uint256 itemId, address nftContractAddress, uint256 nftId) external consumeLicense(item.itemType(), itemId) {
         item.attach(nftContractAddress, nftId, itemId);
         emit Attached(address(item), itemId, nftContractAddress, nftId);
     }
