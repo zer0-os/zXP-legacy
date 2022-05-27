@@ -4,7 +4,17 @@ import "./Owned.sol";
 import "./items/base/Item.sol";
 
 contract ZXP is Owned{
-    function awardItemXP(Item item, uint256 amount) internal {
+    function seasonLock() public payable {}
+
+    function awardItemXP(Item item, uint256 amount)  {
         item.awardXP(amount);
+    }
+    
+    function awardCharacterXP(Character char, uint256 amount) {
+        character.awardXP(amount);
+    }
+
+    function unlock(uint amt) public onlyItemManager{
+        payable(msg.sender).transfer(amt);
     }
 }
