@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 import "./Owned.sol";
 import "./items/base/Item.sol";
 
-contract ZXP is Owned{
+contract ZXP is Owned, ItemRegistryClient{
     function seasonLock() public payable {}
 
     function awardItemXP(Item item, uint256 amount)  {

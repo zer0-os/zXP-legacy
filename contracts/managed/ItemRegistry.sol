@@ -18,14 +18,14 @@ import "./items/base/Item.sol";
   * Note that contract names are limited to 32 bytes UTF8 encoded ASCII strings to optimize gas costs
 */
 contract ItemRegistry is IItemRegistry, Owned, Utils {
-    struct RegistryItem {
+    struct RegistryObject {
         address contractAddress;    // contract address
         uint256 nameIndex;          // index of the item in the list of contract names
         //uint256 currentSeason;
     }
 
-    mapping(bytes32 => RegistryItem) private managers; /// Managers dont need seasons, may be reregistered at will by admin
-    mapping (bytes32 => mapping(uint256 => RegistryItem)) private items;    // name -> season -> RegistryItem mapping
+    mapping(bytes32 => RegistryObject) private managers; /// Managers dont need seasons, may be reregistered at will by admin
+    mapping (bytes32 => mapping(uint256 => RegistryObject)) private items;    // name -> season -> RegistryObject mapping
     string[] public contractNames;                      // list of all registered contract names
 
     /**
@@ -151,40 +151,6 @@ contract ItemRegistry is IItemRegistry, Owned, Utils {
 
         // dispatch the address update event
         emit AddressUpdate(_contractName, _contractAddress);
-    }
-
-    /**
-      * @dev removes an existing contract address from the registry
-      *
-      * @param _contractName contract name
-    */
-    function unregisterAddress(bytes32 _contractName) public ownerOnly {
-        // validate input
-        require(_contractName.length > 0, "ERR_INVALID_NAME");
-        require(managers[_contractName].contractAddress != address(0), "ERR_INVALID_NAME");
-
-        // remove the address from the registry
-        managers[_contractName].contractAddress = address(0);
-
-        // if there are multiple items in the registry, move the last element to the deleted element's position
-        // and modify last element's registryItem.nameIndex in the items collection to point to the right position in contractNames
-        if (contractNames.length > 1) {
-            string memory lastContractNameString = contractNames[contractNames.length - 1];
-            uint256 unregisterIndex = managers[_contractName].nameIndex;
-
-            contractNames[unregisterIndex] = lastContractNameString;
-            bytes32 lastContractName = stringToBytes32(lastContractNameString);
-            RegistryItem storage registryItem = managers[lastContractName];
-            registryItem.nameIndex = unregisterIndex;
-        }
-
-        // remove the last element from the name list
-        contractNames.pop();
-        // zero the deleted element's index
-        managers[_contractName].nameIndex = 0;
-
-        // dispatch the address update event
-        emit AddressUpdate(_contractName, address(0));
     }
 
     /**
