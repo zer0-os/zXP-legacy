@@ -3,8 +3,8 @@ pragma solidity ^0.8.0;
 import "./items/base/Item.sol";
 import "./items/base/LicensedItem.sol";
 import "./Owned.sol";
-import "./ItemRegistryClient.sol";
-import "./interfaces/IItemRegistry.sol";
+import "../RegistryClient.sol";
+import "../../interfaces/IRegistry.sol";
 
 contract ItemManager is Owned, ItemRegistryClient{
     mapping(bytes32 => bool) public licensed; //keccak256(itemtype, id, licensee) to licensed?

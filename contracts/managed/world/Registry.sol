@@ -17,13 +17,13 @@ import "./items/base/Item.sol";
   *
   * Note that contract names are limited to 32 bytes UTF8 encoded ASCII strings to optimize gas costs
 */
-contract ItemRegistry is IItemRegistry, Owned, Utils {
+contract Registry is IRegistry, Owned, Utils {
     struct RegistryObject {
-        address contractAddress;    // contract address
-        uint256 nameIndex;          // index of the item in the list of contract names
-        //uint256 currentSeason;
+        address contractAddress;    
+        uint256 nameIndex;          // index in contractNames     
     }
 
+    mapping(uint => uint) currentSeason; //name to current season
     mapping(bytes32 => RegistryObject) private managers; /// Managers dont need seasons, may be reregistered at will by admin
     mapping (bytes32 => mapping(uint256 => RegistryObject)) private items;    // name -> season -> RegistryObject mapping
     string[] public contractNames;                      // list of all registered contract names

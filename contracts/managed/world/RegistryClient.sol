@@ -1,16 +1,16 @@
 pragma solidity ^0.8.0;
 
-import "./Owned.sol";
 import "./Utils.sol";
-import "./interfaces/IItemRegistry.sol";
+import "./interfaces/IRegistry.sol";
 
 /**
   * @dev Base contract for ContractRegistry clients
 */
-contract ItemRegistryClient is Owned, Utils {
-    bytes32 internal constant ITEM_REGISTRY = "ItemRegistry";
-    bytes32 internal constant ITEM_MANAGER = "ItemManager";
-    bytes32 internal constant GAME_MANAGER = "GameManager";        
+contract RegistryClient is Utils {
+    bytes32 internal constant ITEM_REGISTRY = "Registry";
+    bytes32 internal constant ITEM_MANAGER = "Games";
+    bytes32 internal constant ITEM_MANAGER = "Items";
+    bytes32 internal constant GAME_MANAGER = "Games";        
     bytes32 internal constant ZXP = "Zxp";
 
     address public itemManager; 

@@ -4,9 +4,9 @@ pragma solidity ^0.8.0;
 /*
     Contract Registry interface
 */
-interface IContractRegistry {
+interface IRegistry {
     function addressOf(bytes32 _contractName) external view returns (address);
-    function addressOfItem(bytes32 _contractName, uint32 season) external;
-    function advanceSeason(bytes32 _contractName, address _newContractAddress, uint256 xpAward) external;
+    function addressOfItem(bytes32 _contractName, uint256 season) external view returns (address);
     function itemCount() external view returns (uint256);
+    function advanceSeason(bytes32 _contractName, address _newContractAddress, uint256 xpAward) external;
 }
