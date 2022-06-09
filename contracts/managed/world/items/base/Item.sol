@@ -1,9 +1,9 @@
 pragma solidity ^0.8.0;
 
-import "../../ItemRegistryClient.sol";
+import "../../RegistryClient.sol";
 import "../../ZXP.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "../../interfaces/IItemRegistry.sol";
+import "../../interfaces/IRegistry.sol";
 
 contract Item is ItemRegistryClient{
     uint256 public xp;
