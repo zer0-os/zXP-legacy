@@ -1,6 +1,7 @@
 pragma solidity ^0.8.4;
 import "./Owned.sol";
 contract Licenser{
+    /*
     ///todo merkle root setup
     mapping(bytes32 => bool) licensed; //keccak256(itemtype, id, licensee) to licensed?
     //mapping(bytes32 => mapping(uint256 => address)) public licensee; //itemType to id to licensee
@@ -25,4 +26,5 @@ contract Licenser{
     event Licensed(bytes32 typeIdAddressHash);
     event Attached(address indexed, uint256, address, uint256);
     //function issueTournamentLicense() internal {}
+    */
 }

@@ -1,14 +1,14 @@
-pragma solidity 0.8.14;
+pragma solidity ^0.8.0;
 
 import "../Owned.sol";
 
 contract World is Owned {
     uint season;
     mapping(uint => bool) started;
-    function startSeason() ownerOnly {
+    function startSeason() public ownerOnly {
         started[season] = true;
     } 
-    function advanceSeason() ownerOnly {
+    function advanceSeason() public ownerOnly {
         season++;
     }
 }

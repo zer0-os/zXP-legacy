@@ -1,20 +1,20 @@
 pragma solidity ^0.8.0;
 
-import "./Utils.sol";
-import "./interfaces/IRegistry.sol";
+import "../Utils.sol";
+import "../interfaces/IRegistry.sol";
 
 /**
   * @dev Base contract for ContractRegistry clients
 */
 contract RegistryClient is Utils {
     bytes32 internal constant ITEM_REGISTRY = "Registry";
-    bytes32 internal constant ITEM_MANAGER = "Games";
+    bytes32 internal constant GAME_MANAGER = "Games";
     bytes32 internal constant ITEM_MANAGER = "Items";
-    bytes32 internal constant GAME_MANAGER = "Games";        
+    bytes32 internal constant CHARACTER_MANAGER = "Characters";        
     bytes32 internal constant ZXP = "Zxp";
 
     address public itemManager; 
-    IItemRegistry public registry;      // address of the contract-registry
+    IRegistry public registry;      // address of the contract-registry
 
     /**
       * @dev verifies that the caller is mapped to the given contract name
@@ -36,9 +36,8 @@ contract RegistryClient is Utils {
       *
       * @param  _registry   address of a contract-registry contract
     */
-    constructor(IItemRegistry _registry) validAddress(address(_registry)) {
-        registry = IItemRegistry(_registry);
-        prevRegistry = IItemRegistry(_registry);
+    constructor(IRegistry _registry) validAddress(address(_registry)) {
+        registry = IRegistry(_registry);
     }
 
 

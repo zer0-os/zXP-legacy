@@ -3,9 +3,9 @@ pragma solidity ^0.8.0;
 import "../../RegistryClient.sol";
 import "../../ZXP.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "../../interfaces/IRegistry.sol";
+import "../../../interfaces/IRegistry.sol";
 
-contract Item is ItemRegistryClient{
+contract Item is RegistryClient{
     uint256 public xp;
     uint256 public currentSeason;
     bytes32 public itemType;
@@ -20,9 +20,9 @@ contract Item is ItemRegistryClient{
     }
     constructor(
         bytes32 itemTypeName,
-        IItemRegistry registry
+        IRegistry registry
     )
-    ItemRegistryClient(registry) {
+    RegistryClient(registry) {
         itemType = itemTypeName;
     }
 
