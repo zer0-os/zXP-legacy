@@ -1,9 +1,8 @@
 pragma solidity ^0.8.0;
 
-import "../../RegistryClient.sol";
-import "../../ZXP.sol";
+import "../RegistryClient.sol";
+import "../../interfaces/IRegistry.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "../../../interfaces/IRegistry.sol";
 
 contract Item is RegistryClient{
     uint256 public xp;
@@ -15,7 +14,7 @@ contract Item is RegistryClient{
     mapping(uint256 => uint256) public itemToSeason;
     
     modifier onlyItemManager(){
-        require(msg.sender == addressOf(ITEM_MANAGER), "Unauthorized item manager");
+        require(msg.sender == addressOf(ITEM_MANAGER, season), "Unauthorized item manager");
         _;
     }
     constructor(

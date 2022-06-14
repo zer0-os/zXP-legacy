@@ -2,6 +2,13 @@ pragma solidity ^0.8.4;
 import "./Owned.sol";
 contract Licenser{
     /*
+    mapping(bytes32 => bool) public licensed; //keccak256(itemtype, id, licensee) to licensed?
+    ///on consumption, the license hash submitted by the admin in issue must match the hashed item data requested by user
+    modifier consumeLicense(bytes32 itemType, uint256 itemId){
+        require(licensed[keccak256(abi.encode(itemType, itemId, msg.sender))] == true, "Unlicensed");
+        licensed[keccak256(abi.encode(itemType, itemId, msg.sender))] = false;
+        _;
+    }
     ///todo merkle root setup
     mapping(bytes32 => bool) licensed; //keccak256(itemtype, id, licensee) to licensed?
     //mapping(bytes32 => mapping(uint256 => address)) public licensee; //itemType to id to licensee

@@ -16,19 +16,21 @@ contract RegistryClient is Utils {
     address public itemManager; 
     IRegistry public registry;      // address of the contract-registry
 
+    uint public season;
+
     /**
       * @dev verifies that the caller is mapped to the given contract name
       *
       * @param _contractName    contract name
     */
     modifier only(bytes32 _contractName) {
-        _only(_contractName);
+        _only(_contractName, season);
         _;
     }
 
     // error message binary size optimization
-    function _only(bytes32 _contractName) internal view {
-        require(msg.sender == addressOf(_contractName), "ERR_ACCESS_DENIED_regcli");
+    function _only(bytes32 _contractName, uint _season) internal view {
+        require(msg.sender == addressOf(_contractName, _season), "ERR_ACCESS_DENIED_regcli");
     }
 
     /**
@@ -48,10 +50,7 @@ contract RegistryClient is Utils {
       *
       * @return contract address
     */
-    function addressOf(bytes32 _contractName) internal view returns (address) {
-        return registry.addressOf(_contractName);
-    }
-    function addressOfItem(bytes32 _contractName, uint256 season) internal view returns (address) {
-        return registry.addressOfItem(_contractName, season);
+    function addressOf(bytes32 _contractName, uint256 _season) internal view returns (address) {
+        return registry.addressOf(_contractName, _season);
     }
 }

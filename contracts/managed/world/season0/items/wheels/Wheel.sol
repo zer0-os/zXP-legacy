@@ -1,9 +1,9 @@
 pragma solidity ^0.8.0;
 
-import "../base/Item.sol";
+import "../../../base/Item.sol";
 //import "./Scrap.sol";
 //import "./Engine.sol";
-import "../../../interfaces/IRegistry.sol";
+import "../../../../interfaces/IRegistry.sol";
 
 contract Wheel is Item{
     mapping(uint256 => bool) public wheelScrapped;

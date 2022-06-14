@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "../Owned.sol";
 import "../Utils.sol";
 import "../interfaces/IRegistry.sol";
-import "./items/base/Item.sol";
+import "./base/Item.sol";
 
 /**
   * @dev Contract Registry
@@ -23,25 +23,16 @@ contract Registry is IRegistry, Owned, Utils {
         uint256 nameIndex;          // index in contractNames     
     }
 
-    mapping(uint => uint) currentSeason; //name to current season
-    mapping(bytes32 => RegistryObject) private managers; /// Managers dont need seasons, may be reregistered at will by admin
-    mapping (bytes32 => mapping(uint256 => RegistryObject)) private items;    // name -> season -> RegistryObject mapping
+    uint public currentSeason;
+    mapping (bytes32 => mapping(uint256 => RegistryObject)) private objects;    // name to season to registry object
     string[] public contractNames;                      // list of all registered contract names
 
     /**
-      * @dev triggered when an address pointed to by a contract name is modified
+      * @dev returns the number of objects in the registry
       *
-      * @param _contractName    contract name
-      * @param _contractAddress new contract address
+      * @return number of objects
     */
-    event AddressUpdate(bytes32 indexed _contractName, address _contractAddress);
-
-    /**
-      * @dev returns the number of items in the registry
-      *
-      * @return number of items
-    */
-    function itemCount() public view override returns (uint256) {
+    function objectCount() public view override returns (uint256) {
         return contractNames.length;
     }
 
@@ -52,11 +43,8 @@ contract Registry is IRegistry, Owned, Utils {
       *
       * @return contract address
     */
-    function addressOf(bytes32 _contractName) public view override returns (address) {
-        return managers[_contractName].contractAddress;
-    }
-    function addressOfItem(bytes32 _contractName, uint256 season) public view override returns (address) {
-        return items[_contractName][season].contractAddress;
+    function addressOf(bytes32 _contractName, uint256 season) public view override returns (address) {
+        return objects[_contractName][season].contractAddress;
     }
     /**
       * @dev registers a new address for the contract name in the registry
@@ -64,93 +52,54 @@ contract Registry is IRegistry, Owned, Utils {
       * @param _contractName     contract name
       * @param _contractAddress  contract address
     */
-    function registerItem(bytes32 _contractName, address _contractAddress)
+    function registerAddress(bytes32 _contractName, address _contractAddress)
         public
         ownerOnly
         validAddress(_contractAddress)
     {
         //Prevent overwrite
-        require(addressOfItem(_contractName, 0) == address(0), "ERR_NAME_TAKEN");
+        require(addressOf(_contractName, 0) == address(0), "ERR_NAME_TAKEN");
         // validate input
         require(_contractName.length > 0, "ERR_INVALID_NAME");
 
         // check if any change is needed
         // season 0
-        address currentAddress = items[_contractName][0].contractAddress; 
+        address currentAddress = objects[_contractName][0].contractAddress; 
         if (_contractAddress == currentAddress)
             return;
 
         if (currentAddress == address(0)) {
             // update the item's index in the list
-            items[_contractName][0].nameIndex = contractNames.length;
+            objects[_contractName][0].nameIndex = contractNames.length;
 
             // add the contract name to the name list
             contractNames.push(bytes32ToString(_contractName));
-
-            // set season
-            //items[_contractName][0].currentSeason = 0;
         }
 
         // update the address in the registry
-        items[_contractName][0].contractAddress = _contractAddress;
-
-        // dispatch the address update event
-        emit AddressUpdate(_contractName, _contractAddress);
+        objects[_contractName][0].contractAddress = _contractAddress;
     }
 
     ///Index 0 should always be the base Item contract first deployed and registered, and then advanceSeason adds generators at the following season indices
     ///This automatically persists the basic data on the Item contract, and allows new stats/functionality to be deployed each season.
-    ///For example, to find out something like the current season for an Item, you'd look at items[_contractName][0].currentSeason.
-    ///Note the confusing terminology due to calling game objects Items and the registry entries being called items
+
     function advanceSeason(bytes32 _contractName, address _newContractAddress, uint256 xpAward)
         public
         override
         ownerOnly
         validAddress(_newContractAddress)
     {
-        
         // validate input
         require(_contractName.length > 0, "ERR_INVALID_NAME");
         // validate contract name is registered
-        require(items[_contractName][0].contractAddress != address(0), "ERR_UNREGISTERED_NAME");
+        require(objects[_contractName][0].contractAddress != address(0), "ERR_UNREGISTERED_NAME");
         
         //Increment season on item
-        Item item = Item(addressOfItem(_contractName, 0));
+        Item item = Item(addressOf(_contractName, currentSeason));
         item.incrementSeason();
         item.awardXP(xpAward);
-        // update the address in the registry
-        items[_contractName][Item(items[_contractName][0].contractAddress).currentSeason() + 1].contractAddress = _newContractAddress;
-
-        // dispatch the address update event
-        emit AddressUpdate(_contractName, _newContractAddress);
-    }
-
-    function registerAddress(bytes32 _contractName, address _contractAddress)
-        public
-        ownerOnly
-        validAddress(_contractAddress)
-    {
-        // validate input
-        require(_contractName.length > 0, "ERR_INVALID_NAME");
-
-        // check if any change is needed
-        address currentAddress = managers[_contractName].contractAddress;
-        if (_contractAddress == currentAddress)
-            return;
-
-        if (currentAddress == address(0)) {
-            // update the item's index in the list
-            managers[_contractName].nameIndex = contractNames.length;
-
-            // add the contract name to the name list
-            contractNames.push(bytes32ToString(_contractName));
-        }
-
-        // update the address in the registry
-        managers[_contractName].contractAddress = _contractAddress;
-
-        // dispatch the address update event
-        emit AddressUpdate(_contractName, _contractAddress);
+        //associate new address with new season
+        objects[_contractName][currentSeason + 1].contractAddress = _newContractAddress;
     }
 
     /**
