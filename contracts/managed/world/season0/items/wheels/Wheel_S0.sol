@@ -5,7 +5,7 @@ import "../../../base/Item.sol";
 //import "./Engine.sol";
 import "../../../../interfaces/IRegistry.sol";
 
-contract Wheel is Item{
+contract Wheel_S0 is Item{
     mapping(uint256 => bool) public wheelScrapped;
 
     constructor(bytes32 _generator, IRegistry registry) Item("Wheel", registry) {}
