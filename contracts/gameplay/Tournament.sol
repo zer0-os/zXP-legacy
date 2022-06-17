@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 contract Tournament{
     uint nextId;
     uint minPrize = 1 ether;
-    mapping(uint => uint[3]) top3tournamentPrizes; // 0 is first place 
+    mapping(uint => uint[3]) tournamentPrizes; // 0 is first place 
     mapping(uint => address) tournamentOfficial;
     mapping(address => uint) winnings; 
 
@@ -16,9 +16,9 @@ contract Tournament{
     function declareTop3Tournament(uint first, uint second, uint third) external payable{
         require(msg.value >= minPrize);
         nextId++;
-        tournamentPrizes[nextId].push(first);
-        tournamentPrizes[nextId].push(second);
-        tournamentPrizes[nextId].push(third);
+        tournamentPrizes[nextId][0] = first;
+        tournamentPrizes[nextId][1] = second;
+        tournamentPrizes[nextId][2] = third;
         tournamentOfficial[nextId] = msg.sender;
     }
 
