@@ -21,15 +21,6 @@ describe("zXP", function () {
     const ItemManagerF = await ethers.getContractFactory("ItemManager");
     const itemManager = await ItemManagerF.deploy(registry.address);
     await itemManager.deployed();
-
-    const Wheels = await ethers.getContractFactory("Wheel_S0");
-    const wheel = await Wheels.deploy(ethers.utils.formatBytes32String("WheelGenerator"), registry.address);
-    await wheel.deployed();
-    console.log(wheel.address);
-
-    //await registry.registerAddress(ethers.utils.formatBytes32String("GameManager"), gameManager.address);
-    await registry.registerAddress(ethers.utils.formatBytes32String("ItemManager"), itemManager.address);
-    await registry.registerAddress(ethers.utils.formatBytes32String("Wheel_S0"), wheel.address);
     
     //console.log(regGMtx);
     const addy = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
@@ -44,6 +35,15 @@ describe("zXP", function () {
     await token.deployed();
     await token.mint(addy);
     expect(await token.ownerOf(0)).to.equal(addy);
+
+    const Wheels = await ethers.getContractFactory("Wheel_S0");
+    const wheel = await Wheels.deploy(ethers.utils.formatBytes32String("WheelGenerator"), registry.address, token.address);
+    await wheel.deployed();
+    console.log(wheel.address);
+
+    //await registry.registerAddress(ethers.utils.formatBytes32String("GameManager"), gameManager.address);
+    await registry.registerAddress(ethers.utils.formatBytes32String("ItemManager"), itemManager.address);
+    await registry.registerAddress(ethers.utils.formatBytes32String("Wheel_S0"), wheel.address);
     
     //xpect(await im.attachItemToNft(wheel.address, token.address, 0)).to.emit(itemManager, "Attached");
     
