@@ -5,6 +5,7 @@ describe("zXP", function () {
 
   var _registry; 
   var _itemManager;
+  var _characterManager;
   var _token;
   var _wheel;
 
@@ -25,10 +26,15 @@ describe("zXP", function () {
         await registry.deployed();
         _registry = registry;
         
-        const ItemManagerF = await ethers.getContractFactory("ItemManager");
-        const itemManager = await ItemManagerF.deploy(registry.address);
+        const ItemManagerFactory = await ethers.getContractFactory("ItemManager");
+        const itemManager = await ItemManagerFactory.deploy(registry.address);
         await itemManager.deployed();
         _itemManager = itemManager;
+
+        const CharacterManagerFactory = await ethers.getContractFactory("Character_S0");
+        const characterManager = await CharacterManagerFactory.deploy(registry.address);
+        await characterManager.deployed();
+        _characterManager = characterManager;
         
         //console.log(regGMtx);
         const addy = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
@@ -52,6 +58,7 @@ describe("zXP", function () {
     
         //await registry.registerAddress(ethers.utils.formatBytes32String("GameManager"), gameManager.address);
         await _registry.registerAddress(ethers.utils.formatBytes32String("ItemManager"), itemManager.address);
+        await _registry.registerAddress(ethers.utils.formatBytes32String("CharacterManager"), itemManager.address);
         await _registry.registerAddress(ethers.utils.formatBytes32String("Wheel_S0"), wheel.address);
         
         //expect(await im.attachItemToNft(wheel.address, token.address, 0)).to.emit(itemManager, "Attached");
@@ -72,5 +79,20 @@ describe("zXP", function () {
         //await setGreetingTx.wait();
         //expect(await greeter.greet()).to.equal("Hola, mundo!");
     });
+    it("Create character", async function () {
+      _characterManager.create();
+    });
+    it("Equip wheel", async function () {
+      _characterManager.equipWheel(0);
+    });
+    it("Use wheel in game", async function () {
+    });
   });
+
+  describe("Deployment", function () {
+    it("Should ", async function () {
+      
+    });
+  });
+
 });

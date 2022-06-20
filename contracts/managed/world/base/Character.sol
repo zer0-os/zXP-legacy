@@ -9,6 +9,7 @@ contract Character is PlayerOwned, RegistryClient{
     uint cost;
     
     struct Equips{
+        uint pal;
         uint beast;
         uint wheel;
     }
