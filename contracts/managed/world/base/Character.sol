@@ -4,7 +4,7 @@ import "../RegistryClient.sol";
 import "../../interfaces/IRegistry.sol";
 import "../../PlayerOwned.sol";
 
-contract Character is PlayerOwned, RegistryClient{
+contract Character is PlayerOwned, RegistryClient, XpRecipient{
     
     uint cost;
     
@@ -26,9 +26,9 @@ contract Character is PlayerOwned, RegistryClient{
         equipment.wheel = id;
     }
 
-    ///Creates character by setting season to 1
-    function create() public payable {
+    function create(string name) public payable {
         require(msg.value == cost, "Invalid payment");
+        character[msg.sender] = keccak256(abi.encode(msg.sender, name));
         //require(season[msg.sender] == 0, "Character already created");
         //season[msg.sender] = 1;
         //addressOf("Zxp").call{value: msg.value}(bytes4(sha3("seasonLock()")));

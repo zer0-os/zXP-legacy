@@ -79,13 +79,17 @@ describe("zXP", function () {
         //await setGreetingTx.wait();
         //expect(await greeter.greet()).to.equal("Hola, mundo!");
     });
-    it("Create character", async function () {
+    it("Player 1 creates character", async function () {
       _characterManager.create();
     });
-    it("Equip wheel", async function () {
+    it("P1 equips wheel", async function () {
       _characterManager.equipWheel(0);
     });
-    it("Use wheel in game", async function () {
+    it("P1 uses wheel in game and earns XP", async function () {
+    });
+    it("New zXP season initialized", async function () {
+    });
+    it("P1 advances season", async function () {
     });
   });
 

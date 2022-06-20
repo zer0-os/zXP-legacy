@@ -3,8 +3,7 @@ pragma solidity ^0.8.0;
 import "../RegistryClient.sol";
 import "../../interfaces/IRegistry.sol";
 
-contract Item is RegistryClient{
-    uint256 public xp;
+contract Item is RegistryClient, XpRecipient{
     uint256 public currentSeason;
     bytes32 public itemType;
     bytes32 public generator;
@@ -31,10 +30,6 @@ contract Item is RegistryClient{
 
     function incrementSeason() external onlyItemManager() {
         currentSeason++;
-    }
-    
-    function awardXP(uint256 amount) external onlyItemManager() {
-        xp += amount;
     }
 
     function advanceToCurrentSeason(uint256 itemId) external onlyItemManager() {
