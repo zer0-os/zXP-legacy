@@ -7,15 +7,20 @@ import "./XpRecipient.sol";
 
 contract Character is PlayerOwned, RegistryClient, XpRecipient{
     
-    mapping(address => uint) character;
     uint cost;
+    mapping(address => uint) character;
     
     struct Equips{
         uint pal;
         uint beast;
         uint wheel;
     }
-    Equips internal equipment;
+    Equips public equipment;
+
+    modifier zxpOnly() {
+        require(addressOf("Zxp", season) == msg.sender, "non-authorized zxp address");
+        _;
+    }
 
     constructor(
         IRegistry registry
@@ -23,7 +28,15 @@ contract Character is PlayerOwned, RegistryClient, XpRecipient{
     RegistryClient(registry) {
     }
 
-    function equipWheel(uint id) public ownerOnly(msg.sender){
+    function equipPal(uint id) public playerOnly(msg.sender){
+        //require("sender doesnt own wheel id");
+        equipment.wheel = id;
+    }
+    function equipBeast(uint id) public playerOnly(msg.sender){
+        //require("sender doesnt own wheel id");
+        equipment.wheel = id;
+    }
+    function equipWheel(uint id) public playerOnly(msg.sender){
         //require("sender doesnt own wheel id");
         equipment.wheel = id;
     }
@@ -34,6 +47,10 @@ contract Character is PlayerOwned, RegistryClient, XpRecipient{
     }
 
     function advance() public {
+    }
+
+    function awardXP(uint amount) external override zxpOnly{
+
     }
 
 }

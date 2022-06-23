@@ -5,7 +5,7 @@ import "./interfaces/IERC721.sol";
 contract PlayerOwned {
     address player;
 
-    modifier ownerOnly(address addy){
+    modifier playerOnly(address addy){
         require(addy == player, "Sender isnt player");
         _;
     }
