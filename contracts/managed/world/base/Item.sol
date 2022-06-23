@@ -2,6 +2,7 @@ pragma solidity ^0.8.0;
 
 import "../RegistryClient.sol";
 import "../../interfaces/IRegistry.sol";
+import "./XpRecipient.sol";
 
 contract Item is RegistryClient, XpRecipient{
     uint256 public currentSeason;

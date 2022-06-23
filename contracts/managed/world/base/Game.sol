@@ -4,10 +4,9 @@ import "../RegistryClient.sol";
 import "../../interfaces/IRegistry.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
-contract Game is RegistryClient, XpRecipient{
+contract Game is RegistryClient{
 
     constructor(
-        bytes32 itemTypeName,
         IRegistry registry
     )
     RegistryClient(registry) {

@@ -1,6 +1,6 @@
 pragma solidity ^0.8.0;
 
-contract Item is RegistryClient{
+contract XpRecipient{
     uint256 public xp;
 
     modifier gameOnly() {
@@ -8,7 +8,7 @@ contract Item is RegistryClient{
         _;
     }
 
-    function awardXP(uint amount) gameOnly{
+    function awardXP(uint amount) external gameOnly{
         xp += amount;
     }    
 }

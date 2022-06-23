@@ -1,7 +1,7 @@
 pragma solidity ^0.8.0;
 
 import "../Owned.sol";
-import "./XpRecipient.sol"
+import "./base/XpRecipient.sol";
 
 contract ZXP is Owned{
     uint season;
@@ -12,8 +12,8 @@ contract ZXP is Owned{
         started[season] = true;
     } 
     
-    function awardXP(XpRecipient awardee, uint amount) public {
-        awardee.awardXP(amount);
+    function awardXP(XpRecipient recipient, uint amount) public {
+        recipient.awardXP(amount);
     }
 
     function advanceSeason() public ownerOnly {
@@ -22,14 +22,6 @@ contract ZXP is Owned{
 
     function seasonLock(address a) public payable {
         locked[a] += msg.value;
-    }
-
-    function awardCharacterXP(Character char, uint256 amount) public {
-        character.awardXP(amount);
-    }
-
-    function awardItemXP(Character char, uint256 amount) public {
-        character.awardXP(amount);
     }
 
     function unlock(uint amt) public {
