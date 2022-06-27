@@ -6,17 +6,8 @@ import "../Utils.sol";
 import "../interfaces/IRegistry.sol";
 import "./base/Item.sol";
 
-/**
-  * @dev Contract Registry
-  *
-  * The contract registry keeps contract addresses by name.
-  * The owner can update contract addresses so that a contract name always points to the latest version
-  * of the given contract.
-  * Other contracts can query the registry to get updated addresses instead of depending on specific
-  * addresses.
-  *
-  * Note that contract names are limited to 32 bytes UTF8 encoded ASCII strings to optimize gas costs
-*/
+
+
 contract Registry is IRegistry, Owned, Utils {
     struct RegistryObject {
         address contractAddress;    
@@ -27,31 +18,15 @@ contract Registry is IRegistry, Owned, Utils {
     mapping (bytes32 => mapping(uint256 => RegistryObject)) private objects;    // name to season to registry object
     string[] public contractNames;                      // list of all registered contract names
 
-    /**
-      * @dev returns the number of objects in the registry
-      *
-      * @return number of objects
-    */
     function objectCount() public view override returns (uint256) {
         return contractNames.length;
     }
 
-    /**
-      * @dev returns the address associated with the given contract name
-      *
-      * @param _contractName    contract name
-      *
-      * @return contract address
-    */
     function addressOf(bytes32 _contractName, uint256 season) public view override returns (address) {
         return objects[_contractName][season].contractAddress;
     }
-    /**
-      * @dev registers a new address for the contract name in the registry
-      *
-      * @param _contractName     contract name
-      * @param _contractAddress  contract address
-    */
+
+    ///contract names are limited to 32 bytes UTF8 encoded ASCII strings to optimize gas costs
     function registerAddress(bytes32 _contractName, address _contractAddress)
         public
         ownerOnly
@@ -80,9 +55,8 @@ contract Registry is IRegistry, Owned, Utils {
         objects[_contractName][0].contractAddress = _contractAddress;
     }
 
-    ///Index 0 should always be the base Item contract first deployed and registered, and then advanceSeason adds generators at the following season indices
-    ///This automatically persists the basic data on the Item contract, and allows new stats/functionality to be deployed each season.
-
+    /// @dev Index 0 should always be the base Item contract first deployed and registered, and then advanceSeason adds generators at the following season indices
+    /// @dev This automatically persists the basic data on the Item contract, and allows new stats/functionality to be deployed each season.
     function advanceSeason(bytes32 _contractName, address _newContractAddress, uint256 xpAward)
         public
         override
