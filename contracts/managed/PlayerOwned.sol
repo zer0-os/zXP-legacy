@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.14;
 
-import "./interfaces/IERC721.sol";
-
 contract PlayerOwned {
-    address player;
+    mapping(address => uint) player;
 
-    modifier playerOnly(address addy){
-        require(addy == player, "Sender isnt player");
-        _;
+    modifier playerOnly(address _player){
+        require(player[_player] != 0, "Address isnt player");
+        _; 
     }
+
+
 }
