@@ -18,12 +18,12 @@ describe("zXP", function () {
               //console.log(regGMtx);
       const addy = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
       const erc721wheelToken = await ethers.getContractFactory("ERC721TestToken");
-      const wheelToken = await erc721wheelToken.deploy('Test 721', 'TEST', {
+      const wheelToken = await erc721wheelToken.deploy('Wilder Wheels', 'WHEEL', {
         "id": 0,
-        "description": "My NFT",
-        "external_url": "https://forum.openzeppelin.com/t/create-an-nft-and-deploy-to-a-public-testnet-using-truffle/2961",
-        "image": "https://twemoji.maxcdn.com/svg/1f40e.svg",
-        "name": "My NFT 0"
+        "description": "Wilder Wheels",
+        "external_url": "0://wilder.wheels",
+        "image": "wheel.png",
+        "name": "Wilder Wheels"
       });
       await wheelToken.deployed();
       _wheelToken = wheelToken;
@@ -31,12 +31,12 @@ describe("zXP", function () {
       expect(await wheelToken.ownerOf(0)).to.equal(addy);
 
       const erc721beastToken = await ethers.getContractFactory("ERC721TestToken");
-      const beastToken = await erc721beastToken.deploy('Test 721', 'TEST', {
+      const beastToken = await erc721beastToken.deploy('Wilder Beasts', 'BEAST', {
         "id": 0,
-        "description": "My NFT",
-        "external_url": "https://forum.openzeppelin.com/t/create-an-nft-and-deploy-to-a-public-testnet-using-truffle/2961",
-        "image": "https://twemoji.maxcdn.com/svg/1f40e.svg",
-        "name": "My NFT 0"
+        "description": "Beasts",
+        "external_url": "0://wilder.beasts",
+        "image": "beast.png",
+        "name": "Wilder Beasts"
       });
       await beastToken.deployed();
       _beastToken = beastToken;
@@ -116,8 +116,6 @@ describe("zXP", function () {
       await characterManager.deployed();
       _characterManager = characterManager;
       
-
-  
       const Wheels = await ethers.getContractFactory("Wheel_S0");
       const wheel = await Wheels.deploy(ethers.utils.formatBytes32String("WheelGenerator"), registry.address, _wheelToken.address);
       await wheel.deployed();
@@ -139,23 +137,6 @@ describe("zXP", function () {
       await _registry.registerAddress(ethers.utils.formatBytes32String("Wheel_S0"), wheel.address);
       await _registry.registerAddress(ethers.utils.formatBytes32String("Beast_S0"), beast.address);
       await _registry.registerAddress(ethers.utils.formatBytes32String("BeastBattle_S0"), beastBattle.address);
-      //expect(await im.attachItemToNft(wheel.address, wheelToken.address, 0)).to.emit(itemManager, "Attached");
-      
-      //issue license
-      //expect(await im.issueLicense(ethers.utils.keccak256(ethers.utils.defaultAbiCoder.encode(["bytes32", "uint256", "address"],[ethers.utils.formatBytes32String("Wheel"), 12345, addy])))).to.emit(im, "Licensed");
-      //expect(await im.licensed(ethers.utils.keccak256(ethers.utils.defaultAbiCoder.encode(["bytes32", "uint256", "address"],[ethers.utils.formatBytes32String("Wheel"), 12345, addy])))).to.equal(true);
-      //await issuetx.wait();
-      //Attach wheel zero 
-    
-      //await attachtx.wait();
-      //console.log(attachtx);
-      //console.log(ethers.utils.keccak256(ethers.utils.defaultAbiCoder.encode(["address","uint256"],[wheelToken.address, 0])));
-      //expect(await wheel.nftToItem(ethers.utils.keccak256(ethers.utils.defaultAbiCoder.encode(["address","uint256"],[wheelToken.address, 0])))).to.equal(12345);
-  
-      //const setGreetingTx = await greeter.setGreeting("Hola, mundo!");
-      // wait until the transaction is mined
-      //await setGreetingTx.wait();
-      //expect(await greeter.greet()).to.equal("Hola, mundo!");
   });
     it("P1 advances season", async function () {
     });
