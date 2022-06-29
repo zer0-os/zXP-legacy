@@ -7,18 +7,19 @@ import "./RegistryClient.sol";
 contract CharacterManager is RegistryClient{
     uint cost;
 
-    mapping(address => uint) character;
+    mapping(address => uint) characterSeason;
     mapping(address => string) name;
 
     constructor(IRegistry registry) RegistryClient(registry) {}
 
-    function create(string memory _name) public payable {
+    ///Creates character by setting season to 1
+    function create() public payable {
         require(msg.value == cost, "Invalid payment");
-        character[msg.sender] = uint(keccak256(abi.encode(msg.sender, _name)));
-
+        characterSeason[msg.sender] = 1;
     }
 
     function advance() public { 
-
+        //require(characterSeason[msg.sender] < zxpSeason, "ZXP: Cant advance");
+        characterSeason[msg.sender] += 1;
     }
 }

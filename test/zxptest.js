@@ -12,8 +12,9 @@ describe("zXP", function () {
   var _beast;
   var _beastBattle;
   var _wheelRace;
+  var _characterS0;
 
-  describe("Deploy Season 0", function () {
+  describe("zXP Season 0", function () {
       it("Deploy the managers and register contracts", async function () {
               //console.log(regGMtx);
       const addy = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
@@ -53,18 +54,23 @@ describe("zXP", function () {
       await itemManager.deployed();
       _itemManager = itemManager;
 
-      const CharacterManagerFactory = await ethers.getContractFactory("Character_S0");
+      const CharacterManagerFactory = await ethers.getContractFactory("CharacterManager");
       const characterManager = await CharacterManagerFactory.deploy(registry.address);
       await characterManager.deployed();
       _characterManager = characterManager;
 
+      const CharacterS0Factory = await ethers.getContractFactory("Character_S0");
+      const characterS0 = await CharacterS0Factory.deploy(registry.address);
+      await characterS0.deployed();
+      _characterS0 = characterS0;
+
       const Wheels = await ethers.getContractFactory("Wheel_S0");
-      const wheel = await Wheels.deploy(ethers.utils.formatBytes32String("WheelGenerator"), registry.address, _wheelToken.address);
+      const wheel = await Wheels.deploy(ethers.utils.formatBytes32String("Wheel_S0"), registry.address, _wheelToken.address);
       await wheel.deployed();
       _wheel = wheel;
 
       const Beasts = await ethers.getContractFactory("Beast_S0");
-      const beast = await Beasts.deploy(ethers.utils.formatBytes32String("BeastGenerator"), registry.address, beastToken.address);
+      const beast = await Beasts.deploy(ethers.utils.formatBytes32String("Beast_S0"), registry.address, beastToken.address);
       await beast.deployed();
       _beast = beast;
 
@@ -75,20 +81,21 @@ describe("zXP", function () {
   
       //await registry.registerAddress(ethers.utils.formatBytes32String("GameManager"), gameManager.address);
       await _registry.registerAddress(ethers.utils.formatBytes32String("ItemManager"), itemManager.address);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("CharacterManager"), itemManager.address);
+      await _registry.registerAddress(ethers.utils.formatBytes32String("CharacterManager"), characterManager.address);
+      await _registry.registerAddress(ethers.utils.formatBytes32String("Character_S0"), characterS0.address);
       await _registry.registerAddress(ethers.utils.formatBytes32String("Wheel_S0"), wheel.address);
       await _registry.registerAddress(ethers.utils.formatBytes32String("Beast_S0"), beast.address);
       await _registry.registerAddress(ethers.utils.formatBytes32String("BeastBattle_S0"), beastBattle.address);
 
     });
     it("Player 1 creates character", async function () {
-      _characterManager.create();
+      _characterS0.create();
     });
     it("P1 equips wheel", async function () {
-      _characterManager.equipWheel(0);
+      _characterS0.equipWheel(0);
     });
     it("P1 equips beast", async function () {
-      _characterManager.equipBeast(0);
+      _characterS0.equipBeast(0);
     });
     it("P1 uses wheel in game, player and wheel earn XP", async function () {
       //_wheelRace.race();
@@ -98,36 +105,34 @@ describe("zXP", function () {
     });
   });
 
-  describe("Deploy Season 1", function () {
+  describe("zXP Season 1", function () {
     it("Deploy the managers and register contracts", async function () {
-      const CharacterManagerFactory = await ethers.getContractFactory("Character_S1");
-      const characterManager = await CharacterManagerFactory.deploy(registry.address);
-      await characterManager.deployed();
-      _characterManager = characterManager;
+      const CharacterS1Factory = await ethers.getContractFactory("Character_S1");
+      const characterS1 = await CharacterS1Factory.deploy(_registry.address);
+      await characterS1.deployed();
+      _characterS1 = characterS1;
       
       const Wheels = await ethers.getContractFactory("Wheel_S1");
-      const wheel = await Wheels.deploy(ethers.utils.formatBytes32String("WheelGenerator"), registry.address, _wheelToken.address);
+      const wheel = await Wheels.deploy(ethers.utils.formatBytes32String("Wheel_S1"), _registry.address, _wheelToken.address);
       await wheel.deployed();
       _wheel = wheel;
 
       const Beasts = await ethers.getContractFactory("Beast_S1");
-      const beast = await Beasts.deploy(ethers.utils.formatBytes32String("BeastGenerator"), registry.address, _beastToken.address);
+      const beast = await Beasts.deploy(ethers.utils.formatBytes32String("Beast_S1"), _registry.address, _beastToken.address);
       await beast.deployed();
       _beast = beast;
 
       const beastBattles = await ethers.getContractFactory("BeastBattle_S1");
-      const beastBattle = await beastBattles.deploy(registry.address);
+      const beastBattle = await beastBattles.deploy(_registry.address);
       await beastBattle.deployed();
       _beastBattle = beastBattle;
-  
-      //await registry.registerAddress(ethers.utils.formatBytes32String("GameManager"), gameManager.address);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("ItemManager"), itemManager.address);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("CharacterManager"), itemManager.address);
+
       await _registry.registerAddress(ethers.utils.formatBytes32String("Wheel_S1"), wheel.address);
       await _registry.registerAddress(ethers.utils.formatBytes32String("Beast_S1"), beast.address);
       await _registry.registerAddress(ethers.utils.formatBytes32String("BeastBattle_S1"), beastBattle.address);
   });
     it("P1 advances season", async function () {
+        _characterManager.advance();
     });
   });
 
