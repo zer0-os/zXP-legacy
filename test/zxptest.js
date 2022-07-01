@@ -89,7 +89,7 @@ describe("zXP", function () {
 
     });
     it("Player 1 creates character", async function () {
-      _characterS0.create();
+      _characterManager.create();
     });
     it("P1 equips wheel", async function () {
       _characterS0.equipWheel(0);

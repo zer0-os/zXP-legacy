@@ -8,6 +8,4 @@ contract PlayerOwned {
         require(player[_player] != 0, "Address isnt player");
         _; 
     }
-
-
 }
