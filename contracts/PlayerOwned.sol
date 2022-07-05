@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.14;
+pragma solidity 0.8.13;
 
 contract PlayerOwned {
     mapping(address => uint) player;

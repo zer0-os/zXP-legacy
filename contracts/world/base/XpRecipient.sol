@@ -2,9 +2,15 @@
 pragma solidity ^0.8.0;
 
 contract XpRecipient{
-    uint256 public xp;
+    uint base = 1000;
+    uint curve = 2;
+    mapping(uint => uint) public xp;
+    mapping(uint => uint) public level;
 
-    function awardXP(uint amount) external virtual {
-        xp += amount;
+    function awardXP(uint id, uint amount) external virtual {
+        xp[id] += amount;
+        if(xp[id] > base * level[id] * curve){
+            level[id]++;
+        }
     }    
 }

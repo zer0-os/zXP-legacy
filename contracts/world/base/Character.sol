@@ -6,13 +6,13 @@ import "../../interfaces/IRegistry.sol";
 import "../../PlayerOwned.sol";
 import "./XpRecipient.sol";
 import "./Traverser.sol";
+import "./Stats.sol";
 
-contract Character is PlayerOwned, RegistryClient, XpRecipient, Traverser{
-
-    mapping(address => bool) public active;
+contract Character is PlayerOwned, RegistryClient, XpRecipient, Traverser, Stats{
+    mapping(address => uint) public character;
     
     modifier zxpOnly() {
-        require(addressOf("Zxp", season) == msg.sender, "non-authorized zxp address");
+        require(addressOf("Zxp", season) == msg.sender, "ZXP: invalid zxp address");
         _;
     }
 
@@ -24,14 +24,14 @@ contract Character is PlayerOwned, RegistryClient, XpRecipient, Traverser{
 
 
     function create() public virtual{
-        active[msg.sender] = true;
+        //active[msg.sender] = true;
     }
 
     function advance() public {
+        
     }
 
-    function awardXP(uint amount) external override zxpOnly{
-
+    function awardXP(uint id, uint amount) external override(XpRecipient) zxpOnly{
+        XpRecipient.awardXP(id, amount);
     }
-
 }

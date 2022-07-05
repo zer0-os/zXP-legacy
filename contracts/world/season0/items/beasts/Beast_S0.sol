@@ -8,9 +8,16 @@ import "../../../../NftOwned.sol";
 contract Beast_S0 is NftOwned, Item{
     mapping(uint256 => bool) public wheelScrapped;
 
+    struct Stats{
+        uint health;
+        uint mana;
+        uint power;
+    }
+
     constructor(bytes32 _generator, IRegistry registry, IERC721 nftContractAddress) 
     Item("Beast_S0", registry) 
     NftOwned(IERC721(nftContractAddress)){}
+
 
     
 }

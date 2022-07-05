@@ -1,11 +1,12 @@
 
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.14;
+pragma solidity ^0.8.13;
 
 import "../../RegistryClient.sol";    
 import "../../../interfaces/IZXP.sol";
+import "../../../gameplay/Tournament.sol";
 
-contract BeastBattle_S1 is RegistryClient{
+contract BeastBattle_S1 is Tournament, RegistryClient{
 
      constructor(IRegistry registry) RegistryClient(registry) {}
 

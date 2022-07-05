@@ -6,10 +6,8 @@ import "../../interfaces/IRegistry.sol";
 import "./XpRecipient.sol";
 
 contract Item is RegistryClient, XpRecipient{
-    uint256 public currentSeason;
+    uint public currentSeason;
     bytes32 public itemType;
-    bytes32 public generator;
-    address public nftcontract;
     
     mapping(uint256 => uint256) public itemToSeason;
     
@@ -23,11 +21,6 @@ contract Item is RegistryClient, XpRecipient{
     )
     RegistryClient(registry) {
         itemType = itemTypeName;
-    }
-
-    ///Attaches ItemType to NFT - Makes NFT owner the implicit owner of an Item of ItemType.
-    function attach(address nftContractAddress) external onlyItemManager() {
-        nftcontract = nftContractAddress;
     }
 
     function incrementSeason() external onlyItemManager() {
