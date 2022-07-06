@@ -3,11 +3,15 @@ pragma solidity ^0.8.0;
 
 import "../Utils.sol";
 import "../interfaces/IRegistry.sol";
+import {ObjectTypes} from "../ObjectTypes.sol";
 
 /**
   * @dev Base contract for ContractRegistry clients
 */
 contract RegistryClient is Utils {
+
+    using ObjectTypes for ObjectTypes.ObjectType;
+
     bytes32 internal constant ITEM_REGISTRY = "Registry";
     bytes32 internal constant GAME_MANAGER = "Games";
     bytes32 internal constant ITEM_MANAGER = "Items";
@@ -53,5 +57,9 @@ contract RegistryClient is Utils {
     */
     function addressOf(bytes32 _contractName, uint256 _season) internal view returns (address) {
         return registry.addressOf(_contractName, _season);
+    }
+
+    function typeOf(address _contractAddress) public view override returns (ObjectTypes.ObjectType) {
+        return registry.typeOf(_contractName);
     }
 }

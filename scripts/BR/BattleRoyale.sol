@@ -1,6 +1,7 @@
 pragma solidity ^0.8.0;
 
 import "../../Owned.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract BattleRoyale is Owned{
     uint256 land_wei_price = 1000000000000;
@@ -20,8 +21,7 @@ contract BattleRoyale is Owned{
 	uint32 total_victory_tiles_owned;
     uint32 treatyID;
 	bool firstWithdraw = true;
-	//address rraddress;
-    //RR rr;
+	ERC20 wild;
     
     mapping(uint8 => mapping(uint8 => uint8)) public tile_development_level;
     mapping(uint8 => mapping(uint8 => address payable)) public tile_owner;
@@ -33,10 +33,9 @@ contract BattleRoyale is Owned{
 	mapping(address => bool) public withdrew;
 	mapping(uint8 => mapping(uint8 => uint256)) market_price;
 
-	constructor (address rrtoken) public {
+	constructor (ERC20 wildToken) public {
 		deployed_at_block = block.number;
-		//rr = RR(rrtoken);
-		//rraddress = rrtoken;
+		wild = wildToken;
 	}
 
     function set_land_wei_price(uint256 new_price) public ownerOnly {

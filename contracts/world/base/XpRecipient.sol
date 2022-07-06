@@ -7,7 +7,7 @@ contract XpRecipient{
     mapping(uint => uint) public xp;
     mapping(uint => uint) public level;
 
-    function awardXP(uint id, uint amount) external virtual {
+    function awardXP(uint id, uint amount) external {
         xp[id] += amount;
         if(xp[id] > base * level[id] * curve){
             level[id]++;

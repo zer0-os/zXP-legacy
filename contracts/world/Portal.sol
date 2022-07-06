@@ -5,12 +5,11 @@ import "./base/Character.sol";
 import "./base/Item.sol";
 
 contract Portal{
-
     mapping(address => bool) entered;
     mapping(address => bool) exited;
 
     modifier contained(){
-        require(entered[msg.sender] && !exited[msg.sender], "Out of this world");
+        require(entered[msg.sender] && !exited[msg.sender], "ZXP: Out of this world");
         _;
     }
 
@@ -22,6 +21,11 @@ contract Portal{
 
     function exit() public{
         //suspendCharacter();
+        exited[msg.sender] = true;
+    }
+
+    function reenter() public{
+        //unsuspendCharacter();
         exited[msg.sender] = true;
     }
 }

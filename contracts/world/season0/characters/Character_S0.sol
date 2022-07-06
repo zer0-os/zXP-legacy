@@ -8,12 +8,6 @@ contract Character_S0 is Character, Equipment{
     constructor(IRegistry registry) 
     Character(registry) {}
 
-    uint cost;
-
-    function create()public override{
-
-    }
-
     function equipPal(uint id) public playerOnly(msg.sender) {
         //require("sender doesnt own pal id");
         equipment[msg.sender].pal = id;

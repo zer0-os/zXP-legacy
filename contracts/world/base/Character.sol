@@ -30,8 +30,4 @@ contract Character is PlayerOwned, RegistryClient, XpRecipient, Traverser, Stats
     function advance() public {
         
     }
-
-    function awardXP(uint id, uint amount) external override(XpRecipient) zxpOnly{
-        XpRecipient.awardXP(id, amount);
-    }
 }

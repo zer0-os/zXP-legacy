@@ -4,14 +4,16 @@ pragma solidity ^0.8.0;
 import "../Owned.sol";
 import "../Utils.sol";
 import "../interfaces/IRegistry.sol";
-import "./base/Item.sol";
-
-
+import {ObjectTypes} from "../ObjectTypes.sol";
 
 contract Registry is IRegistry, Owned, Utils {
+
+    using ObjectTypes for ObjectTypes.ObjectType;
+
     struct RegistryObject {
         address contractAddress;    
-        uint256 nameIndex;          // index in contractNames     
+        uint nameIndex;
+        ObjectTypes.ObjectType objectType;
     }
 
     uint public currentSeason;
@@ -26,16 +28,20 @@ contract Registry is IRegistry, Owned, Utils {
         return objects[_contractName][season].contractAddress;
     }
 
+    function typeOf(address _contractAddress) public view override returns (ObjectTypes.ObjectType) {
+        return objects[_contractName][0].objectType;
+    }
+
     ///contract names are limited to 32 bytes UTF8 encoded ASCII strings to optimize gas costs
-    function registerAddress(bytes32 _contractName, address _contractAddress)
+    function registerAddress(bytes32 _contractName, address _contractAddress, ObjectTypes.ObjectType objectType, uint season)
         public
         ownerOnly
         validAddress(_contractAddress)
     {
-        //Prevent overwrite
-        require(addressOf(_contractName, 0) == address(0), "ERR_NAME_TAKEN");
         // validate input
         require(_contractName.length > 0, "ERR_INVALID_NAME");
+        //Prevent overwrite
+        require(addressOf(_contractName, season) == address(0) && season <= currentSeason, "ERR_NAME_TAKEN");
 
         // check if any change is needed
         // season 0
@@ -56,7 +62,7 @@ contract Registry is IRegistry, Owned, Utils {
     }
 
     /// @dev Index 0 should always be the base Item contract first deployed and registered, and then advanceSeason adds generators at the following season indices
-    /// @dev This automatically persists the basic data on the Item contract, and allows new stats/functionality to be deployed each season.
+    /// @dev This automatically persists the base data, and allows new stats/functionality to be deployed each season.
     function advanceSeason(bytes32 _contractName, address _newContractAddress, uint256 xpAward)
         public
         override
@@ -69,9 +75,9 @@ contract Registry is IRegistry, Owned, Utils {
         require(objects[_contractName][0].contractAddress != address(0), "ERR_UNREGISTERED_NAME");
         
         //Increment season on item
-        Item item = Item(addressOf(_contractName, currentSeason));
-        item.incrementSeason();
-        item.awardXP(xpAward);
+        //Item item = Item(addressOf(_contractName, currentSeason));
+        //item.incrementSeason();
+        //item.awardXP(xpAward);
         //associate new address with new season
         objects[_contractName][currentSeason + 1].contractAddress = _newContractAddress;
     }
