@@ -28,7 +28,7 @@ contract Registry is IRegistry, Owned, Utils {
         return objects[_contractName][season].contractAddress;
     }
 
-    function typeOf(bytes32 _contractName) public view override returns (ObjectTypes.ObjectType) {
+    function typeOf(bytes32 _contractName) public view returns (ObjectTypes.ObjectType) {
         return objects[_contractName][0].objectType;
     }
 

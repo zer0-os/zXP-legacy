@@ -16,10 +16,10 @@ contract ZXP is Owned, RegistryClient{
         _;
     }
 
-    modifier onlyGame(){
-        require(typeOf(msg.sender == ObjectTypes.ObjectType.GAME), "ZXP: Sender isnt game");
-        _;
-    }
+    //modifier onlyGame(){
+    //    require(typeOf(msg.sender == ObjectTypes.ObjectType.GAME), "ZXP: Sender isnt game");
+    //    _;
+    //}
 
     constructor(IRegistry registry) RegistryClient(registry) {}
     
@@ -34,9 +34,7 @@ contract ZXP is Owned, RegistryClient{
     function advanceSeason() public ownerOnly {
         season++;
     }
-    function equipLock(address a) public payable onlyGame(){
-        locked[a] += msg.value;
-    }
+
     function equipLock(address a) public payable onlyArmory(){
         locked[a] += msg.value;
     }

@@ -12,13 +12,13 @@ contract Beast_S0 is NftOwned, Item, BeastStats{
     Item("Beast", registry) 
     NftOwned(IERC721(nftContractAddress)){}
 
-    function health(uint id) public override view returns (uint) {
-        super.health(id, level);
+    function health(uint id) public view returns (uint) {
+        _health(level[id]);
     }
-    function mana(uint id) public override view returns (uint) {
-        super.mana(id, level);
+    function mana(uint id) public view returns (uint) {
+        _mana(level[id]);
     }
-    function power(uint id) public override view returns (uint) {
-        super.power(id, level);
+    function power(uint id) public view returns (uint) {
+        _power(level[id]);
     }
 }

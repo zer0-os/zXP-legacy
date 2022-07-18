@@ -59,7 +59,7 @@ contract RegistryClient is Utils {
         return registry.addressOf(_contractName, _season);
     }
 
-    function typeOf(bytes32 _contractName) public view override returns (ObjectTypes.ObjectType) {
-        return registry.typeOf(_contractName);
-    }
+    //function typeOf(bytes32 _contractName) public view returns (ObjectTypes.ObjectType) {
+    //    return registry.typeOf(_contractName);
+    //}
 }

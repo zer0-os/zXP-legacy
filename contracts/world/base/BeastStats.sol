@@ -14,13 +14,13 @@ contract BeastStats{
         randSeed = block.difficulty;
     }
 
-    function health(address a, uint level) public virtual view returns (uint){
+    function _health(uint level) public view returns (uint){
         return (1 + randSeed % baseMod) * baseHealth * baseCoef + levelCoef * level;
     } 
-    function mana(address a, uint level) public virtual view returns (uint){
+    function _mana(uint level) public view returns (uint){
         return (1 + randSeed % baseMod) * baseHealth * baseCoef + levelCoef * level;
     }
-    function power(address a, uint level) public virtual view returns (uint){
+    function _power(uint level) public view returns (uint){
         return (1 + randSeed % baseMod) * baseHealth * baseCoef + levelCoef * level;
     }
 }
