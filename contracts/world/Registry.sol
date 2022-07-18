@@ -23,12 +23,12 @@ contract Registry is IRegistry, Owned, Utils {
     function objectCount() public view override returns (uint256) {
         return contractNames.length;
     }
-
+    
     function addressOf(bytes32 _contractName, uint256 season) public view override returns (address) {
         return objects[_contractName][season].contractAddress;
     }
 
-    function typeOf(address _contractAddress) public view override returns (ObjectTypes.ObjectType) {
+    function typeOf(bytes32 _contractName) public view override returns (ObjectTypes.ObjectType) {
         return objects[_contractName][0].objectType;
     }
 

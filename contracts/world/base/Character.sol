@@ -6,9 +6,9 @@ import "../../interfaces/IRegistry.sol";
 import "../../PlayerOwned.sol";
 import "./XpRecipient.sol";
 import "./Traverser.sol";
-import "./Stats.sol";
+import "./CharacterStats.sol";
 
-contract Character is PlayerOwned, RegistryClient, XpRecipient, Traverser, Stats{
+contract Character is PlayerOwned, RegistryClient, XpRecipient, Traverser, CharacterStats{
     mapping(address => uint) public character;
     
     modifier zxpOnly() {

@@ -6,7 +6,6 @@ import "../../interfaces/IRegistry.sol";
 import "./XpRecipient.sol";
 
 contract Item is RegistryClient, XpRecipient{
-    uint public currentSeason;
     bytes32 public itemType;
     
     mapping(uint256 => uint256) public itemToSeason;
@@ -23,11 +22,7 @@ contract Item is RegistryClient, XpRecipient{
         itemType = itemTypeName;
     }
 
-    function incrementSeason() external onlyItemManager() {
-        currentSeason++;
-    }
-
     function advanceToCurrentSeason(uint256 itemId) external onlyItemManager() {
-        itemToSeason[itemId] = currentSeason;
+        itemToSeason[itemId] = season;
     }
 }

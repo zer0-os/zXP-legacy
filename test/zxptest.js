@@ -82,15 +82,18 @@ describe("zXP", function () {
       //await registry.registerAddress(ethers.utils.formatBytes32String("GameManager"), gameManager.address);
       await _registry.registerAddress(ethers.utils.formatBytes32String("ItemManager"), itemManager.address);
       await _registry.registerAddress(ethers.utils.formatBytes32String("CharacterManager"), characterManager.address);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("Character_S0"), characterS0.address);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("Wheel_S0"), wheel.address);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("Beast_S0"), beast.address);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("BeastBattle_S0"), beastBattle.address);
+      await _registry.registerAddress(ethers.utils.formatBytes32String("Character"), characterS0.address);
+      await _registry.registerAddress(ethers.utils.formatBytes32String("Wheel"), wheel.address);
+      await _registry.registerAddress(ethers.utils.formatBytes32String("Beast"), beast.address);
+      await _registry.registerAddress(ethers.utils.formatBytes32String("BeastBattle"), beastBattle.address);
 
     });
     it("Player 1 creates character", async function () {
       _characterManager.create();
     });
+    it("Player 1 views beast stats", async function (){
+      
+    })
     it("P1 equips wheel", async function () {
       _characterS0.equipWheel(0);
     });

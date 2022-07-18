@@ -17,7 +17,7 @@ contract ZXP is Owned, RegistryClient{
     }
 
     modifier onlyGame(){
-        require(typeOf(msg.sender == ObjectTypes.ObjectType.GAME);
+        require(typeOf(msg.sender == ObjectTypes.ObjectType.GAME), "ZXP: Sender isnt game");
         _;
     }
 
