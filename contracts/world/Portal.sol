@@ -26,6 +26,6 @@ contract Portal{
 
     function reenter() public{
         //unsuspendCharacter();
-        exited[msg.sender] = true;
+        exited[msg.sender] = true; 
     }
 }

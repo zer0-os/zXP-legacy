@@ -8,6 +8,10 @@ import {ObjectTypes} from "../ObjectTypes.sol";
 
 contract ZXP is Owned, RegistryClient{
     using ObjectTypes for ObjectTypes.ObjectType;
+
+    uint xpCurveBase = 100;
+    uint xpCurve = 2;
+
     mapping(uint => bool) started;
     mapping(address => uint) locked;
 
@@ -26,9 +30,9 @@ contract ZXP is Owned, RegistryClient{
     function startSeason() public ownerOnly {
         started[season] = true;
     } 
-    
-    function awardXP(XpRecipient recipient, uint amount) public {
-        //recipient.awardXP(amount);
+    /// @dev TODO figure out restriction onlyXpAwarder
+    function awardXP(XpRecipient recipient, uint recipientId,  uint amount) public {
+        recipient.awardXP(recipientId, amount);
     }
 
     function advanceSeason() public ownerOnly {

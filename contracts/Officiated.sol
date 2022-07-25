@@ -5,9 +5,11 @@ import "./interfaces/IOwned.sol";
 /**
   * @dev Provides support and utilities for contract ownership
 */
-contract Owned is IOwned {
-    address public override owner;
-    //address public newOwner;
+contract Officiated{
+    address public official;
+    uint startTime;
+    uint roundLength;
+    uint roundXpAward = 100;
 
     /**
       * @dev triggered when the owner is updated
@@ -20,19 +22,19 @@ contract Owned is IOwned {
     /**
       * @dev initializes a new Owned instance
     */
-    constructor() {
-        owner = msg.sender;
+    constructor(address tournamentOfficial, uint roundLength) {
+        official = tournamentOfficial;
+        startTime = block.timestamp;
     }
 
-    // allows execution by the owner only
-    modifier ownerOnly {
-        _ownerOnly();
+    // allows execution by the official only
+    modifier officialOnly {
+        _officialOnly();
         _;
     }
 
-    // error message binary size optimization
-    function _ownerOnly() internal view {
-        require(msg.sender == owner, "ERR_ACCESS_DENIED_owned");
+    function _officialOnly() internal view {
+        require(msg.sender == official, "ZXP sender isnt official");
     }
 
     /**
