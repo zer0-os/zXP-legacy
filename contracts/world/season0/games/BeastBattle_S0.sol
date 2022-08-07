@@ -5,7 +5,7 @@ import "../../gameplay/Tournament.sol";
 
 contract BeastBattle_S1 is Tournament{
 
-     constructor(IRegistry registry) Tournament(registry, address(this), 1 days){}
+     constructor(IRegistry registry) Tournament(registry, address(this), 1 days, 100){}
 
      function battle(XpRecipient beast) public {
           IZXP(addressOf("ZXP", season)).awardXP(beast, 100);

@@ -7,15 +7,14 @@ import "../RegistryClient.sol";
 import "../base/XpRecipient.sol";
 
 contract Tournament is Officiated, RegistryClient{
-
-    mapping(uint => uint[3]) tournamentPrizes; // 0 is first place 
     mapping(uint => bool) roundResolved;
     mapping(address => uint) winnings; 
 
-    constructor(IRegistry registry, address official, uint roundLength) 
+    constructor(IRegistry registry, address official, uint roundLength, uint roundReward) 
     RegistryClient(registry)
-    Officiated(official, roundLength){}
+    Officiated(official, roundLength, roundReward){}
 
+    ///Each round interval, the official may submit results and divvy rewards 
     function submitTop3Results(
         address firstPlace, 
         address secondPlace, 
@@ -27,13 +26,16 @@ contract Tournament is Officiated, RegistryClient{
     {
         require(msg.value == firstPrize + secondPrize + thirdPrize, "ZXP invalid payment");
         require(!roundResolved[(block.timestamp - startTime) / roundLength], "ZXP round already resolved");
+        
         winnings[firstPlace] += firstPrize;
         winnings[secondPlace] += secondPrize;
         winnings[thirdPlace] += thirdPrize;
         roundResolved[(block.timestamp - startTime) / roundLength] = true;
         
-        IZXP(addressOf("ZXP", season)).awardXP(XpRecipient(firstPlace), roundXpAward);
-        IZXP(addressOf("ZXP", season)).awardXP(XpRecipient(secondPlace), roundXpAward);
-        IZXP(addressOf("ZXP", season)).awardXP(XpRecipient(thirdPlace), roundXpAward);
+        IZXP(addressOf("ZXP", season)).awardXP(XpRecipient(firstPlace), roundXpReward);
+        IZXP(addressOf("ZXP", season)).awardXP(XpRecipient(secondPlace), roundXpReward);
+        IZXP(addressOf("ZXP", season)).awardXP(XpRecipient(thirdPlace), roundXpReward);
+        IZXP(addressOf("ZXP", season)).awardXP(XpRecipient(official), roundXpReward);
+
     }
 }

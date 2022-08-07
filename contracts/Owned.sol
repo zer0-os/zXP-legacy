@@ -10,14 +10,6 @@ contract Owned is IOwned {
     //address public newOwner;
 
     /**
-      * @dev triggered when the owner is updated
-      *
-      * @param _prevOwner previous owner
-      * @param _newOwner  new owner
-    */
-    event OwnerUpdate(address indexed _prevOwner, address indexed _newOwner);
-
-    /**
       * @dev initializes a new Owned instance
     */
     constructor() {
