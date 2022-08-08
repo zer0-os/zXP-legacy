@@ -4,16 +4,15 @@ pragma solidity ^0.8.0;
 import "../Owned.sol";
 import "../Utils.sol";
 import "../interfaces/IRegistry.sol";
-import {ObjectTypes} from "../ObjectTypes.sol";
 
 contract Registry is IRegistry, Owned, Utils {
-
-    using ObjectTypes for ObjectTypes.ObjectType;
+    
+    enum ObjectType{ITEM, GAME, CHAR}
 
     struct RegistryObject {
         address contractAddress;    
         uint nameIndex;
-        ObjectTypes.ObjectType objectType;
+        ObjectType objectType;
     }
 
     uint public currentSeason;
@@ -28,12 +27,12 @@ contract Registry is IRegistry, Owned, Utils {
         return objects[_contractName][season].contractAddress;
     }
 
-    function typeOf(bytes32 _contractName) public view returns (ObjectTypes.ObjectType) {
+    function typeOf(bytes32 _contractName) public view returns (ObjectType) {
         return objects[_contractName][0].objectType;
     }
 
     ///contract names are limited to 32 bytes UTF8 encoded ASCII strings to optimize gas costs
-    function registerAddress(bytes32 _contractName, address _contractAddress, ObjectTypes.ObjectType objectType, uint season)
+    function registerAddress(bytes32 _contractName, address _contractAddress, ObjectType objectType)
         public
         ownerOnly
         validAddress(_contractAddress)
@@ -41,15 +40,9 @@ contract Registry is IRegistry, Owned, Utils {
         // validate input
         require(_contractName.length > 0, "ERR_INVALID_NAME");
         //Prevent overwrite
-        require(addressOf(_contractName, season) == address(0) && season <= currentSeason, "ERR_NAME_TAKEN");
+        require(addressOf(_contractName, currentSeason + 1) == address(0), "ERR_NAME_TAKEN");
 
-        // check if any change is needed
-        // season 0
-        address currentAddress = objects[_contractName][0].contractAddress; 
-        if (_contractAddress == currentAddress)
-            return;
-
-        if (currentAddress == address(0)) {
+        if (objects[_contractName][0].contractAddress == address(0)) {
             // update the item's index in the list
             objects[_contractName][0].nameIndex = contractNames.length;
 
@@ -58,7 +51,8 @@ contract Registry is IRegistry, Owned, Utils {
         }
 
         // update the address in the registry
-        objects[_contractName][0].contractAddress = _contractAddress;
+        objects[_contractName][currentSeason + 1].contractAddress = _contractAddress;
+        objects[_contractName][currentSeason + 1].objectType = objectType;
     }
 
     /// @dev Index 0 should always be the base Item contract first deployed and registered, and then advanceSeason adds generators at the following season indices

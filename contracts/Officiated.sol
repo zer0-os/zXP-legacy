@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-import "./interfaces/IOwned.sol";
-
 /**
   * @dev Provides support and utilities for contract ownership
 */

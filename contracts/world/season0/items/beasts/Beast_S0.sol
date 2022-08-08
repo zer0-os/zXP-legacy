@@ -13,12 +13,12 @@ contract Beast_S0 is NftOwned, Item, BeastStats{
     NftOwned(IERC721(nftContractAddress)){}
 
     function health(uint id) public view returns (uint) {
-        _health(level[id]);
+        return _health(level[id]);
     }
     function mana(uint id) public view returns (uint) {
-        _mana(level[id]);
+        return _mana(level[id]);
     }
     function power(uint id) public view returns (uint) {
-        _power(level[id]);
+        return _power(level[id]);
     }
 }

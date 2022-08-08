@@ -1,13 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import "../../gameplay/Tournament.sol";
+import "../../gameplay/BattleTournament.sol";
 
-contract BeastBattle_S0 is Tournament{
+contract BeastBattle_S0 is BattleTournament{
 
-     constructor(IRegistry registry) Tournament(registry, address(this), 1 days, 100){}
+     constructor(IRegistry registry) BattleTournament(registry, address(this), 1 days, 100){}
 
-     function battle(XpRecipient beast) public {
-          IZXP(addressOf("ZXP", season)).awardXP(beast, 100);
-     }
 }

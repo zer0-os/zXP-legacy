@@ -7,8 +7,9 @@ import "../../PlayerOwned.sol";
 import "./XpRecipient.sol";
 import "./Traverser.sol";
 import "./CharacterStats.sol";
+import "./Equipment.sol";
 
-contract Character is PlayerOwned, RegistryClient, XpRecipient, Traverser, CharacterStats{
+contract Character is PlayerOwned, RegistryClient, XpRecipient, Traverser, CharacterStats, Equipment{
     mapping(address => uint) public character;
     
     modifier zxpOnly() {

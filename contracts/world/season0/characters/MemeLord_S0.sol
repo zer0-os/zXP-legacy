@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "../../base/Character.sol";
 
-contract Character_S0 is Character{
+contract MemeLord_S0 is Character{
     constructor(IRegistry registry) 
     Character(registry) {}
 

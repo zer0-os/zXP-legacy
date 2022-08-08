@@ -15,7 +15,7 @@ describe("zXP", function () {
   var _characterS0;
 
   describe("zXP Season 0", function () {
-      it("Deploy the managers and register contracts", async function () {
+      it("Deploy the managers and registers contracts", async function () {
               //console.log(regGMtx);
       const addy = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
       const erc721wheelToken = await ethers.getContractFactory("ERC721TestToken");
@@ -80,12 +80,12 @@ describe("zXP", function () {
       _beastBattle = beastBattle;
   
       //await registry.registerAddress(ethers.utils.formatBytes32String("GameManager"), gameManager.address);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("ItemManager"), itemManager.address);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("CharacterManager"), characterManager.address);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("Character"), characterS0.address);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("Wheel"), wheel.address);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("Beast"), beast.address);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("BeastBattle"), beastBattle.address);
+      await _registry.registerAddress(ethers.utils.formatBytes32String("ItemManager"), itemManager.address, 1);
+      await _registry.registerAddress(ethers.utils.formatBytes32String("CharacterManager"), characterManager.address, 2);
+      await _registry.registerAddress(ethers.utils.formatBytes32String("Character"), characterS0.address, 2);
+      await _registry.registerAddress(ethers.utils.formatBytes32String("Wheel"), wheel.address, 1);
+      await _registry.registerAddress(ethers.utils.formatBytes32String("Beast"), beast.address, 1);
+      await _registry.registerAddress(ethers.utils.formatBytes32String("BeastBattle"), beastBattle.address, 0);
 
     });
     it("Player 1 creates character", async function () {
@@ -130,9 +130,9 @@ describe("zXP", function () {
       await beastBattle.deployed();
       _beastBattle = beastBattle;
 
-      await _registry.registerAddress(ethers.utils.formatBytes32String("Wheel_S1"), wheel.address);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("Beast_S1"), beast.address);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("BeastBattle_S1"), beastBattle.address);
+      await _registry.registerAddress(ethers.utils.formatBytes32String("Wheel_S1"), wheel.address, 1);
+      await _registry.registerAddress(ethers.utils.formatBytes32String("Beast_S1"), beast.address, 1);
+      await _registry.registerAddress(ethers.utils.formatBytes32String("BeastBattle_S1"), beastBattle.address, 0);
   });
     it("P1 advances season", async function () {
         _characterManager.advance();
