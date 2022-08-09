@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./base/Character.sol";
+//import "./base/Character.sol";
 import "./RegistryClient.sol";
 
 contract CharacterManager is RegistryClient{

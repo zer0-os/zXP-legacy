@@ -7,7 +7,6 @@ import "../interfaces/IRegistry.sol";
 
 contract ItemManager is RegistryClient{
 
-
     constructor(IRegistry registry) RegistryClient(registry) {}
     
 }

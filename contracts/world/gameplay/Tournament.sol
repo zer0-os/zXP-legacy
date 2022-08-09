@@ -8,7 +8,7 @@ import "../base/XpRecipient.sol";
 
 contract Tournament is Officiated, RegistryClient{
     mapping(uint => bool) roundResolved;
-    mapping(address => uint) winnings; 
+    mapping(uint => uint) winnings; 
 
     constructor(IRegistry registry, address official, uint roundLength, uint roundReward) 
     RegistryClient(registry)
@@ -16,9 +16,9 @@ contract Tournament is Officiated, RegistryClient{
 
     ///Each round interval, the official may submit results and divvy rewards 
     function submitTop3Results(
-        address firstPlace, 
-        address secondPlace, 
-        address thirdPlace, 
+        uint firstPlace, 
+        uint secondPlace, 
+        uint thirdPlace, 
         uint firstPrize, 
         uint secondPrize, 
         uint thirdPrize) 
@@ -32,10 +32,10 @@ contract Tournament is Officiated, RegistryClient{
         winnings[thirdPlace] += thirdPrize;
         roundResolved[(block.timestamp - startTime) / roundLength] = true;
         
-        IZXP(addressOf("ZXP", season)).awardXP(XpRecipient(firstPlace), roundXpReward);
-        IZXP(addressOf("ZXP", season)).awardXP(XpRecipient(secondPlace), roundXpReward);
-        IZXP(addressOf("ZXP", season)).awardXP(XpRecipient(thirdPlace), roundXpReward);
-        IZXP(addressOf("ZXP", season)).awardXP(XpRecipient(official), roundXpReward);
+        IZXP(addressOf("ZXP", season)).awardXP(firstPlace, roundXpReward);
+        IZXP(addressOf("ZXP", season)).awardXP(secondPlace, roundXpReward);
+        IZXP(addressOf("ZXP", season)).awardXP(thirdPlace, roundXpReward);
+        //IZXP(addressOf("ZXP", season)).awardXP(official, roundXpReward);
 
     }
 }

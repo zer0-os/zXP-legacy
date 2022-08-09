@@ -13,6 +13,9 @@ describe("zXP", function () {
   var _beastBattle;
   var _wheelRace;
   var _characterS0;
+  var _deepMeme;
+  var _meme;
+  var _zxp;
 
   describe("zXP Season 0", function () {
       it("Deploy the managers and registers contracts", async function () {
@@ -43,12 +46,17 @@ describe("zXP", function () {
       _beastToken = beastToken;
       await beastToken.mint(addy);
       expect(await beastToken.ownerOf(0)).to.equal(addy);
-    
+
       const RegistryFactory = await ethers.getContractFactory("Registry");
       const registry = await RegistryFactory.deploy();
       await registry.deployed();
       _registry = registry;
       
+      const ZXPFactory = await ethers.getContractFactory("ZXP");
+      const zxp = await ZXPFactory.deploy(registry.address);
+      await zxp.deployed();
+      _zxp = zxp;
+
       const ItemManagerFactory = await ethers.getContractFactory("ItemManager");
       const itemManager = await ItemManagerFactory.deploy(registry.address);
       await itemManager.deployed();
@@ -78,34 +86,60 @@ describe("zXP", function () {
       const beastBattle = await beastBattles.deploy(registry.address);
       await beastBattle.deployed();
       _beastBattle = beastBattle;
+
+      const deepMemeZNA = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+      const deepMemeFactory = await ethers.getContractFactory("DeepMeme_S0");
+      const deepMeme = await deepMemeFactory.deploy(registry.address, deepMemeZNA);
+      await deepMeme.deployed();
+      _deepMeme = deepMeme;
+
+      const memeFactory = await ethers.getContractFactory("Meme_S0");
+      const meme = await memeFactory.deploy(registry.address, deepMemeZNA);
+      await meme.deployed();
+      _meme = meme;
   
       //await registry.registerAddress(ethers.utils.formatBytes32String("GameManager"), gameManager.address);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("ItemManager"), itemManager.address, 1);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("CharacterManager"), characterManager.address, 2);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("Character"), characterS0.address, 2);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("Wheel"), wheel.address, 1);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("Beast"), beast.address, 1);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("BeastBattle"), beastBattle.address, 0);
-
+      await _registry.registerAddress(ethers.utils.formatBytes32String("ZXP"), _zxp.address, 0);
+      await _registry.registerAddress(ethers.utils.formatBytes32String("ItemManager"), _itemManager.address, 0);
+      await _registry.registerAddress(ethers.utils.formatBytes32String("CharacterManager"), _characterManager.address, 0);
+      await _registry.registerAddress(ethers.utils.formatBytes32String("Character"), _characterS0.address, 1);
+      await _registry.registerAddress(ethers.utils.formatBytes32String("Wheel"), _wheel.address, 2);
+      await _registry.registerAddress(ethers.utils.formatBytes32String("Beast"), _beast.address, 2);
+      await _registry.registerAddress(ethers.utils.formatBytes32String("BeastBattle"), _beastBattle.address, 3);
+      await _registry.registerAddress(ethers.utils.formatBytes32String("DeepMeme"), _deepMeme.address, 3);
+      await _registry.registerAddress(ethers.utils.formatBytes32String("Meme"), _meme.address, 2);
+      
     });
     it("Player 1 creates character", async function () {
-      _characterManager.create();
+      await _characterManager.create();
     });
     it("Player 1 views beast stats", async function (){
-      
+      expect(await _beast.levelOf(0)).to.equal(1);
+      expect(await _beast.health(0)).to.equal(1225);
+      expect(await _beast.mana(0)).to.equal(610);
+      expect(await _beast.power(0)).to.equal(201);
     })
     it("P1 equips wheel", async function () {
-      _characterS0.equipWheel(0);
+      await _characterS0.equipWheel(0);
     });
     it("P1 equips beast", async function () {
-      _characterS0.equipBeast(0);
+      await _characterS0.equipBeast(0);
     });
     it("P1 uses wheel in game, player and wheel earn XP", async function () {
       //_wheelRace.race();
     });
     it("P1 uses beast in game, player and beast earn XP", async function () {
-      _beastBattle.battle();
+      await _beastBattle.battle(0);
     });
+    it("Beast 0 has 240 xp", async function(){
+      expect(await _zxp.xp(0)).to.equal(240);
+    });
+    it("Player 1 views leveled-up beast stats", async function (){
+      expect(await _zxp.levelOf(0)).to.equal(2);
+      expect(await _beast.health(0)).to.equal(1250);
+      expect(await _beast.mana(0)).to.equal(620);
+      expect(await _beast.power(0)).to.equal(202);
+    })
   });
 
   describe("zXP Season 1", function () {

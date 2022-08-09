@@ -21,6 +21,6 @@ contract BeastBattle_S1 is RvBTournament{
           }else{
                redBattles[beast] += 1;
           }
-          IZXP(addressOf("ZXP", season)).awardXP(XpRecipient(msg.sender), 100);
+          IZXP(addressOf("ZXP", season)).awardXP(beast, 100);
      }
 }

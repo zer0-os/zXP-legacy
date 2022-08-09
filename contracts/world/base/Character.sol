@@ -9,11 +9,16 @@ import "./Traverser.sol";
 import "./CharacterStats.sol";
 import "./Equipment.sol";
 
-contract Character is PlayerOwned, RegistryClient, XpRecipient, Traverser, CharacterStats, Equipment{
+contract Character is RegistryClient, XpRecipient, Traverser, CharacterStats, Equipment{
     mapping(address => uint) public character;
     
-    modifier zxpOnly() {
-        require(addressOf("Zxp", season) == msg.sender, "ZXP: invalid zxp address");
+    modifier playerOnly(uint id){
+        require(character[msg.sender] == id);
+        _;
+    }
+
+    modifier characterManagerOnly() {
+        require(addressOf("CharacterManager", season) == msg.sender, "ZXP: invalid manager address");
         _;
     }
 
@@ -24,11 +29,8 @@ contract Character is PlayerOwned, RegistryClient, XpRecipient, Traverser, Chara
     }
 
 
-    function create() public virtual{
-        //active[msg.sender] = true;
+    function create(address a, uint id) public characterManagerOnly(){
+        character[a] = id;
     }
 
-    function advance() public {
-        
-    }
 }

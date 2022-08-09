@@ -10,7 +10,7 @@ contract RvBTournament is Officiated, RegistryClient{
     uint blueWins;
     uint redWins;
     mapping(uint => bool) roundResolved;
-    mapping(address => uint) winnings; 
+    mapping(uint => uint) winnings; 
 
     constructor(IRegistry registry, address official, uint roundLength, uint roundReward) 
     RegistryClient(registry)
@@ -19,9 +19,9 @@ contract RvBTournament is Officiated, RegistryClient{
     /// Each round interval, the official may submit results and divvy rewards 
     /// @param blueWon did the blue side or red side win the tournament?
     function submitTop3Results(
-        address firstPlace, 
-        address secondPlace, 
-        address thirdPlace, 
+        uint firstPlace, 
+        uint secondPlace, 
+        uint thirdPlace, 
         uint firstPrize, 
         uint secondPrize, 
         uint thirdPrize,
@@ -41,9 +41,9 @@ contract RvBTournament is Officiated, RegistryClient{
             redWins++;
         }
         
-        IZXP(addressOf("ZXP", season)).awardXP(XpRecipient(firstPlace), roundXpReward);
-        IZXP(addressOf("ZXP", season)).awardXP(XpRecipient(secondPlace), roundXpReward);
-        IZXP(addressOf("ZXP", season)).awardXP(XpRecipient(thirdPlace), roundXpReward);
-        IZXP(addressOf("ZXP", season)).awardXP(XpRecipient(official), roundXpReward);
+        IZXP(addressOf("ZXP", season)).awardXP(firstPlace, roundXpReward);
+        IZXP(addressOf("ZXP", season)).awardXP(secondPlace, roundXpReward);
+        IZXP(addressOf("ZXP", season)).awardXP(thirdPlace, roundXpReward);
+        //IZXP(addressOf("ZXP", season)).awardXP(XpRecipient(official), roundXpReward);
     }
 }

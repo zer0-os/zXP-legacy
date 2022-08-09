@@ -7,28 +7,30 @@ import "../interfaces/IRegistry.sol";
 
 contract Registry is IRegistry, Owned, Utils {
     
-    enum ObjectType{ITEM, GAME, CHAR}
+    enum ObjectType{MANAGER, CHAR, ITEM, GAME}
 
     struct RegistryObject {
-        address contractAddress;    
-        uint nameIndex;
+        mapping(uint => address) contractAddress;    
+        uint seasonZero;
         ObjectType objectType;
     }
 
     uint public currentSeason;
-    mapping (bytes32 => mapping(uint256 => RegistryObject)) private objects;    // name to season to registry object
-    string[] public contractNames;                      // list of all registered contract names
-
-    function objectCount() public view override returns (uint256) {
-        return contractNames.length;
-    }
-    
+    mapping (bytes32 => RegistryObject) private objects;    // name to season to registry object
+    //string[] public contractNames;                      // list of all registered contract names
+    mapping(address => bytes32) public name;
+    //function objectCount() public view override returns (uint256) {
+    //    return contractNames.length;
+    //}
     function addressOf(bytes32 _contractName, uint256 season) public view override returns (address) {
-        return objects[_contractName][season].contractAddress;
+        return objects[_contractName].contractAddress[season];
+    }
+    function seasonZeroOf(bytes32 _contractName) public view override returns (uint){
+        return objects[_contractName].seasonZero;
     }
 
-    function typeOf(bytes32 _contractName) public view returns (ObjectType) {
-        return objects[_contractName][0].objectType;
+    function typeOf(bytes32 _contractName) public view returns (uint) {
+        return uint(objects[_contractName].objectType);
     }
 
     ///contract names are limited to 32 bytes UTF8 encoded ASCII strings to optimize gas costs
@@ -42,19 +44,16 @@ contract Registry is IRegistry, Owned, Utils {
         //Prevent overwrite
         require(addressOf(_contractName, currentSeason + 1) == address(0), "ERR_NAME_TAKEN");
 
-        if (objects[_contractName][0].contractAddress == address(0)) {
-            // update the item's index in the list
-            objects[_contractName][0].nameIndex = contractNames.length;
-
-            // add the contract name to the name list
-            contractNames.push(bytes32ToString(_contractName));
+        if (seasonZeroOf(_contractName) == 0){
+            objects[_contractName].seasonZero = currentSeason + 1;
+            objects[_contractName].objectType = objectType;
         }
 
         // update the address in the registry
-        objects[_contractName][currentSeason + 1].contractAddress = _contractAddress;
-        objects[_contractName][currentSeason + 1].objectType = objectType;
+        objects[_contractName].contractAddress[currentSeason + 1] = _contractAddress;
+        name[_contractAddress] = _contractName;
     }
-
+    /*
     /// @dev Index 0 should always be the base Item contract first deployed and registered, and then advanceSeason adds generators at the following season indices
     /// @dev This automatically persists the base data, and allows new stats/functionality to be deployed each season.
     function advanceSeason(bytes32 _contractName, address _newContractAddress, uint256 xpAward)
@@ -66,7 +65,7 @@ contract Registry is IRegistry, Owned, Utils {
         // validate input
         require(_contractName.length > 0, "ERR_INVALID_NAME");
         // validate contract name is registered
-        require(objects[_contractName][0].contractAddress != address(0), "ERR_UNREGISTERED_NAME");
+        require(objects[_contractName].contractAddress[0] != address(0), "ERR_UNREGISTERED_NAME");
         
         //Increment season on item
         //Item item = Item(addressOf(_contractName, currentSeason));
@@ -74,7 +73,7 @@ contract Registry is IRegistry, Owned, Utils {
         //item.awardXP(xpAward);
         //associate new address with new season
         objects[_contractName][currentSeason + 1].contractAddress = _newContractAddress;
-    }
+    }*/
 
     /**
       * @dev utility, converts bytes32 to a string
