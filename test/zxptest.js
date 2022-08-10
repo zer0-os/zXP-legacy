@@ -16,6 +16,7 @@ describe("zXP", function () {
   var _deepMeme;
   var _meme;
   var _zxp;
+  var _memeLord;
 
   describe("zXP Season 0", function () {
       it("Deploy the managers and registers contracts", async function () {
@@ -108,7 +109,7 @@ describe("zXP", function () {
       await _registry.registerAddress(ethers.utils.formatBytes32String("BeastBattle"), _beastBattle.address, 3);
       await _registry.registerAddress(ethers.utils.formatBytes32String("DeepMeme"), _deepMeme.address, 3);
       await _registry.registerAddress(ethers.utils.formatBytes32String("Meme"), _meme.address, 2);
-      
+      await _registry.registerAddress(ethers.utils.formatBytes32String("MemeLord"), _memeLord.address, 1);  
     });
     it("Player 1 creates character", async function () {
       await _characterManager.create();
@@ -125,9 +126,9 @@ describe("zXP", function () {
     it("P1 equips beast", async function () {
       await _characterS0.equipBeast(0);
     });
-    it("P1 uses wheel in game, player and wheel earn XP", async function () {
-      //_wheelRace.race();
-    });
+    //it("P1 uses wheel in game, player and wheel earn XP", async function () {
+    //  //_wheelRace.race();
+    //});
     it("P1 uses beast in game, player and beast earn XP", async function () {
       await _beastBattle.battle(0);
     });
@@ -139,7 +140,7 @@ describe("zXP", function () {
       expect(await _beast.health(0)).to.equal(1250);
       expect(await _beast.mana(0)).to.equal(620);
       expect(await _beast.power(0)).to.equal(202);
-    })
+    });
   });
 
   describe("zXP Season 1", function () {

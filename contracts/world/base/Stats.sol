@@ -17,12 +17,12 @@ contract Stats{
     }
 
     function _health(uint level) internal view returns (uint){
-        return (1 + randSeed % baseMod) * baseHealth * baseCoef + healthCurve * level;
+        return (1 + randSeed % baseMod) * baseHealth * baseCoef + healthCurve * level * level;
     } 
     function _mana(uint level) internal view returns (uint){
-        return (1 + randSeed % baseMod) * baseMana * baseCoef + manaCurve * level;
+        return (1 + randSeed % baseMod) * baseMana * baseCoef + manaCurve * level * level;
     }
     function _power(uint level) internal view returns (uint){
-        return (1 + randSeed % baseMod) * basePower * baseCoef + powerCurve * level;
+        return (1 + randSeed % baseMod) * basePower * baseCoef + powerCurve * level * level;
     }
 }
