@@ -13,7 +13,7 @@ contract RegistryClient is Utils {
     bytes32 internal constant GAME_MANAGER = "Games";
     bytes32 internal constant ITEM_MANAGER = "Items";
     bytes32 internal constant CHARACTER_MANAGER = "Characters";        
-    bytes32 internal constant ZXP = "Zxp";
+    bytes32 internal constant ZXP = "ZXP";
 
     address public itemManager; 
     IRegistry public registry;      // address of the contract-registry
