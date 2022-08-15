@@ -11,7 +11,11 @@ contract BattleTournament is Officiated, RegistryClient{
     mapping(uint => uint) winnings; 
     mapping(address => uint) lastRoundBattled;
     mapping(uint => uint) finalization; /// Per-round RNG for determining battle winners
+    mapping(uint => uint) participantsCount; /// Number of participants 
     uint battlerWinnings;
+    uint redWins;
+    uint blueWins;
+
 
     constructor(IRegistry registry, address official, uint roundLength, uint roundReward) 
     RegistryClient(registry)
@@ -47,4 +51,16 @@ contract BattleTournament is Officiated, RegistryClient{
         lastRoundBattled[msg.sender] = block.timestamp/roundLength;
         IZXP(addressOf("ZXP", season)).awardXP(id, roundXpReward);
     }
+
+    function claimWins() public {
+        if(redOrBlue(msg.sender){
+            redWins * avgWinRwd()
+        }
+        redOrBlue(msg.sender) * redWins;
+    }
+    ///@dev 0 = red, 1 = blue
+    function redOrBlue(uint id) internal view returns(bool){
+        return id % 2 == 0;
+    }
+    function averageWinReward()
 }
