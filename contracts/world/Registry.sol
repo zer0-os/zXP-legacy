@@ -3,9 +3,9 @@ pragma solidity ^0.8.0;
 
 import "../Owned.sol";
 import "../Utils.sol";
-import "../interfaces/ISeasonManager.sol";
+import "../interfaces/IRegistry.sol";
 
-contract SeasonManager is ISeasonManager, Owned, Utils {
+contract Registry is IRegistry, Owned, Utils {
     
     enum ObjectType{MANAGER, CHAR, ITEM, GAME}
 

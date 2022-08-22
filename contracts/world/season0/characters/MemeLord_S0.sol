@@ -5,5 +5,5 @@ import "../../base/Character.sol";
 
 contract MemeLord_S0 is Character{
     constructor(IRegistry registry) 
-    Character(registry) {}
+    Character(registry) {}c c 
 }

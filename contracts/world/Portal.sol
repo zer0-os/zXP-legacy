@@ -3,18 +3,19 @@ pragma solidity ^0.8.0;
 
 import "./base/Character.sol";
 import "./base/Item.sol";
+import "./World.sol";
+import "../interfaces/IPortal.sol";
 
-contract Portal{
-    mapping(address => bool) entered;
-    mapping(address => bool) exited;
-
+contract Portal is IPortal{
+    mapping(address => address) link;
+    
     modifier contained(){
         require(entered[msg.sender] && !exited[msg.sender], "ZXP: Out of this world");
         _;
     }
 
     function enter() public{
-        require(!entered[msg.sender], "Player already entered");
+        require(!entered[msg.sender], "ZXP: Player already entered");
         entered[msg.sender] = true;
         //createCharacter();
     }
@@ -26,6 +27,10 @@ contract Portal{
 
     function reenter() public{
         //unsuspendCharacter();
-        exited[msg.sender] = true; 
+        entered[msg.sender] = true; 
+    }
+
+    function createLink() public{
+
     }
 }

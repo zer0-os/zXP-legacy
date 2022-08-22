@@ -49,6 +49,7 @@ contract BattleTournament is Officiated, RegistryClient{
     function battle(uint id) public {
         require(lastRoundBattled[msg.sender] < block.timestamp/roundLength, "ZXP already battled");
         lastRoundBattled[msg.sender] = block.timestamp/roundLength;
+        battlersCount[block.timstamp/roundLength]
         IZXP(addressOf("ZXP", season)).awardXP(id, roundXpReward);
     }
 
