@@ -12,7 +12,7 @@ contract Wheel_S0 is NftOwned, Item{
     Item("Wheel_S0", registry) 
     NftOwned(IERC721(nftContractAddress)){}
 
-    function scrap(uint256 wheelId) external only(ITEM_MANAGER) {
+    function scrap(uint256 wheelId) external only("ItemManager") {
         wheelScrapped[wheelId] = true;
     }
 

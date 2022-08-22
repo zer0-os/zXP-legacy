@@ -11,7 +11,7 @@ contract Item is RegistryClient, XpRecipient{
     mapping(uint256 => uint256) public itemToSeason;
     
     modifier onlyItemManager(){
-        require(msg.sender == addressOf(ITEM_MANAGER, season), "Unauthorized item manager");
+        require(msg.sender == addressOf("ItemManager", season), "Unauthorized item manager");
         _;
     }
     constructor(

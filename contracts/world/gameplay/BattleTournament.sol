@@ -9,10 +9,12 @@ import "../base/XpRecipient.sol";
 contract BattleTournament is Officiated, RegistryClient{
     mapping(uint => bool) roundResolved;
     mapping(uint => uint) winnings; 
+    mapping(address => uint) roundsBattled;
     mapping(address => uint) lastRoundBattled;
     mapping(uint => uint) finalization; /// Per-round RNG for determining battle winners
-    mapping(uint => uint) participantsCount; /// Number of participants 
-    uint battlerWinnings;
+    mapping(uint => uint) battlersCount; /// Number of participants 
+    uint averageRedWinnings;
+    uint averageBlueWinnings;
     uint redWins;
     uint blueWins;
 
@@ -37,8 +39,13 @@ contract BattleTournament is Officiated, RegistryClient{
         winnings[firstPlace] += firstPrize;
         winnings[secondPlace] += secondPrize;
         winnings[thirdPlace] += thirdPrize;
-        battlerWinnings += msg.value / 2; ///because we required the value to be 2 * prizes
         finalization[(block.timestamp - startTime) / roundLength] = block.difficulty;
+        if(block.difficulty % 2 == 0){
+            redWins++;    
+            
+        }else{
+            blueWins++;
+        }
         
         IZXP(addressOf("ZXP", season)).awardXP(firstPlace, roundXpReward);
         IZXP(addressOf("ZXP", season)).awardXP(secondPlace, roundXpReward);
@@ -49,19 +56,22 @@ contract BattleTournament is Officiated, RegistryClient{
     function battle(uint id) public {
         require(lastRoundBattled[msg.sender] < block.timestamp/roundLength, "ZXP already battled");
         lastRoundBattled[msg.sender] = block.timestamp/roundLength;
-        battlersCount[block.timstamp/roundLength]
+        battlersCount[block.timestamp/roundLength]++;
         IZXP(addressOf("ZXP", season)).awardXP(id, roundXpReward);
+
     }
 
     function claimWins() public {
-        if(redOrBlue(msg.sender){
-            redWins * avgWinRwd()
+        if(redOrBlue(msg.sender)){
+            payable(msg.sender).transfer((redWins + roundsBattled[msg.sender])/2 * averageRedWinnings);
         }
-        redOrBlue(msg.sender) * redWins;
+        else{
+            payable(msg.sender).transfer((blueWins + roundsBattled[msg.sender])/2 * averageBlueWinnings);
+        }
+
     }
     ///@dev 0 = red, 1 = blue
-    function redOrBlue(uint id) internal view returns(bool){
-        return id % 2 == 0;
+    function redOrBlue(address id) internal view returns(bool){
+        return uint(keccak256(abi.encode(id, block.timestamp/roundLength))) % 2 == 0;
     }
-    function averageWinReward()
 }
