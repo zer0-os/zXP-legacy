@@ -124,6 +124,9 @@ describe("zXP", function () {
     it("Player 1 creates character", async function () {
       await _characterManager.create();
     });
+    //it("Player 1 can't create a character again", async function() {
+    //  expect(await _characterManager.create()).to.be.reverted();
+    //});
     it("Player 1 views beast stats", async function (){
       expect(await _zxp.levelOf(0)).to.equal(1);
       expect(await _beast.health(0)).to.equal(1225);
@@ -185,6 +188,43 @@ describe("zXP", function () {
     it("P1 advances season", async function () {
         _characterManager.advance();
     });
+    it("Player 1 creates character", async function () {
+      await _characterManager.create();
+    });
+    //it("Player 1 can't create a character again", async function() {
+    //  expect(await _characterManager.create()).to.be.reverted();
+    //});
+    it("Player 1 views beast stats", async function (){
+      expect(await _zxp.levelOf(0)).to.equal(2);
+      //expect(await _beast.health(0)).to.equal(1225);
+      //expect(await _beast.mana(0)).to.equal(610);
+      //expect(await _beast.power(0)).to.equal(201);
+    });
+    it("P1 equips wheel", async function () {
+      await _characterS0.equipWheel(0);
+    });
+    it("P1 equips beast", async function () {
+      await _characterS0.equipBeast(0);
+    });
+    //it("P1 uses wheel in game, player and wheel earn XP", async function () {
+    //  //_wheelRace.race();
+    //});
+    it("P1 uses beast in game, player and beast earn XP", async function () {
+      //await _beastBattle.battle(0);
+    });
+    it("Beast 0 has 240 xp", async function(){
+      expect(await _zxp.xp(0)).to.equal(340);
+    });
+    it("Player 1 views leveled-up beast stats", async function (){
+      expect(await _zxp.levelOf(0)).to.equal(2);
+      //expect(await _beast.health(0)).to.equal(1300);
+      //expect(await _beast.mana(0)).to.equal(640);
+      //expect(await _beast.power(0)).to.equal(204);
+    });
+    it("DeepMeme tourney official submits results", async function() {
+      //await _deepMeme.submitTop3Results(0, 1, 2, 0, 0, 0);
+    });
   });
+
 
 });
