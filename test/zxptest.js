@@ -154,9 +154,19 @@ describe("zXP", function () {
       expect(await _beast.mana(0)).to.equal(640);
       expect(await _beast.power(0)).to.equal(204);
     });
+    it("Player 1 beast health is now 1300", async function (){
+      expect(await _beast.health(0)).to.equal(1300);
+    });
+    it("Player 1 beast mana is now 640", async function (){
+      expect(await _beast.mana(0)).to.equal(640);
+    });
+    it("Player 1 power is now 204", async function (){
+      expect(await _beast.power(0)).to.equal(204);
+    });
     it("DeepMeme tourney official submits results", async function() {
       await _deepMeme.submitTop3Results(0, 1, 2, 0, 0, 0);
     });
+    
   });
 
   describe("zXP Season 1", function () {
@@ -181,10 +191,13 @@ describe("zXP", function () {
       await beastBattle.deployed();
       _beastBattle = beastBattle;
 
-      await _registry.registerAddress(ethers.utils.formatBytes32String("Wheel_S1"), wheel.address, 1);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("Beast_S1"), beast.address, 1);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("BeastBattle_S1"), beastBattle.address, 0);
+      await _registry.advanceSeason(ethers.utils.formatBytes32String("Wheel"), wheel.address);
+      await _registry.advanceSeason(ethers.utils.formatBytes32String("Beast"), beast.address);
+      await _registry.advanceSeason(ethers.utils.formatBytes32String("BeastBattle"), beastBattle.address);
   });
+    it("P1 advances season", async function () {
+      _characterManager.advance();
+    });
     it("P1 advances season", async function () {
         _characterManager.advance();
     });
@@ -194,7 +207,7 @@ describe("zXP", function () {
     //it("Player 1 can't create a character again", async function() {
     //  expect(await _characterManager.create()).to.be.reverted();
     //});
-    it("Player 1 views beast stats", async function (){
+    it("Player 1 beast is still level 2", async function (){
       expect(await _zxp.levelOf(0)).to.equal(2);
       //expect(await _beast.health(0)).to.equal(1225);
       //expect(await _beast.mana(0)).to.equal(610);
@@ -209,22 +222,29 @@ describe("zXP", function () {
     //it("P1 uses wheel in game, player and wheel earn XP", async function () {
     //  //_wheelRace.race();
     //});
-    it("P1 uses beast in game, player and beast earn XP", async function () {
-      //await _beastBattle.battle(0);
-    });
-    it("Beast 0 has 240 xp", async function(){
+    it("Beast 0 has 340 xp", async function(){
       expect(await _zxp.xp(0)).to.equal(340);
     });
-    it("Player 1 views leveled-up beast stats", async function (){
-      expect(await _zxp.levelOf(0)).to.equal(2);
-      //expect(await _beast.health(0)).to.equal(1300);
-      //expect(await _beast.mana(0)).to.equal(640);
-      //expect(await _beast.power(0)).to.equal(204);
+    it("P1 uses beast in game, choosing blue team, player and beast earn XP", async function () {
+      await _beastBattle.battle(0, 1);
+    });
+    it("Beast 0 has 440 xp", async function(){
+      expect(await _zxp.xp(0)).to.equal(440);
+    });
+    it("Player 1 beast levels up to 3", async function (){
+      expect(await _zxp.levelOf(0)).to.equal(3);
+    });
+    it("Player 1 beast health is now 2625", async function (){
+      expect(await _beast.health(0)).to.equal(2625);
+    });
+    it("Player 1 beast mana is now 1290", async function (){
+      expect(await _beast.mana(0)).to.equal(1290);
+    });
+    it("Player 1 power is now 409", async function (){
+      expect(await _beast.power(0)).to.equal(409);
     });
     it("DeepMeme tourney official submits results", async function() {
       //await _deepMeme.submitTop3Results(0, 1, 2, 0, 0, 0);
     });
   });
-
-
 });

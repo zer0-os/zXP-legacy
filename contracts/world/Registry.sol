@@ -15,7 +15,7 @@ contract Registry is IRegistry, Owned, Utils {
         ObjectType objectType;
     }
 
-    uint public currentSeason;
+    uint public currentSeason = 1;
     mapping (bytes32 => RegistryObject) private objects;    // name to season to registry object
     //string[] public contractNames;                      // list of all registered contract names
     mapping(address => bytes32) public name;
@@ -42,38 +42,33 @@ contract Registry is IRegistry, Owned, Utils {
         // validate input
         require(_contractName.length > 0, "ERR_INVALID_NAME");
         //Prevent overwrite
-        require(addressOf(_contractName, currentSeason + 1) == address(0), "ERR_NAME_TAKEN");
+        //require(addressOf(_contractName, currentSeason + 1) == address(0), "ERR_NAME_TAKEN");
 
         if (seasonZeroOf(_contractName) == 0){
-            objects[_contractName].seasonZero = currentSeason + 1;
+            objects[_contractName].seasonZero = currentSeason;
             objects[_contractName].objectType = objectType;
         }
 
         // update the address in the registry
-        objects[_contractName].contractAddress[currentSeason + 1] = _contractAddress;
+        objects[_contractName].contractAddress[currentSeason] = _contractAddress;
         name[_contractAddress] = _contractName;
     }
-    /*
-    /// @dev Index 0 should always be the base Item contract first deployed and registered, and then advanceSeason adds generators at the following season indices
-    /// @dev This automatically persists the base data, and allows new stats/functionality to be deployed each season.
-    function advanceSeason(bytes32 _contractName, address _newContractAddress, uint256 xpAward)
+    
+    /// @dev Deploys a new season of a registered contract
+    function advanceSeason(bytes32 _contractName, address _newContractAddress)
         public
-        override
         ownerOnly
         validAddress(_newContractAddress)
     {
         // validate input
         require(_contractName.length > 0, "ERR_INVALID_NAME");
         // validate contract name is registered
-        require(objects[_contractName].contractAddress[0] != address(0), "ERR_UNREGISTERED_NAME");
+        require(objects[_contractName].seasonZero != 0, "ERR_UNREGISTERED_NAME");
         
-        //Increment season on item
-        //Item item = Item(addressOf(_contractName, currentSeason));
-        //item.incrementSeason();
-        //item.awardXP(xpAward);
-        //associate new address with new season
-        objects[_contractName][currentSeason + 1].contractAddress = _newContractAddress;
-    }*/
+        // update the address in the registry
+        objects[_contractName].contractAddress[currentSeason + 1] = _newContractAddress;
+        name[_newContractAddress] = _contractName;
+    }
 
     /**
       * @dev utility, converts bytes32 to a string
