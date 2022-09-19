@@ -21,14 +21,15 @@ describe("zXP", function () {
   var P2;
 
   describe("zXP Season 0", function () {
-      it("Deploy the managers and registers contracts", async function () {
+    it("Gets signers for players 1 and 2", async function () {
       const [p1, p2] = await ethers.getSigners();
-      P1 = p1;
-      P2 = p2;
+      P1 = p1.address;
+      P2 = p2.address;
+    });
 
-      const addy = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
-      const erc721wheelToken = await ethers.getContractFactory("ERC721TestToken");
-      const wheelToken = await erc721wheelToken.deploy('Wilder Wheels', 'WHEEL', {
+    it("Deploys mock wheel token", async function () {
+        const erc721wheelToken = await ethers.getContractFactory("ERC721TestToken");
+        const wheelToken = await erc721wheelToken.deploy('Wilder Wheels', 'WHEEL', {
         "id": 0,
         "description": "Wilder Wheels",
         "external_url": "0://wilder.wheels",
@@ -37,9 +38,11 @@ describe("zXP", function () {
       });
       await wheelToken.deployed();
       _wheelToken = wheelToken;
-      await wheelToken.mint(addy);
-      expect(await wheelToken.ownerOf(0)).to.equal(addy);
+      await wheelToken.mint(P1);
+      expect(await wheelToken.ownerOf(0)).to.equal(P1);
+    });
 
+    it("Deploys mock beast token", async function () {
       const erc721beastToken = await ethers.getContractFactory("ERC721TestToken");
       const beastToken = await erc721beastToken.deploy('Wilder Beasts', 'BEAST', {
         "id": 0,
@@ -50,77 +53,96 @@ describe("zXP", function () {
       });
       await beastToken.deployed();
       _beastToken = beastToken;
-      await beastToken.mint(addy);
-      expect(await beastToken.ownerOf(0)).to.equal(addy);
-
+      await beastToken.mint(P1);
+      expect(await beastToken.ownerOf(0)).to.equal(P1);
+    });
+    it("Deploys the registry", async function () {
       const RegistryFactory = await ethers.getContractFactory("Registry");
       const registry = await RegistryFactory.deploy();
       await registry.deployed();
       _registry = registry;
-      
+    });
+
+    it("Deploys and registers ZXP manager", async function () {
       const ZXPFactory = await ethers.getContractFactory("ZXP");
-      const zxp = await ZXPFactory.deploy(registry.address);
+      const zxp = await ZXPFactory.deploy(_registry.address);
       await zxp.deployed();
       _zxp = zxp;
+      await _registry.registerAddress(ethers.utils.formatBytes32String("ZXP"), _zxp.address, 0);
+    });
 
+    it("Deploys and registers item manager", async function () {
       const ItemManagerFactory = await ethers.getContractFactory("ItemManager");
-      const itemManager = await ItemManagerFactory.deploy(registry.address);
+      const itemManager = await ItemManagerFactory.deploy(_registry.address);
       await itemManager.deployed();
       _itemManager = itemManager;
+      await _registry.registerAddress(ethers.utils.formatBytes32String("ItemManager"), _itemManager.address, 0);
+    });
 
+    it("Deploys and registers character manager", async function () {
       const CharacterManagerFactory = await ethers.getContractFactory("CharacterManager");
-      const characterManager = await CharacterManagerFactory.deploy(registry.address);
+      const characterManager = await CharacterManagerFactory.deploy(_registry.address);
       await characterManager.deployed();
       _characterManager = characterManager;
+      await _registry.registerAddress(ethers.utils.formatBytes32String("CharacterManager"), _characterManager.address, 0);
+    });
 
+    it("Deploys and registers characters", async function () {
       const CharacterS0Factory = await ethers.getContractFactory("Character_S0");
-      const characterS0 = await CharacterS0Factory.deploy(registry.address);
+      const characterS0 = await CharacterS0Factory.deploy(_registry.address);
       await characterS0.deployed();
       _characterS0 = characterS0;
+      await _registry.registerAddress(ethers.utils.formatBytes32String("Character"), _characterS0.address, 1);
+    });
 
+    it("Deploys and registers wheel item", async function () {
       const Wheels = await ethers.getContractFactory("Wheel_S0");
-      const wheel = await Wheels.deploy(ethers.utils.formatBytes32String("Wheel_S0"), registry.address, _wheelToken.address);
+      const wheel = await Wheels.deploy(ethers.utils.formatBytes32String("Wheel_S0"), _registry.address, _wheelToken.address);
       await wheel.deployed();
       _wheel = wheel;
+      await _registry.registerAddress(ethers.utils.formatBytes32String("Wheel"), _wheel.address, 2);
+    });
 
+    it("Deploys and registers beast item", async function () {
       const Beasts = await ethers.getContractFactory("Beast_S0");
-      const beast = await Beasts.deploy(ethers.utils.formatBytes32String("Beast_S0"), registry.address, beastToken.address);
+      const beast = await Beasts.deploy(ethers.utils.formatBytes32String("Beast_S0"), _registry.address, _beastToken.address);
       await beast.deployed();
       _beast = beast;
+      await _registry.registerAddress(ethers.utils.formatBytes32String("Beast"), _beast.address, 2);
+    });
 
+    it("Deploys and registers beast battle game", async function () {
       const beastBattles = await ethers.getContractFactory("BeastBattle_S0");
-      const beastBattle = await beastBattles.deploy(registry.address);
+      const beastBattle = await beastBattles.deploy(_registry.address);
       await beastBattle.deployed();
       _beastBattle = beastBattle;
-      
-      const deepMemeZNA = P1.address;
+      await _registry.registerAddress(ethers.utils.formatBytes32String("BeastBattle"), _beastBattle.address, 3);
+    });
+
+    it("Deploys and registers deepMeme game", async function () {
       const deepMemeFactory = await ethers.getContractFactory("DeepMeme_S0");
-      const deepMeme = await deepMemeFactory.deploy(registry.address, deepMemeZNA);
+      const deepMeme = await deepMemeFactory.deploy(_registry.address, P1);
       await deepMeme.deployed();
       _deepMeme = deepMeme;
+      await _registry.registerAddress(ethers.utils.formatBytes32String("DeepMeme"), _deepMeme.address, 3);
+    });
 
+    it("Deploys and registers meme item", async function () {
       const memeFactory = await ethers.getContractFactory("Meme_S0");
-      const meme = await memeFactory.deploy(registry.address, deepMemeZNA);
+      const meme = await memeFactory.deploy(_registry.address, P1);
       await meme.deployed();
       _meme = meme;
-  
+      await _registry.registerAddress(ethers.utils.formatBytes32String("Meme"), _meme.address, 2);
+    });
+
+    it("Deploys and registers memelord character", async function () {
       const memeLordFactory = await ethers.getContractFactory("MemeLord_S0");
-      const memeLord = await memeLordFactory.deploy(registry.address);
+      const memeLord = await memeLordFactory.deploy(_registry.address);
       await memeLord.deployed();
       _memeLord = memeLord;
-
-      //await registry.registerAddress(ethers.utils.formatBytes32String("GameManager"), gameManager.address);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("ZXP"), _zxp.address, 0);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("ItemManager"), _itemManager.address, 0);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("CharacterManager"), _characterManager.address, 0);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("Character"), _characterS0.address, 1);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("Wheel"), _wheel.address, 2);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("Beast"), _beast.address, 2);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("BeastBattle"), _beastBattle.address, 3);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("DeepMeme"), _deepMeme.address, 3);
-      await _registry.registerAddress(ethers.utils.formatBytes32String("Meme"), _meme.address, 2);
       await _registry.registerAddress(ethers.utils.formatBytes32String("MemeLord"), _memeLord.address, 1);  
     });
+
     it("Player 1 creates character", async function () {
       await _characterManager.create();
     });
@@ -129,9 +151,9 @@ describe("zXP", function () {
     //});
     it("Player 1 views beast stats", async function (){
       expect(await _zxp.levelOf(0)).to.equal(1);
-      expect(await _beast.health(0)).to.equal(1225);
-      expect(await _beast.mana(0)).to.equal(610);
-      expect(await _beast.power(0)).to.equal(201);
+      expect(await _beast.health(0)).to.equal(3625);
+      expect(await _beast.mana(0)).to.equal(1810);
+      expect(await _beast.power(0)).to.equal(601);
     });
     it("P1 equips wheel", async function () {
       await _characterS0.equipWheel(0);
@@ -148,53 +170,59 @@ describe("zXP", function () {
     it("Beast 0 has 240 xp", async function(){
       expect(await _zxp.xp(0)).to.equal(240);
     });
-    it("Player 1 views leveled-up beast stats", async function (){
+    it("Player 1 beast is level 2", async function (){
       expect(await _zxp.levelOf(0)).to.equal(2);
-      expect(await _beast.health(0)).to.equal(1300);
-      expect(await _beast.mana(0)).to.equal(640);
-      expect(await _beast.power(0)).to.equal(204);
+      //expect(await _beast.health(0)).to.equal(3700);
+      //expect(await _beast.mana(0)).to.equal(640);
+      //expect(await _beast.power(0)).to.equal(204);
     });
     it("Player 1 beast health is now 1300", async function (){
-      expect(await _beast.health(0)).to.equal(1300);
+      expect(await _beast.health(0)).to.equal(3700);
     });
     it("Player 1 beast mana is now 640", async function (){
-      expect(await _beast.mana(0)).to.equal(640);
+      expect(await _beast.mana(0)).to.equal(1840);
     });
     it("Player 1 power is now 204", async function (){
-      expect(await _beast.power(0)).to.equal(204);
+      expect(await _beast.power(0)).to.equal(604);
     });
     it("DeepMeme tourney official submits results", async function() {
       await _deepMeme.submitTop3Results(0, 1, 2, 0, 0, 0);
     });
-    
+  
   });
 
   describe("zXP Season 1", function () {
-    it("Deploy the managers and register contracts", async function () {
+    it("Deploys and registers s1 characters", async function () {
       const CharacterS1Factory = await ethers.getContractFactory("Character_S1");
       const characterS1 = await CharacterS1Factory.deploy(_registry.address);
       await characterS1.deployed();
       _characterS1 = characterS1;
-      
+      await _registry.advanceSeason(ethers.utils.formatBytes32String("Character"), _characterS1.address);
+    });
+    
+    it("Deploy and registers s1 wheels", async function () {
       const Wheels = await ethers.getContractFactory("Wheel_S1");
       const wheel = await Wheels.deploy(ethers.utils.formatBytes32String("Wheel_S1"), _registry.address, _wheelToken.address);
       await wheel.deployed();
       _wheel = wheel;
-
+      await _registry.advanceSeason(ethers.utils.formatBytes32String("Wheel"), _wheel.address);
+    });
+    
+    it("Deploy and registers s1 beasts", async function () {
       const Beasts = await ethers.getContractFactory("Beast_S1");
       const beast = await Beasts.deploy(ethers.utils.formatBytes32String("Beast_S1"), _registry.address, _beastToken.address);
       await beast.deployed();
       _beast = beast;
-
+      await _registry.advanceSeason(ethers.utils.formatBytes32String("Beast"), _beast.address);
+    });
+    
+    it("Deploy and registers s1 beast battles", async function () {
       const beastBattles = await ethers.getContractFactory("BeastBattle_S1");
       const beastBattle = await beastBattles.deploy(_registry.address);
       await beastBattle.deployed();
       _beastBattle = beastBattle;
-
-      await _registry.advanceSeason(ethers.utils.formatBytes32String("Wheel"), wheel.address);
-      await _registry.advanceSeason(ethers.utils.formatBytes32String("Beast"), beast.address);
       await _registry.advanceSeason(ethers.utils.formatBytes32String("BeastBattle"), beastBattle.address);
-  });
+    });
     it("P1 advances season", async function () {
       _characterManager.advance();
     });
@@ -235,13 +263,13 @@ describe("zXP", function () {
       expect(await _zxp.levelOf(0)).to.equal(3);
     });
     it("Player 1 beast health is now 2625", async function (){
-      expect(await _beast.health(0)).to.equal(2625);
+      expect(await _beast.health(0)).to.equal(3825);
     });
     it("Player 1 beast mana is now 1290", async function (){
-      expect(await _beast.mana(0)).to.equal(1290);
+      expect(await _beast.mana(0)).to.equal(1890);
     });
     it("Player 1 power is now 409", async function (){
-      expect(await _beast.power(0)).to.equal(409);
+      expect(await _beast.power(0)).to.equal(609);
     });
     it("DeepMeme tourney official submits results", async function() {
       //await _deepMeme.submitTop3Results(0, 1, 2, 0, 0, 0);
