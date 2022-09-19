@@ -287,5 +287,50 @@ describe("zXP", function () {
     it("DeepMeme tourney official submits results", async function() {
       //await _deepMeme.submitTop3Results(0, 1, 2, 0, 0, 0);
     });
+
+    //leveling test
+    describe("leveling to 99", function () {
+      var randSeed = 133250;
+      //it("gets the random seed value", async function(){
+      //  randSeed = await(_beast.randSeed());
+      //  console.log(randSeed);
+      //})
+      const healthCurve = 25;
+      const manaCurve = 10;
+      const powerCurve = 1;
+      const baseHealth = 120;
+      const baseMana = 60;
+      const basePower = 20;
+      const baseCoef = 10;
+      const baseMod = 3;
+      
+      for (let level = 3; level < 99; level++) {
+        let lto = "levels to " + (level + 1).toString();
+        it(lto, async function() {
+          await _zxp.levelUp(0);
+          expect(await _zxp.levelOf(0)).to.equal(level + 1);
+        });
+
+        let hinc = (1 + randSeed % baseMod) * baseHealth * baseCoef + healthCurve * (level + 1) * (level + 1);
+        //console.log(hinc);
+        let hincs = "increased health to " + hinc.toString();
+        it(hincs, async function() {
+          expect(await _beast.health(0)).to.equal(hinc);
+        });
+
+        let minc = (1 + randSeed % baseMod) * baseMana * baseCoef + manaCurve * (level + 1) * (level + 1);
+        let mincs = "increased mana to " + minc.toString();
+        it(mincs, async function() {
+          expect(await _beast.mana(0)).to.equal(minc);
+        });
+
+        let pinc = (1 + randSeed % baseMod) * basePower * baseCoef + powerCurve * (level + 1) * (level + 1);
+        let pincs = "increased power to " + pinc.toString();
+        it(pincs, async function() {
+          expect(await _beast.power(0)).to.equal(pinc);
+        });
+      }
+      
+    });
   });
 });

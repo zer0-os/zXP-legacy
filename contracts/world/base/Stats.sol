@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 contract Stats{
-    uint randSeed;
+    uint public randSeed;
     uint healthCurve = 25;
     uint manaCurve = 10;
     uint powerCurve = 1;
