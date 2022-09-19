@@ -14,7 +14,7 @@ contract BeastBattle_S1 is RvBTournament{
      RvBTournament(registry, address(this), 1 days, 100){}
 
      function battle(uint beast, bool redOrBlue) public {
-          require(lastBattleRound[beast] < block.timestamp/(1 days), "ZXP Already battling today");
+          //require(lastBattleRound[beast] < block.timestamp/(1 days), "ZXP Already battling today");
           lastBattleRound[beast] = block.timestamp/(1 days);
           if(redOrBlue){
                blueBattles[beast] += 1;

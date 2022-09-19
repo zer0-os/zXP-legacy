@@ -256,8 +256,21 @@ describe("zXP", function () {
     it("P1 uses beast in game, choosing blue team, player and beast earn XP", async function () {
       await _beastBattle.battle(0, 1);
     });
-    it("Beast 0 has 440 xp", async function(){
-      expect(await _zxp.xp(0)).to.equal(440);
+    it("P1 uses beast in game, choosing blue team, player and beast earn XP", async function () {
+      await _beastBattle.battle(0, 1);
+    });
+    it("P1 uses beast in game, choosing blue team, player and beast earn XP", async function () {
+      await _beastBattle.battle(0, 1);
+    });
+    it("P1 uses beast in game, choosing blue team, player and beast earn XP", async function () {
+      await _beastBattle.battle(0, 1);
+    });
+    it("P1 uses beast in game, choosing blue team, player and beast earn XP", async function () {
+      await _beastBattle.battle(0, 1);
+    });
+
+    it("Beast 0 has 840 xp", async function(){
+      expect(await _zxp.xp(0)).to.equal(840);
     });
     it("Player 1 beast levels up to 3", async function (){
       expect(await _zxp.levelOf(0)).to.equal(3);

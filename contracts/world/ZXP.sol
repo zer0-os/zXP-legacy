@@ -14,10 +14,16 @@ contract ZXP is Owned, RegistryClient{
     /// awards XP and levels up if the new xp value exceeds the threshold defined by the xp curve
     function awardXP(uint id, uint amount) external onlyGame(){
         xp[id] += amount;
-        if(xp[id] > levelOf(id) * curve){
+        if(xp[id] > levelOf(id) * levelOf(id) * curve){
             level[id]++;
         }
     }
+    
+    //test
+    function levelUp(uint id) public ownerOnly(){
+        xp[id] += levelOf(id) * levelOf(id) * curve;        
+    }
+
     ///Level starts at 1
     function levelOf(uint id) public view returns (uint){
         return level[id] + 1;
