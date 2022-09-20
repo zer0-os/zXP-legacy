@@ -11,6 +11,7 @@ describe("zXP", function () {
   var _wheel;
   var _beast;
   var _beastBattle;
+  var _battleRoyale;
   var _wheelRace;
   var _characterS0;
   var _deepMeme;
@@ -56,6 +57,14 @@ describe("zXP", function () {
       await beastToken.mint(P1);
       expect(await beastToken.ownerOf(0)).to.equal(P1);
     });
+
+    it("Deploys mock wild token", async function () {
+      const erc20Token = await ethers.getContractFactory("ERC20TestToken");
+      const wildToken = await erc20Token.deploy('Wilder World', 'WILD');
+      await wildToken.deployed();
+      _wildToken = wildToken;
+    });
+
     it("Deploys the registry", async function () {
       const RegistryFactory = await ethers.getContractFactory("Registry");
       const registry = await RegistryFactory.deploy();
@@ -143,6 +152,14 @@ describe("zXP", function () {
       await _registry.registerAddress(ethers.utils.formatBytes32String("MemeLord"), _memeLord.address, 1);  
     });
 
+    it("Deploy and registers s0 battle royale", async function () {
+      const battleRoyales = await ethers.getContractFactory("BattleRoyale_S0");
+      const battleRoyale = await battleRoyales.deploy(_registry.address, _wildToken.address);
+      await battleRoyale.deployed();
+      _battleRoyale = battleRoyale;
+      await _registry.registerAddress(ethers.utils.formatBytes32String("BattleRoyale"), _battleRoyale.address, 3);
+    });
+
     it("Player 1 creates character", async function () {
       await _characterManager.create();
     });
@@ -151,9 +168,6 @@ describe("zXP", function () {
     //});
     it("Player 1 views beast stats", async function (){
       expect(await _zxp.levelOf(0)).to.equal(1);
-      expect(await _beast.health(0)).to.equal(3625);
-      expect(await _beast.mana(0)).to.equal(1810);
-      expect(await _beast.power(0)).to.equal(601);
     });
     it("P1 equips wheel", async function () {
       await _characterS0.equipWheel(0);
@@ -172,18 +186,6 @@ describe("zXP", function () {
     });
     it("Player 1 beast is level 2", async function (){
       expect(await _zxp.levelOf(0)).to.equal(2);
-      //expect(await _beast.health(0)).to.equal(3700);
-      //expect(await _beast.mana(0)).to.equal(640);
-      //expect(await _beast.power(0)).to.equal(204);
-    });
-    it("Player 1 beast health is now 1300", async function (){
-      expect(await _beast.health(0)).to.equal(3700);
-    });
-    it("Player 1 beast mana is now 640", async function (){
-      expect(await _beast.mana(0)).to.equal(1840);
-    });
-    it("Player 1 power is now 204", async function (){
-      expect(await _beast.power(0)).to.equal(604);
     });
     it("DeepMeme tourney official submits results", async function() {
       await _deepMeme.submitTop3Results(0, 1, 2, 0, 0, 0);
@@ -223,6 +225,9 @@ describe("zXP", function () {
       _beastBattle = beastBattle;
       await _registry.advanceSeason(ethers.utils.formatBytes32String("BeastBattle"), beastBattle.address);
     });
+
+    
+    
     it("P1 advances season", async function () {
       _characterManager.advance();
     });
@@ -237,9 +242,6 @@ describe("zXP", function () {
     //});
     it("Player 1 beast is still level 2", async function (){
       expect(await _zxp.levelOf(0)).to.equal(2);
-      //expect(await _beast.health(0)).to.equal(1225);
-      //expect(await _beast.mana(0)).to.equal(610);
-      //expect(await _beast.power(0)).to.equal(201);
     });
     it("P1 equips wheel", async function () {
       await _characterS0.equipWheel(0);
@@ -275,26 +277,17 @@ describe("zXP", function () {
     it("Player 1 beast levels up to 3", async function (){
       expect(await _zxp.levelOf(0)).to.equal(3);
     });
-    it("Player 1 beast health is now 2625", async function (){
-      expect(await _beast.health(0)).to.equal(3825);
-    });
-    it("Player 1 beast mana is now 1290", async function (){
-      expect(await _beast.mana(0)).to.equal(1890);
-    });
-    it("Player 1 power is now 409", async function (){
-      expect(await _beast.power(0)).to.equal(609);
-    });
     it("DeepMeme tourney official submits results", async function() {
       //await _deepMeme.submitTop3Results(0, 1, 2, 0, 0, 0);
     });
 
     //leveling test
     describe("leveling to 99", function () {
-      var randSeed = 133250;
-      //it("gets the random seed value", async function(){
-      //  randSeed = await(_beast.randSeed());
-      //  console.log(randSeed);
-      //})
+      let randSeed = 133250;
+      it("gets the random seed value", async function(){
+        randSeed = await(_beast.randSeed());
+        console.log(randSeed);
+      })
       const healthCurve = 25;
       const manaCurve = 10;
       const powerCurve = 1;
@@ -303,34 +296,46 @@ describe("zXP", function () {
       const basePower = 20;
       const baseCoef = 10;
       const baseMod = 3;
+      const beastID = 1;
       
-      for (let level = 3; level < 99; level++) {
+      for (let level = 1; level < 99; level++) {
         let lto = "levels to " + (level + 1).toString();
         it(lto, async function() {
-          await _zxp.levelUp(0);
-          expect(await _zxp.levelOf(0)).to.equal(level + 1);
+          await _zxp.levelUp(beastID);
+          expect(await _zxp.levelOf(beastID)).to.equal(level + 1);
         });
 
         let hinc = (1 + randSeed % baseMod) * baseHealth * baseCoef + healthCurve * (level + 1) * (level + 1);
         //console.log(hinc);
         let hincs = "increased health to " + hinc.toString();
         it(hincs, async function() {
-          expect(await _beast.health(0)).to.equal(hinc);
+          expect(await _beast.health(beastID)).to.equal(hinc);
         });
 
         let minc = (1 + randSeed % baseMod) * baseMana * baseCoef + manaCurve * (level + 1) * (level + 1);
         let mincs = "increased mana to " + minc.toString();
         it(mincs, async function() {
-          expect(await _beast.mana(0)).to.equal(minc);
+          expect(await _beast.mana(beastID)).to.equal(minc);
         });
 
         let pinc = (1 + randSeed % baseMod) * basePower * baseCoef + powerCurve * (level + 1) * (level + 1);
         let pincs = "increased power to " + pinc.toString();
         it(pincs, async function() {
-          expect(await _beast.power(0)).to.equal(pinc);
+          expect(await _beast.power(beastID)).to.equal(pinc);
         });
       }
-      
+    });
+    
+    describe("battle royale", function () {
+      const mapsize = 256;
+      for (let x = 0; x < mapsize; x++) {
+        for (let y = 0; y < mapsize; y++) {
+          let s = "gets tile " + x + "," + y;
+          it(s, async function() {
+            console.log(await _battleRoyale.get_tile(x,y));
+          });
+        }
+      }
     });
   });
 });
