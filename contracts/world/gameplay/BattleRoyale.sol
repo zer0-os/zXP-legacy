@@ -16,11 +16,12 @@ contract BattleRoyale is Owned, RegistryClient{
 	uint256 public pool_div = 10;
 
     uint max_upgrades = 3;
-	uint public passable_threshold = 121;
-	uint victory_threshold = 169;
-	uint threshold_increment = 6;
+	uint public passable_threshold = 121000000;
+	uint victory_threshold = 169000000;
+	uint threshold_increment = 60000000;
 	uint max_units = 99;
 	uint total_victory_tiles_owned;
+	uint block_height_max = 8;
     uint treatyID;
 	bool firstWithdraw = true;
 	IERC20 token;
@@ -57,7 +58,12 @@ contract BattleRoyale is Owned, RegistryClient{
 	}
 
 	function get_passable_threshold() public view returns(uint){
-		if((block.number - deployed_at_block)/blocks_per_round > 8){return victory_threshold;}
+		if((block.number - deployed_at_block)/blocks_per_round > block_height_max){return victory_threshold;}
+		return (passable_threshold + (block.number - deployed_at_block)/blocks_per_round * threshold_increment);
+	}
+
+	function get_passable_threshold_at_height(uint height) public view returns(uint){
+		if((height - deployed_at_block)/blocks_per_round > block_height_max){return victory_threshold;}
 		return (passable_threshold + (block.number - deployed_at_block)/blocks_per_round * threshold_increment);
 	}
 
@@ -153,7 +159,7 @@ contract BattleRoyale is Owned, RegistryClient{
         require(tile_owner[tile_x][tile_y] == address(msg.sender), 'Sender isnt owner');
 		require(tile_development_level[tile_x][tile_y] > 0, 'Tile isnt colonized');
 		require(units_on_tile[tile_x][tile_y] + unit_count <= max_units, 'Sum over max units');
-		require(units_on_tile[tile_x][tile_y] + unit_count > units_on_tile[tile_x][tile_y], 'Units zero or overflow');
+		require(unit_count > 0, 'Units zero');
 
         units_on_tile[tile_x][tile_y] += unit_count;
 		emit New_Population(tile_x, tile_y, units_on_tile[tile_x][tile_y]);
@@ -349,6 +355,11 @@ contract BattleRoyale is Owned, RegistryClient{
     function get_tile(int x, int y) public pure returns (uint) {
         return uint(local_average_noise(x/4,y/7) * local_average_noise(x/4,y/7) + stacked_squares(x/25,y/42)*stacked_squares(x/25,y/42)/2000);
     }
+
+	function get_passable_threshold_at(uint height) public view returns(uint) {
+		//if(height/blocks_per_round > block_height_max){return victory_threshold;}
+		return (passable_threshold + height / blocks_per_round * threshold_increment);
+	}
 
 	event Land_Bought(int indexed x, int indexed y, address indexed new_owner, uint new_population, uint development_level);
     event Land_Transferred(int indexed x, int indexed y, address indexed new_owner);

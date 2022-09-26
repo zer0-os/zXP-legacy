@@ -326,7 +326,8 @@ describe("zXP", function () {
       }
     });
     
-    describe("battle royale", function () {
+    //generate tilemap
+    /*describe("battle royale tilemap", function () {
       const mapsize = 256;
       for (let x = 0; x < mapsize; x++) {
         for (let y = 0; y < mapsize; y++) {
@@ -336,6 +337,15 @@ describe("zXP", function () {
           });
         }
       }
+    });
+    */
+    describe("battle royale storm closing", function () {
+        const mapsize = 16;
+        for(let p = 1000; p <= 100000; p += 500){
+          it("", async function(){
+            console.log(await _battleRoyale.get_passable_threshold_at(p));
+          });
+        }
     });
   });
 });

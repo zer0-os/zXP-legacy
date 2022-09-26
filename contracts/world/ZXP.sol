@@ -56,10 +56,10 @@ contract ZXP is Owned, RegistryClient{
         started[season] = true;
     } 
 
-    function unsealRelics() public ownerOnly {
+    /*function unsealRelics() public ownerOnly {
         seasonFinalization[season] = uint(keccak256(abi.encode(block.difficulty, season)));
         season++;
-    }
+    }*/
 
     function equipLock(address a) public payable onlyArmory(){
         locked[a] += msg.value;
