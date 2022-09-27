@@ -281,7 +281,7 @@ describe("zXP", function () {
       //await _deepMeme.submitTop3Results(0, 1, 2, 0, 0, 0);
     });
 
-    //leveling test
+    /*leveling test
     describe("leveling to 99", function () {
       let randSeed = 133250;
       it("gets the random seed value", async function(){
@@ -339,13 +339,35 @@ describe("zXP", function () {
       }
     });
     */
-    describe("battle royale storm closing", function () {
-        const mapsize = 16;
-        for(let p = 1000; p <= 100000; p += 500){
+    describe("battle royale passable threshold", function () {
+        for(let p = 1000; p <= 100000; p += 5000){
           it("", async function(){
             console.log(await _battleRoyale.get_passable_threshold_at(p));
           });
         }
+    });
+    describe("battle royale storm closing", function () {
+      const mapsize = 16;
+      for(let p = 0; p <= 30000; p += 5000){
+        let numPassable = 0;
+        let pass = 0;
+        it("gets passable threshold", async function(){
+          pass = await _battleRoyale.get_passable_threshold_at(p);
+        });
+        
+        for (let x = 0; x < mapsize; x++) {
+          for (let y = 0; y < mapsize; y++) {
+            let s = "gets tile " + x + "," + y;
+            it(s, async function() {
+              let tile = await _battleRoyale.get_tile(x,y);
+              if(tile >= pass){
+                numPassable++;
+              }
+              if(x == mapsize - 1 && y == mapsize - 1){console.log(pass.toString() + " " + numPassable)};
+            });
+          }
+        }  
+      }
     });
   });
 });
