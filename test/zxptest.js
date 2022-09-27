@@ -339,7 +339,46 @@ describe("zXP", function () {
       }
     });
     */
-    describe("battle royale passable threshold", function () {
+    describe("battle royale land", function () {
+      const unit_count = "20";
+      const dev_lev = "1";
+      const xBought = "66";
+      const yBought = "66";
+      let landPrice, unitPrice, total, passThresh;
+      let landString = "gets land price of " + xBought + "," + yBought;
+      it("gets passable threshold", async function(){
+        passThresh = await _battleRoyale.get_passable_threshold();
+        console.log("thresh " + passThresh);
+      });
+      it("gets passable threshold", async function(){
+        let tile = await _battleRoyale.get_tile(xBought,yBought);
+        console.log("tile " + tile);
+      });
+      it("gets land price of 0,0", async function(){
+        landPrice = await _battleRoyale.get_land_price(xBought, yBought);
+        console.log("lpb");
+        console.log(landPrice);
+        landPrice = landPrice.mul(ethers.BigNumber.from(dev_lev));
+        console.log("lp ");
+        console.log(landPrice);
+        //landPrice = ethers.BigNumber.from(landPrice);
+      });
+      it("gets unit price of 0,0", async function(){
+        unitPrice = await _battleRoyale.get_unit_price(xBought,yBought);
+        unitPrice = unitPrice.mul(unit_count);
+        //unitPrice = ethers.BigNumber.from(unitPrice);
+        console.log("up " + unitPrice);
+      });
+      it("calcs total", async function(){
+        total = landPrice.add(unitPrice);
+        //total = ethers.BigNumber.from(total);
+        console.log("total " + total);
+      });
+      it("buys tile 0,0", async function(){
+        await _battleRoyale.buy_land_with_wei(xBought,yBought,unit_count,dev_lev, {value: total});
+      });
+    });
+    /*describe("battle royale passable threshold", function () {
         for(let p = 1000; p <= 100000; p += 5000){
           it("", async function(){
             console.log(await _battleRoyale.get_passable_threshold_at(p));
@@ -347,8 +386,9 @@ describe("zXP", function () {
         }
     });
     describe("battle royale storm closing", function () {
-      const mapsize = 16;
-      for(let p = 0; p <= 30000; p += 5000){
+      const mapsize = 60;
+      let numpass = [];
+      for(let p = 0; p <= 100000; p += 10000){
         let numPassable = 0;
         let pass = 0;
         it("gets passable threshold", async function(){
@@ -363,11 +403,18 @@ describe("zXP", function () {
               if(tile >= pass){
                 numPassable++;
               }
-              if(x == mapsize - 1 && y == mapsize - 1){console.log(pass.toString() + " " + numPassable)};
+              if(x == mapsize - 1 && y == mapsize - 1){
+                console.log(pass.toString() + " " + numPassable)
+                numpass.push(numPassable);
+                if(p == 100000){
+                  console.log(numpass);
+                }
+              };
             });
           }
         }  
       }
     });
+  */
   });
 });

@@ -6,10 +6,10 @@ import "../RegistryClient.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract BattleRoyale is Owned, RegistryClient{
-    uint256 land_wei_price = 1000000000000;
-    uint256 unit_wei_price = 10000000000;
-    uint256 unit_gold_price = 100000;
-	uint256 blocks_per_round = 4000;
+    uint256 land_wei_price = 10;
+    uint256 unit_wei_price = 1;
+    uint256 unit_gold_price = 1;
+	uint256 blocks_per_round = 5000;
 	uint256 deployed_at_block;
 	uint256 public ending_balance;
 	uint256 public pool_nom = 9;
@@ -67,6 +67,15 @@ contract BattleRoyale is Owned, RegistryClient{
 		return (passable_threshold + (block.number - deployed_at_block)/blocks_per_round * threshold_increment);
 	}
 
+	function get_tile(int x, int y) public pure returns (uint) {
+        return uint(local_average_noise(x/4,y/7) * local_average_noise(x/4,y/7) + stacked_squares(x/25,y/42)*stacked_squares(x/25,y/42)/2000);
+    }
+
+	function get_passable_threshold_at(uint height) public view returns(uint) {
+		//if(height/blocks_per_round > block_height_max){return victory_threshold;}
+		return (passable_threshold + height / blocks_per_round * threshold_increment);
+	}
+
 	function get_season_ended() public view returns(bool){
 		return get_passable_threshold() >= victory_threshold;
 	}
@@ -101,10 +110,10 @@ contract BattleRoyale is Owned, RegistryClient{
 		return gold_balances[a] + gold_per_second[a]*(block.timestamp - last_GPH_update_time[a]);
 	}
 	function get_land_price(int x, int y) public view returns(uint256){
-		return land_wei_price * uint256(get_tile(x, y)) * uint256(get_tile(x,y));
+		return land_wei_price * get_tile(x, y)/100;
 	}
 	function get_unit_price(int x, int y) public view returns(uint256){
-		return unit_wei_price * uint256(get_tile(x, y)) * uint256(get_tile(x,y));
+		return unit_wei_price * get_tile(x, y)/100;
 	}
 	function get_height(int x, int y) public view returns(uint){
 		return 1 + uint(get_tile(x, y) - passable_threshold)/threshold_increment;
@@ -139,7 +148,7 @@ contract BattleRoyale is Owned, RegistryClient{
         require(msg.value == get_land_price(tile_x, tile_y)*dev_lev + unit_count*get_unit_price(tile_x, tile_y), 'Invalid payment');
         require(tile_owner[tile_x][tile_y] == address(0) || tile_owner[tile_x][tile_y] == msg.sender, 'Tile already owned');
 		require(get_tile(tile_x, tile_y) > get_passable_threshold(), 'Tile impassable');
-		require(get_tile(tile_x, tile_y) <= get_passable_threshold() + threshold_increment, 'Tile inland'); 
+		//require(get_tile(tile_x, tile_y) <= get_passable_threshold() + threshold_increment, 'Tile inland'); 
 		require(units_on_tile[tile_x][tile_y] + unit_count <= max_units, 'Buying too many units');
 		require(unit_count >= 1, 'Buying too few units');
 		require(dev_lev <= max_upgrades, 'Development level over max');
@@ -351,15 +360,6 @@ contract BattleRoyale is Owned, RegistryClient{
         return accumulator*1000/(iterations*2);
 
     }
-
-    function get_tile(int x, int y) public pure returns (uint) {
-        return uint(local_average_noise(x/4,y/7) * local_average_noise(x/4,y/7) + stacked_squares(x/25,y/42)*stacked_squares(x/25,y/42)/2000);
-    }
-
-	function get_passable_threshold_at(uint height) public view returns(uint) {
-		//if(height/blocks_per_round > block_height_max){return victory_threshold;}
-		return (passable_threshold + height / blocks_per_round * threshold_increment);
-	}
 
 	event Land_Bought(int indexed x, int indexed y, address indexed new_owner, uint new_population, uint development_level);
     event Land_Transferred(int indexed x, int indexed y, address indexed new_owner);
