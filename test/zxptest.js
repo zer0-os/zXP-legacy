@@ -343,70 +343,67 @@ describe("zXP", function () {
       }
     });
     */
+    const unitsBought = "20";
+    const dev_lev = "1";
+    const xP1 = "66";
+    const yP1 = "66";
+    const xP2 = "67";
+    const yP2 = "66";
     describe("battle royale land", function () {
-      const unitsBought = "20";
-      const dev_lev = "1";
-      const xBought = "66";
-      const yBought = "66";
-      const xBoughtP2 = "67";
-      const yBoughtP2 = "66";
       const salePrice = 1;
       let landPrice, unitPrice, total, passThresh;
-      //let landString = "gets land price of " + xBought + "," + yBought;
+      //let landString = "gets land price of " + xP1 + "," + yP1;
       it("gets passable threshold", async function(){
         passThresh = await _battleRoyale.get_passable_threshold();
       });
       it("gets tile", async function(){
-        let tile = await _battleRoyale.get_tile(xBought,yBought);
+        let tile = await _battleRoyale.get_tile(xP1,yP1);
       });
       it("gets land price of 0,0", async function(){
-        landPrice = await _battleRoyale.get_land_price(xBought, yBought);
+        landPrice = await _battleRoyale.get_land_price(xP1, yP1);
         landPrice = landPrice.mul(ethers.BigNumber.from(dev_lev));
       });
       it("gets unit price of 0,0", async function(){
-        unitPrice = await _battleRoyale.get_unit_price(xBought,yBought);
+        unitPrice = await _battleRoyale.get_unit_price(xP1,yP1);
         unitPrice = unitPrice.mul(unitsBought);
       });
       it("calcs total", async function(){
         total = landPrice.add(unitPrice);
       });
       it("buys tile", async function(){
-        await _battleRoyale.buy_land_with_wei(xBought,yBought,unitsBought,dev_lev, {value: total});
+        await _battleRoyale.buy_land_with_wei(xP1,yP1,unitsBought,dev_lev, {value: total});
       });
       it("posts tile for sale", async function(){
-        await _battleRoyale.market_sell(xBought, yBought, salePrice);
+        await _battleRoyale.market_sell(xP1, yP1, salePrice);
       });
       it("buys tile from market", async function(){
-        await _battleRoyale.market_buy(xBought, yBought, {value: salePrice});
+        //await _battleRoyale.connect(p2signer).market_buy(xP1, yP1, {value: salePrice});
       });
       it("buys units on tile", async function(){
-        await _battleRoyale.buy_units_with_wei(xBought, yBought, unitsBought, {value: unitPrice*unitsBought});
+        await _battleRoyale.buy_units_with_wei(xP1, yP1, unitsBought, {value: unitPrice*unitsBought});
       });
 
       it("gets land price", async function(){
-        landPrice = await _battleRoyale.get_land_price(xBoughtP2, yBoughtP2);
+        landPrice = await _battleRoyale.get_land_price(xP2, yP2);
         landPrice = landPrice.mul(ethers.BigNumber.from(dev_lev));
       });
       it("gets unit price", async function(){
-        unitPrice = await _battleRoyale.get_unit_price(xBoughtP2,yBoughtP2);
+        unitPrice = await _battleRoyale.get_unit_price(xP2,yP2);
         unitPrice = unitPrice.mul(unitsBought);
       });
       it("calcs total", async function(){
         total = landPrice.add(unitPrice);
       });
       it("P2 buys tile", async function(){
-        await _battleRoyale.connect(p2signer).buy_land_with_wei(xBoughtP2,yBoughtP2,unitsBought,dev_lev, {value: total});
+        await _battleRoyale.connect(p2signer).buy_land_with_wei(xP2,yP2,unitsBought,dev_lev, {value: total});
       });
       
     });
     
     describe("battle royale combat", function () {
-      const unitsBought = "20";
-      const dev_lev = "1";
-      
-      let landPrice, unitPrice, total;
-
-      
+      it("P2 attacks P1", async function(){
+        await _battleRoyale.connect(p2signer).move(xP2,yP2,xP1,yP1, 10);
+      });
     });
 
     /*describe("battle royale passable threshold", function () {

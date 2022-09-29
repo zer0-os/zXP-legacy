@@ -125,8 +125,8 @@ contract BattleRoyale is Owned, RegistryClient{
 		address seller = tile_owner[x][y];
 		market_price[x][y] = 0;
 		if(get_tile(x, y) > victory_threshold){
-			victory_tiles_owned[msg.sender]++; //overflow not possible
-			victory_tiles_owned[seller]--; //underflow not possible
+			victory_tiles_owned[msg.sender]++;
+			victory_tiles_owned[seller]--;
 		}
 		tile_owner[x][y] = msg.sender;
 		payable(seller).transfer(msg.value);
@@ -136,7 +136,7 @@ contract BattleRoyale is Owned, RegistryClient{
     function buy_land_with_wei(int tile_x, int tile_y, uint unit_count, uint dev_lev) public payable {
 		require(!get_season_ended(), 'Season has ended');
         require(msg.value == get_land_price(tile_x, tile_y)*dev_lev + unit_count*get_unit_price(tile_x, tile_y), 'Invalid payment');
-        require(tile_owner[tile_x][tile_y] == address(0) || tile_owner[tile_x][tile_y] == msg.sender, 'Tile already owned');
+        require(tile_owner[tile_x][tile_y] == address(0), 'Tile already owned');
 		require(get_tile(tile_x, tile_y) > get_passable_threshold(), 'Tile impassable');
 		//require(get_tile(tile_x, tile_y) <= get_passable_threshold() + threshold_increment, 'Tile inland'); 
 		require(units_on_tile[tile_x][tile_y] + unit_count <= max_units, 'Buying too many units');
@@ -190,8 +190,8 @@ contract BattleRoyale is Owned, RegistryClient{
         require(tile_owner[tile_x][tile_y] == msg.sender);
 		require(!get_season_ended(), 'Season has ended');
 		if(get_tile(tile_x, tile_y) > victory_threshold){
-			victory_tiles_owned[msg.sender]--; //overflow not possible
-			victory_tiles_owned[new_address]++; //underflow not possible
+			victory_tiles_owned[msg.sender]--;
+			victory_tiles_owned[new_address]++;
 		}
 		market_price[tile_x][tile_y] = 0;
         tile_owner[tile_x][tile_y] = new_address;
