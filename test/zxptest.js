@@ -344,17 +344,19 @@ describe("zXP", function () {
     });
     */
     describe("battle royale land", function () {
-      const unit_count = "20";
+      const unitsBought = "20";
       const dev_lev = "1";
       const xBought = "66";
       const yBought = "66";
+      const xBoughtP2 = "67";
+      const yBoughtP2 = "66";
       const salePrice = 1;
       let landPrice, unitPrice, total, passThresh;
-      let landString = "gets land price of " + xBought + "," + yBought;
+      //let landString = "gets land price of " + xBought + "," + yBought;
       it("gets passable threshold", async function(){
         passThresh = await _battleRoyale.get_passable_threshold();
       });
-      it("gets tileAa", async function(){
+      it("gets tile", async function(){
         let tile = await _battleRoyale.get_tile(xBought,yBought);
       });
       it("gets land price of 0,0", async function(){
@@ -363,20 +365,48 @@ describe("zXP", function () {
       });
       it("gets unit price of 0,0", async function(){
         unitPrice = await _battleRoyale.get_unit_price(xBought,yBought);
-        unitPrice = unitPrice.mul(unit_count);
+        unitPrice = unitPrice.mul(unitsBought);
       });
       it("calcs total", async function(){
         total = landPrice.add(unitPrice);
       });
       it("buys tile", async function(){
-        await _battleRoyale.buy_land_with_wei(xBought,yBought,unit_count,dev_lev, {value: total});
+        await _battleRoyale.buy_land_with_wei(xBought,yBought,unitsBought,dev_lev, {value: total});
       });
       it("posts tile for sale", async function(){
         await _battleRoyale.market_sell(xBought, yBought, salePrice);
-      })
+      });
       it("buys tile from market", async function(){
         await _battleRoyale.market_buy(xBought, yBought, {value: salePrice});
-      })
+      });
+      it("buys units on tile", async function(){
+        await _battleRoyale.buy_units_with_wei(xBought, yBought, unitsBought, {value: unitPrice*unitsBought});
+      });
+
+      it("gets land price", async function(){
+        landPrice = await _battleRoyale.get_land_price(xBoughtP2, yBoughtP2);
+        landPrice = landPrice.mul(ethers.BigNumber.from(dev_lev));
+      });
+      it("gets unit price", async function(){
+        unitPrice = await _battleRoyale.get_unit_price(xBoughtP2,yBoughtP2);
+        unitPrice = unitPrice.mul(unitsBought);
+      });
+      it("calcs total", async function(){
+        total = landPrice.add(unitPrice);
+      });
+      it("P2 buys tile", async function(){
+        await _battleRoyale.connect(p2signer).buy_land_with_wei(xBoughtP2,yBoughtP2,unitsBought,dev_lev, {value: total});
+      });
+      
+    });
+    
+    describe("battle royale combat", function () {
+      const unitsBought = "20";
+      const dev_lev = "1";
+      
+      let landPrice, unitPrice, total;
+
+      
     });
 
     /*describe("battle royale passable threshold", function () {
