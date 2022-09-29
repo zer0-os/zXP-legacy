@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import "../../Owned.sol";
-import "../RegistryClient.sol";
+import "../../../Owned.sol";
+import "../../RegistryClient.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract BattleRoyale is Owned, RegistryClient{
@@ -42,17 +42,7 @@ contract BattleRoyale is Owned, RegistryClient{
 		deployed_at_block = block.number;
 		token = IERC20(rewardToken);
 	}
-
-    function set_land_wei_price(uint256 new_price) public ownerOnly {
-        land_wei_price = new_price;
-    }
-    function set_unit_wei_price(uint256 new_price) public ownerOnly {
-        unit_wei_price = new_price;
-    }
-    function set_unit_gold_price(uint256 new_price) public ownerOnly {
-        unit_gold_price = new_price;
-    }
-
+	
 	function dep() public view returns (uint256){
 		return deployed_at_block;
 	}

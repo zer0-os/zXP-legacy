@@ -18,12 +18,16 @@ describe("zXP", function () {
   var _meme;
   var _zxp;
   var _memeLord;
+  var p1signer;
+  var p2signer;
   var P1;
   var P2;
 
   describe("zXP Season 0", function () {
     it("Gets signers for players 1 and 2", async function () {
       const [p1, p2] = await ethers.getSigners();
+      p1signer = p1;
+      p2signer = p2;
       P1 = p1.address;
       P2 = p2.address;
     });
@@ -344,40 +348,37 @@ describe("zXP", function () {
       const dev_lev = "1";
       const xBought = "66";
       const yBought = "66";
+      const salePrice = 1;
       let landPrice, unitPrice, total, passThresh;
       let landString = "gets land price of " + xBought + "," + yBought;
       it("gets passable threshold", async function(){
         passThresh = await _battleRoyale.get_passable_threshold();
-        console.log("thresh " + passThresh);
       });
-      it("gets passable threshold", async function(){
+      it("gets tileAa", async function(){
         let tile = await _battleRoyale.get_tile(xBought,yBought);
-        console.log("tile " + tile);
       });
       it("gets land price of 0,0", async function(){
         landPrice = await _battleRoyale.get_land_price(xBought, yBought);
-        console.log("lpb");
-        console.log(landPrice);
         landPrice = landPrice.mul(ethers.BigNumber.from(dev_lev));
-        console.log("lp ");
-        console.log(landPrice);
-        //landPrice = ethers.BigNumber.from(landPrice);
       });
       it("gets unit price of 0,0", async function(){
         unitPrice = await _battleRoyale.get_unit_price(xBought,yBought);
         unitPrice = unitPrice.mul(unit_count);
-        //unitPrice = ethers.BigNumber.from(unitPrice);
-        console.log("up " + unitPrice);
       });
       it("calcs total", async function(){
         total = landPrice.add(unitPrice);
-        //total = ethers.BigNumber.from(total);
-        console.log("total " + total);
       });
-      it("buys tile 0,0", async function(){
+      it("buys tile", async function(){
         await _battleRoyale.buy_land_with_wei(xBought,yBought,unit_count,dev_lev, {value: total});
       });
+      it("posts tile for sale", async function(){
+        await _battleRoyale.market_sell(xBought, yBought, salePrice);
+      })
+      it("buys tile from market", async function(){
+        await _battleRoyale.market_buy(xBought, yBought, {value: salePrice});
+      })
     });
+
     /*describe("battle royale passable threshold", function () {
         for(let p = 1000; p <= 100000; p += 5000){
           it("", async function(){
