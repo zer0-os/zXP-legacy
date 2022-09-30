@@ -33,13 +33,6 @@ describe("zXP", function () {
       P2 = p2.address;
     });
 
-    it("Deploys tile sphere", async function () {
-      const tileSphereFactory = await ethers.getContractFactory("TileSphere");
-      const tileSphere = await tileSphereFactory.deploy();
-      await tileSphere.deployed();
-      _tileSphere = tileSphere;
-    });
-
     it("Deploys mock wheel token", async function () {
         const erc721wheelToken = await ethers.getContractFactory("ERC721TestToken");
         const wheelToken = await erc721wheelToken.deploy('Wilder Wheels', 'WHEEL', {
@@ -421,7 +414,27 @@ describe("zXP", function () {
       });
       
     });
-    
+    describe("tile neighbors", function () {
+      it("Deploys tile sphere", async function () {
+        const tileSphereFactory = await ethers.getContractFactory("TileSphere");
+        const tileSphere = await tileSphereFactory.deploy();
+        await tileSphere.deployed();
+        _tileSphere = tileSphere;
+      });
+      
+        for (let i = 0; i < 42; i++) {
+          let s = "tile " + i + " has neighbors set";
+          it(s, async function () {
+            var neighbors = [];
+            for (let x = 0; x < 6; x++) {
+              const neighbor = await _tileSphere.neighbors(i, x);
+              neighbors.push(neighbor);
+            }
+            console.log(neighbors.toString());
+          });
+        } 
+    });
+
     describe("battle royale combat", function () {
       it("P2 attacks P1", async function(){
         await _battleRoyale.connect(p2signer).move(xP2,yP2,xP1,yP1, 10);
