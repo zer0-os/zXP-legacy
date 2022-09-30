@@ -16,9 +16,9 @@ contract BattleRoyale is Owned, RegistryClient{
 	uint256 public pool_div = 10;
 
     uint max_upgrades = 3;
-	uint public passable_threshold = 121000000;
-	uint victory_threshold = 169000000;
-	uint threshold_increment = 60000000;
+	uint public passable_threshold = 1210000000;
+	uint victory_threshold = 169000000000000000;
+	uint threshold_increment = 600000000;
 	uint max_units = 99;
 	uint total_victory_tiles_owned;
 	uint block_height_max = 8;

@@ -18,6 +18,7 @@ describe("zXP", function () {
   var _meme;
   var _zxp;
   var _memeLord;
+  var _tileSphere;
   var p1signer;
   var p2signer;
   var P1;
@@ -30,6 +31,13 @@ describe("zXP", function () {
       p2signer = p2;
       P1 = p1.address;
       P2 = p2.address;
+    });
+
+    it("Deploys tile sphere", async function () {
+      const tileSphereFactory = await ethers.getContractFactory("TileSphere");
+      const tileSphere = await tileSphereFactory.deploy();
+      await tileSphere.deployed();
+      _tileSphere = tileSphere;
     });
 
     it("Deploys mock wheel token", async function () {
@@ -171,7 +179,9 @@ describe("zXP", function () {
     //  expect(await _characterManager.create()).to.be.reverted();
     //});
     it("Player 1 views beast stats", async function (){
-      expect(await _zxp.levelOf(0)).to.equal(1);
+      let lev = await _zxp.levelOf(0);
+      lev = lev.toString();
+      expect(lev).to.equal("1");
     });
     it("P1 equips wheel", async function () {
       await _characterS0.equipWheel(0);
@@ -186,10 +196,14 @@ describe("zXP", function () {
       await _beastBattle.battle(0);
     });
     it("Beast 0 has 240 xp", async function(){
-      expect(await _zxp.xp(0)).to.equal(240);
+      let xp = await _zxp.xp(0);
+      xp = xp.toString();
+      expect(xp).to.equal("240");
     });
     it("Player 1 beast is level 2", async function (){
-      expect(await _zxp.levelOf(0)).to.equal(2);
+      let lev = await _zxp.levelOf(0);
+      lev = lev.toString();
+      expect(lev).to.equal("2");
     });
     it("DeepMeme tourney official submits results", async function() {
       await _deepMeme.submitTop3Results(0, 1, 2, 0, 0, 0);
@@ -245,7 +259,9 @@ describe("zXP", function () {
     //  expect(await _characterManager.create()).to.be.reverted();
     //});
     it("Player 1 beast is still level 2", async function (){
-      expect(await _zxp.levelOf(0)).to.equal(2);
+      let lev = await _zxp.levelOf(0);
+      lev = lev.toString();
+      expect(lev).to.equal("2");
     });
     it("P1 equips wheel", async function () {
       await _characterS0.equipWheel(0);
@@ -257,7 +273,9 @@ describe("zXP", function () {
     //  //_wheelRace.race();
     //});
     it("Beast 0 has 340 xp", async function(){
-      expect(await _zxp.xp(0)).to.equal(340);
+      let lev = await _zxp.xp(0);
+      lev = lev.toString();
+      expect(lev).to.equal("340");
     });
     it("P1 uses beast in game, choosing blue team, player and beast earn XP", async function () {
       await _beastBattle.battle(0, 1);
@@ -276,10 +294,14 @@ describe("zXP", function () {
     });
 
     it("Beast 0 has 840 xp", async function(){
-      expect(await _zxp.xp(0)).to.equal(840);
+      let xp = await _zxp.xp(0);
+      xp = xp.toString();
+      expect(xp).to.equal("840");
     });
     it("Player 1 beast levels up to 3", async function (){
-      expect(await _zxp.levelOf(0)).to.equal(3);
+      let lev = await _zxp.levelOf(0);
+      lev = lev.toString();
+      expect(lev).to.equal("3");
     });
     it("DeepMeme tourney official submits results", async function() {
       //await _deepMeme.submitTop3Results(0, 1, 2, 0, 0, 0);
@@ -345,10 +367,10 @@ describe("zXP", function () {
     */
     const unitsBought = "20";
     const dev_lev = "1";
-    const xP1 = "66";
-    const yP1 = "66";
-    const xP2 = "67";
-    const yP2 = "66";
+    const xP1 = "100";
+    const yP1 = "100";
+    const xP2 = "101";
+    const yP2 = "100";
     describe("battle royale land", function () {
       const salePrice = 1;
       let landPrice, unitPrice, total, passThresh;
