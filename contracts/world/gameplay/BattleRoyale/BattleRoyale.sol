@@ -142,6 +142,7 @@ contract BattleRoyale is Owned, RegistryClient{
 		require(units_on_tile[tile_x][tile_y] + unit_count <= max_units, 'Buying too many units');
 		require(unit_count >= 1, 'Buying too few units');
 		require(dev_lev <= max_upgrades, 'Development level over max');
+		require(get_tile(tile_x, tile_y) < victory_threshold, 'Cant buy victory tiles');
 		
 		tile_development_level[tile_x][tile_y] = dev_lev;
 		gold_balances[msg.sender] = get_gold(msg.sender);
