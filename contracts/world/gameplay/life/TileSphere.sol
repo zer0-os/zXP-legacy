@@ -2,6 +2,7 @@
 pragma solidity ^0.8.13;
 
 contract TileSphere{
+    uint public pentagon = 777;
     mapping(uint => uint[6]) public neighbors;
     constructor(){
         neighbors[0][0] = 1;
@@ -30,21 +31,21 @@ contract TileSphere{
         neighbors[3][2] = 7;
         neighbors[3][3] = 10;
         neighbors[3][4] = 13;
-        neighbors[3][5] = 0;
+        neighbors[3][5] = pentagon;
 
         neighbors[4][1] = 0;
         neighbors[4][1] = 1;
         neighbors[4][0] = 15;
         neighbors[4][2] = 39;
         neighbors[4][3] = 40;
-        neighbors[4][4] = 0;
+        neighbors[4][4] = pentagon;
 
         neighbors[5][0] = 2;
         neighbors[5][1] = 1;
         neighbors[5][2] = 6;
         neighbors[5][3] = 32;
         neighbors[5][4] = 41;
-        neighbors[5][5] = 2;
+        neighbors[5][5] = pentagon;
 
         neighbors[6][0] = 2;
         neighbors[6][1] = 7;
@@ -65,7 +66,7 @@ contract TileSphere{
         neighbors[8][2] = 9;
         neighbors[8][3] = 33;
         neighbors[8][4] = 34;
-        neighbors[8][5] = 7;
+        neighbors[8][5] = pentagon;
 
         neighbors[9][0] = 7;
         neighbors[9][1] = 10;
@@ -86,7 +87,7 @@ contract TileSphere{
         neighbors[11][2] = 12;
         neighbors[11][3] = 35;
         neighbors[11][4] = 36;
-        neighbors[11][5] = 10;
+        neighbors[11][5] = pentagon;
 
         neighbors[12][0] = 10;
         neighbors[12][1] = 13;
@@ -107,7 +108,7 @@ contract TileSphere{
         neighbors[14][2] = 15;
         neighbors[14][3] = 37;
         neighbors[14][4] = 38;
-        neighbors[14][5] = 13;
+        neighbors[14][5] = pentagon;
 
         neighbors[15][0] = 13;
         neighbors[15][1] = 0;
@@ -142,21 +143,21 @@ contract TileSphere{
         neighbors[19][2] = 23;
         neighbors[19][3] = 26;
         neighbors[19][4] = 29;
-        neighbors[19][5] = 16;
+        neighbors[19][5] = pentagon;
 
         neighbors[20][0] = 16;
         neighbors[20][1] = 17;
         neighbors[20][2] = 31;
         neighbors[20][3] = 32;
         neighbors[20][4] = 33;
-        neighbors[20][5] = 16;
+        neighbors[20][5] = pentagon;
 
         neighbors[21][0] = 18;
         neighbors[21][1] = 17;
         neighbors[21][2] = 22;
         neighbors[21][3] = 40;
         neighbors[21][4] = 41;
-        neighbors[21][5] = 18;
+        neighbors[21][5] = pentagon;
 
         neighbors[22][0] = 18;
         neighbors[22][1] = 23;
@@ -177,7 +178,7 @@ contract TileSphere{
         neighbors[24][2] = 25;
         neighbors[24][3] = 38;
         neighbors[24][4] = 39;
-        neighbors[24][5] = 23;
+        neighbors[24][5] = pentagon;
 
         neighbors[25][0] = 23;
         neighbors[25][1] = 26;
@@ -198,7 +199,7 @@ contract TileSphere{
         neighbors[27][2] = 28;
         neighbors[27][3] = 36;
         neighbors[27][4] = 37;
-        neighbors[27][5] = 26;
+        neighbors[27][5] = pentagon;
 
         neighbors[28][0] = 26;
         neighbors[28][1] = 29;
@@ -219,7 +220,7 @@ contract TileSphere{
         neighbors[30][2] = 31;
         neighbors[30][3] = 34;
         neighbors[30][4] = 35;
-        neighbors[30][5] = 29;
+        neighbors[30][5] = pentagon;
 
         neighbors[31][0] = 29;
         neighbors[31][1] = 16;
