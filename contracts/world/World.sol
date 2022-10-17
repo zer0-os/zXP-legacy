@@ -7,7 +7,6 @@ import "../Owned.sol";
 contract World is Owned{
     uint season;
     mapping(uint => bool) started;
-    mapping(address => uint) locked;
     
     function startSeason() public ownerOnly {
         started[season] = true;
@@ -17,15 +16,4 @@ contract World is Owned{
         season++;
     }
 
-    function seasonLock(address a) public payable {
-        locked[a] += msg.value;
-    }
-    
-    //function awardCharacterXP(Character char, uint256 amount) public {
-    //    character.awardXP(amount);
-    //}
-
-    function unlock(uint amt) public {
-        payable(msg.sender).transfer(amt);
-    }
 }
