@@ -440,7 +440,7 @@ describe("zXP", function () {
     
     describe("tile automaton", function () {
       it("Deploys automaton library", async function () {
-        const automatonFactory = await ethers.getContractFactory("Automaton");
+        const automatonFactory = await ethers.getContractFactory("Automata");
         const automaton = await automatonFactory.deploy();
         await automaton.deployed();
         _automaton = automaton
@@ -464,6 +464,7 @@ describe("zXP", function () {
       it("Player 1 stakes beast", async function () {
         await _nftStakePoolS0.stake(_beastToken.address, 0);
       });
+
     });
     /*describe("battle royale passable threshold", function () {
         for(let p = 1000; p <= 100000; p += 5000){
