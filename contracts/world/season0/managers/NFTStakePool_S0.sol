@@ -4,8 +4,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "../../RegistryClient.sol";
-
-//import "IZXP.sol";
+import "../../../interfaces/IZXP.sol";
 
 contract NFTStakePool_S0 is RegistryClient{
 
@@ -13,16 +12,22 @@ contract NFTStakePool_S0 is RegistryClient{
     
     mapping(bytes32 => address) public staker;
     mapping(bytes32 => uint) public stakedAtBlock;
-    ///NFT holder locks item for the season
-    function stake(address nftContractAddress, uint tokenId) public {
-        require(ERC721(nftContractAddress).ownerOf(tokenId) == msg.sender);
-        staker[keccak256(abi.encode(nftContractAddress, tokenId))] = msg.sender;
+    ///NFT holder locks item for the season by transferring NFT in
+    function _stake(address operator, address nftContractAddress, uint tokenId) internal {
+        //require(ERC721(nftContractAddress).ownerOf(tokenId) == msg.sender);
+        staker[keccak256(abi.encode(nftContractAddress, tokenId))] = operator;
         stakedAtBlock[keccak256(abi.encode(nftContractAddress, tokenId))] = block.number;
     }
     ///ZXP unstakes the nft item on season advancement
-    function unstake(bytes32 tokenHash) public only("ZXP") returns(uint){
-        require(staker[tokenHash] != address(0));
+    function _unstake(bytes32 tokenHash) public{
+        //require(staker[tokenHash] == msg.sender, "sender isnt staker");
+        //require(currentWorldSeason() > IZXP(addressOf("ZXP", 0)).itemSeason(uint(tokenHash)), "Must advance season to unstake");
         staker[tokenHash] = address(0);
-        return(stakedAtBlock[tokenHash]);
+        //return(stakedAtBlock[tokenHash]);
     }
-}
+
+    function onERC721Received(address operator, address from, uint256 tokenId, bytes memory data) public returns(bytes4){
+        _stake(operator, from, tokenId);
+        return IERC721Receiver.onERC721Received.selector;
+    }
+} 

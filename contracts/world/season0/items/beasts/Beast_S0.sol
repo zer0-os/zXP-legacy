@@ -22,4 +22,9 @@ contract Beast_S0 is NftOwned, Item, Stats{
     function power(uint id) public view returns (uint) {
         return _power(IZXP(addressOf("ZXP", season)).levelOf(id));
     }
+
+    function advance(uint id) public tokenHolderOnly(id){
+        IZXP(addressOf("ZXP", season)).advance(id);
+    }
+
 }

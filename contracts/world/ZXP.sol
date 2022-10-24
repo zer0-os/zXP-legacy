@@ -64,6 +64,10 @@ contract ZXP is Owned, RegistryClient{
         season++;
     }
 
+    function advance(uint id) public onlyType(2){
+        itemSeason[id]++; 
+    }
+
     function equipLock(address a) public payable onlyArmory(){
         locked[a] += msg.value;
     }
