@@ -5,6 +5,7 @@ import "../RegistryClient.sol";
 import "../../interfaces/IRegistry.sol";
 import "./XpRecipient.sol";
 
+
 contract Item is RegistryClient, XpRecipient{
     bytes32 public itemType;
     

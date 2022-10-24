@@ -6,10 +6,10 @@ import "../../interfaces/IRegistry.sol";
 import "../../PlayerOwned.sol";
 import "./XpRecipient.sol";
 import "./Traverser.sol";
-import "./CharacterStats.sol";
+import "./Stats.sol";
 import "./Equipment.sol";
 
-contract Character is RegistryClient, XpRecipient, Traverser, CharacterStats, Equipment{
+contract Character is RegistryClient, XpRecipient, Traverser, Stats, Equipment{
     mapping(address => uint) public character;
     
     modifier playerOnly(uint id){
