@@ -8,7 +8,7 @@ contract CharacterManager is RegistryClient{
     uint cost;
 
     mapping(address => uint) characterSeason;
-    mapping(address => string) name;
+    //mapping(address => string) name;
 
     constructor(IRegistry registry) RegistryClient(registry) {}
 
@@ -18,8 +18,7 @@ contract CharacterManager is RegistryClient{
         characterSeason[msg.sender] = 1;
     }
 
-    function advance() public { 
-        //require(characterSeason[msg.sender] < zxpSeason, "ZXP: Cant advance");
-        characterSeason[msg.sender] += 1;
+    function advance() public {
+        characterSeason[msg.sender] = currentWorldSeason();
     }
 }

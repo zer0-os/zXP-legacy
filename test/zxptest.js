@@ -19,10 +19,12 @@ describe("zXP", function () {
   var _zxp;
   var _memeLord;
   var _tileSphere;
+  var _automaton;
   var p1signer;
   var p2signer;
   var P1;
   var P2;
+  var _nftStakePool;
 
   describe("zXP Season 0", function () {
     it("Gets signers for players 1 and 2", async function () {
@@ -155,14 +157,6 @@ describe("zXP", function () {
       await memeLord.deployed();
       _memeLord = memeLord;
       await _registry.registerAddress(ethers.utils.formatBytes32String("MemeLord"), _memeLord.address, 1);  
-    });
-
-    it("Deploy and registers s0 battle royale", async function () {
-      const battleRoyales = await ethers.getContractFactory("BattleRoyale_S0");
-      const battleRoyale = await battleRoyales.deploy(_registry.address, _wildToken.address);
-      await battleRoyale.deployed();
-      _battleRoyale = battleRoyale;
-      await _registry.registerAddress(ethers.utils.formatBytes32String("BattleRoyale"), _battleRoyale.address, 3);
     });
 
     it("Player 1 creates character", async function () {
@@ -364,7 +358,16 @@ describe("zXP", function () {
     const yP1 = "100";
     const xP2 = "101";
     const yP2 = "100";
+
     describe("battle royale land", function () {
+      it("Deploy and registers s0 battle royale", async function () {
+        const battleRoyales = await ethers.getContractFactory("BattleRoyale_S0");
+        const battleRoyale = await battleRoyales.deploy(_registry.address, _wildToken.address);
+        await battleRoyale.deployed();
+        _battleRoyale = battleRoyale;
+        await _registry.registerAddress(ethers.utils.formatBytes32String("BattleRoyale"), _battleRoyale.address, 3);
+      });
+      
       const salePrice = 1;
       let landPrice, unitPrice, total, passThresh;
       //let landString = "gets land price of " + xP1 + "," + yP1;
@@ -434,13 +437,34 @@ describe("zXP", function () {
           });
         } 
     });
+    
+    describe("tile automaton", function () {
+      it("Deploys automaton library", async function () {
+        const automatonFactory = await ethers.getContractFactory("Automaton");
+        const automaton = await automatonFactory.deploy();
+        await automaton.deployed();
+        _automaton = automaton
+      });
+    });
 
     describe("battle royale combat", function () {
       it("P2 attacks P1", async function(){
         await _battleRoyale.connect(p2signer).move(xP2,yP2,xP1,yP1, 10);
       });
     });
-
+    
+    describe("NFT staking", function(){
+      it("Deploys and registers s0 industry staking pool", async function () {
+        const nftStakePoolS0Factory = await ethers.getContractFactory("NFTStakePool_S0");
+        const nftStakePoolS0 = await nftStakePoolS0Factory.deploy(_registry.address);
+        await nftStakePoolS0.deployed();
+        _nftStakePoolS0 = nftStakePoolS0;
+        await _registry.registerAddress(ethers.utils.formatBytes32String("NFTStakePool"), _nftStakePoolS0.address, 1);
+      });
+      it("Player 1 stakes beast", async function () {
+        await _nftStakePoolS0.stake(_beastToken.address, 0);
+      });
+    });
     /*describe("battle royale passable threshold", function () {
         for(let p = 1000; p <= 100000; p += 5000){
           it("", async function(){

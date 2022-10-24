@@ -8,8 +8,10 @@ import "./RegistryClient.sol";
 contract ZXP is Owned, RegistryClient{
     uint curve = 200;
     mapping(uint => uint) public xp;
+    mapping(uint => uint) public itemSeason; 
     mapping(uint => uint) level;
     mapping(uint => uint) seasonFinalization;
+    mapping(uint => uint) seasonFinalBlock;
 
     /// awards XP and levels up if the new xp value exceeds the threshold defined by the xp curve
     function awardXP(uint id, uint amount) public onlyGame(){
@@ -36,8 +38,8 @@ contract ZXP is Owned, RegistryClient{
     mapping(uint => bool) started;
     mapping(address => uint) locked;
 
-    modifier onlyType(uint){
-
+    modifier onlyType(uint t){
+        require(typeOf(registry.name(msg.sender)) == t, "ZXP: Sender isnt type");
         _;
     }
     modifier onlyArmory(){
@@ -56,16 +58,17 @@ contract ZXP is Owned, RegistryClient{
         started[season] = true;
     } 
 
-    /*function unsealRelics() public ownerOnly {
+    function endSeason() public ownerOnly {
         seasonFinalization[season] = uint(keccak256(abi.encode(block.difficulty, season)));
+        seasonFinalBlock[season] = block.number;
         season++;
-    }*/
+    }
 
     function equipLock(address a) public payable onlyArmory(){
         locked[a] += msg.value;
     }
-
-    function unlock(uint amt) public {
-        payable(msg.sender).transfer(amt);
+    /// @param tokenHash keccak256(nftContractAddress, tokenId)
+    function unlock(uint tokenHash) public {
+       // payable(msg.sender).transfer(amt);
     }
 }

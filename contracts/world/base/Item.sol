@@ -8,8 +8,6 @@ import "./XpRecipient.sol";
 contract Item is RegistryClient, XpRecipient{
     bytes32 public itemType;
     
-    mapping(uint256 => uint256) public itemToSeason;
-    
     modifier onlyItemManager(){
         require(msg.sender == addressOf("ItemManager", season), "Unauthorized item manager");
         _;
@@ -23,6 +21,6 @@ contract Item is RegistryClient, XpRecipient{
     }
 
     function advanceToCurrentSeason(uint256 itemId) external onlyItemManager() {
-        itemToSeason[itemId] = season;
+        //season[itemId] = currentWorldSeason();
     }
 }

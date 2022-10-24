@@ -52,4 +52,8 @@ contract RegistryClient is Utils {
     function typeOf(bytes32 _contractName) public view returns (uint) {
         return registry.typeOf(_contractName);
     }
+
+    function currentWorldSeason() public view returns(uint){
+      return registry.currentSeason();
+    }
 }
