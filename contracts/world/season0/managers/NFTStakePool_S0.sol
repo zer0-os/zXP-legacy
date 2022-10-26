@@ -10,24 +10,26 @@ contract NFTStakePool_S0 is RegistryClient{
 
     constructor(IRegistry registry) RegistryClient(registry) {}
     
+    uint public test;
     mapping(bytes32 => address) public staker;
     mapping(bytes32 => uint) public stakedAtBlock;
     ///NFT holder locks item for the season by transferring NFT in
-    function _stake(address operator, address nftContractAddress, uint tokenId) internal {
+    function _stake(address _staker, address nftContractAddress, uint tokenId) internal {
         //require(ERC721(nftContractAddress).ownerOf(tokenId) == msg.sender);
-        staker[keccak256(abi.encode(nftContractAddress, tokenId))] = operator;
-        stakedAtBlock[keccak256(abi.encode(nftContractAddress, tokenId))] = block.number;
+        staker[keccak256(abi.encodePacked(nftContractAddress, tokenId))] = _staker;
+        stakedAtBlock[keccak256(abi.encodePacked(nftContractAddress, tokenId))] = block.number;
     }
     ///ZXP unstakes the nft item on season advancement
-    function _unstake(bytes32 tokenHash) public{
-        //require(staker[tokenHash] == msg.sender, "sender isnt staker");
-        //require(currentWorldSeason() > IZXP(addressOf("ZXP", 0)).itemSeason(uint(tokenHash)), "Must advance season to unstake");
-        staker[tokenHash] = address(0);
-        //return(stakedAtBlock[tokenHash]);
+    function _unstake(address contractAddress, uint tokenId) public{
+        require(msg.sender == staker[keccak256(abi.encodePacked(contractAddress, tokenId))], "Sender isnt staker");
+        IERC721(contractAddress).transferFrom(address(this), msg.sender, tokenId);
     }
 
-    function onERC721Received(address operator, address from, uint256 tokenId, bytes memory data) public returns(bytes4){
-        _stake(operator, from, tokenId);
+    function onERC721Received(address, address from, uint256 tokenId, bytes calldata) external returns(bytes4){
+        _stake(from, msg.sender, tokenId);
+        test = 11111111;
+        emit Staked(from, msg.sender, tokenId);
         return IERC721Receiver.onERC721Received.selector;
     }
+    event Staked(address player, address nftContract, uint tokenId);
 } 
