@@ -235,7 +235,7 @@ describe("zXP", function () {
       _characterManager.advance();
     });
     it("P1 advances season", async function () {
-        _characterManager.advance();
+      _characterManager.advance();
     });
     it("Player 1 creates character", async function () {
       await _characterManager.create();
@@ -469,14 +469,20 @@ describe("zXP", function () {
       it("Player 1 unstakes beast", async function () {
         await _nftStakePoolS0._unstake(ethers.utils.keccak256(_beastToken.address, "0"));
       });
-      it("Player 1 earned XP", async function () {
-        //await _nftStakePoolS0._unstake(ethers.utils.keccak256(_beastToken.address, "0"));
+      it("P1 cant unstake again", async function () {
+        await _nftStakePoolS0._unstake(ethers.utils.keccak256(_beastToken.address, "0"));
       });
-      it("Player 1 beast earned XP", async function () {
-        //await _nftStakePoolS0._unstake(ethers.utils.keccak256(_beastToken.address, "0"));
+      it("P1 stakes in new world season", async function () {
+        await _nftStakePoolS0._unstake(ethers.utils.keccak256(_beastToken.address, "0"));
       });
-      it("Player 1 beast advanced to current world season", async function () {
-        //await _nftStakePoolS0._unstake(ethers.utils.keccak256(_beastToken.address, "0"));
+      it("P1 earned XP", async function () {
+        await _nftStakePoolS0._unstake(ethers.utils.keccak256(_beastToken.address, "0"));
+      });
+      it("P1 beast earned XP", async function () {
+        await _nftStakePoolS0._unstake(ethers.utils.keccak256(_beastToken.address, "0"));
+      });
+      it("P1 beast advanced to current world season", async function () {
+        await _nftStakePoolS0._unstake(ethers.utils.keccak256(_beastToken.address, "0"));
       });
     });
     /*describe("battle royale passable threshold", function () {
