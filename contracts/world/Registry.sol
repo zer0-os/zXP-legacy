@@ -70,6 +70,14 @@ contract Registry is IRegistry, Owned, Utils {
         name[_newContractAddress] = _contractName;
     }
 
+    function newSeason() public ownerOnly{
+        currentSeason++;
+    }
+
+    //function startSeason() public ownerOnly {
+    //    started[season] = true;
+    //} 
+
     /**
       * @dev utility, converts bytes32 to a string
       * note that the bytes32 argument is assumed to be UTF8 encoded ASCII string

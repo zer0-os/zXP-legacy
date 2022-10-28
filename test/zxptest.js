@@ -24,8 +24,12 @@ describe("zXP", function () {
   var p2signer;
   var P1;
   var P2;
-  var _nftStakePool;
-
+  var _nftStakePoolS0;
+  var _P1name = ethers.utils.formatBytes32String("durienb");
+  var _P2name = ethers.utils.formatBytes32String("n3o");
+  var P1beastID = 0
+  var p1beastHash; //ethers.utils.solidityKeccak256(["address", "uint"], [_beastToken.address, 0]);
+  
   describe("zXP Season 0", function () {
     it("Gets signers for players 1 and 2", async function () {
       const [p1, p2] = await ethers.getSigners();
@@ -47,7 +51,16 @@ describe("zXP", function () {
       await wheelToken.deployed();
       _wheelToken = wheelToken;
       await wheelToken.mint(P1);
-      expect(await wheelToken.ownerOf(0)).to.equal(P1);
+      await wheelToken.mint(P2);
+      
+    });
+
+    it("P1 owns wheel 0", async function () {
+      expect(await _wheelToken.ownerOf(0)).to.equal(P1);
+    });
+
+    it("P2 owns wheel 1", async function () {
+      expect(await _wheelToken.ownerOf(1)).to.equal(P2);
     });
 
     it("Deploys mock beast token", async function () {
@@ -62,7 +75,16 @@ describe("zXP", function () {
       await beastToken.deployed();
       _beastToken = beastToken;
       await beastToken.mint(P1);
-      expect(await beastToken.ownerOf(0)).to.equal(P1);
+      await beastToken.mint(P2);
+    });
+
+    it("P1 owns beast 0", async function () {
+      expect(await _beastToken.ownerOf(0)).to.equal(P1);
+      p1beastHash = ethers.utils.solidityKeccak256(["address", "uint"], [_beastToken.address, 0]);
+    });
+
+    it("P2 owns beast 1", async function () {
+      expect(await _beastToken.ownerOf(1)).to.equal(P2);
     });
 
     it("Deploys mock wild token", async function () {
@@ -159,14 +181,36 @@ describe("zXP", function () {
       await _registry.registerAddress(ethers.utils.formatBytes32String("MemeLord"), _memeLord.address, 1);  
     });
 
+    describe("NFT staking", function(){
+      it("Deploys and registers s0 industry staking pool", async function () {
+        const nftStakePoolS0Factory = await ethers.getContractFactory("NFTStakePool_S0");
+        const nftStakePoolS0 = await nftStakePoolS0Factory.deploy(_registry.address);
+        await nftStakePoolS0.deployed();
+        _nftStakePoolS0 = nftStakePoolS0;
+        await _registry.registerAddress(ethers.utils.formatBytes32String("NFTStakePool"), _nftStakePoolS0.address, 3);
+      });
+      it("Player 1 stakes beast", async function () {
+        await _beastToken["safeTransferFrom(address,address,uint256)"](P1, _nftStakePoolS0.address, 0);
+      });
+      it("P1 beast has xp", async function () {
+        console.log(await _zxp.xp(p1beastHash))
+      });
+      it("Player 1 unstakes beast", async function () {
+        await _nftStakePoolS0._unstake(_beastToken.address, 0);
+      });
+      it("Player 1 stakes beast again", async function () {
+        await _beastToken["safeTransferFrom(address,address,uint256)"](P1, _nftStakePoolS0.address, 0);
+      });
+    });
+
     it("Player 1 creates character", async function () {
-      await _characterManager.create();
+      await _characterManager.create(_P1name);
     });
     //it("Player 1 can't create a character again", async function() {
     //  expect(await _characterManager.create()).to.be.reverted();
     //});
-    it("Player 1 views beast stats", async function (){
-      let lev = await _zxp.levelOf(0);
+    it("Player 1 beast is level 1", async function (){
+      let lev = await _zxp.levelOf(p1beastHash);
       lev = lev.toString();
       expect(lev).to.equal("1");
     });
@@ -230,18 +274,17 @@ describe("zXP", function () {
       _beastBattle = beastBattle;
       await _registry.advanceSeason(ethers.utils.formatBytes32String("BeastBattle"), beastBattle.address);
     });
-    
+    it("owner advances world season", async function () {
+      _registry.newSeason();
+    });
     it("P1 advances season", async function () {
       _characterManager.advance();
     });
     it("P1 advances season", async function () {
-        _characterManager.advance();
-    });
-    it("Player 1 creates character", async function () {
-      await _characterManager.create();
+      _characterManager.advance();
     });
     //it("Player 1 can't create a character again", async function() {
-    //  expect(await _characterManager.create()).to.be.reverted();
+    //  expect(await _characterManager.create()).to.be.reverted;
     //});
     it("Player 1 beast is still level 2", async function (){
       let lev = await _zxp.levelOf(0);
@@ -357,7 +400,7 @@ describe("zXP", function () {
     const xP2 = "101";
     const yP2 = "100";
 
-    describe("battle royale land", function () {
+    /*describe("battle royale land", function () {
       it("Deploy and registers s0 battle royale", async function () {
         const battleRoyales = await ethers.getContractFactory("BattleRoyale_S0");
         const battleRoyale = await battleRoyales.deploy(_registry.address, _wildToken.address);
@@ -450,33 +493,20 @@ describe("zXP", function () {
         await _battleRoyale.connect(p2signer).move(xP2,yP2,xP1,yP1, 10);
       });
     });
-    
+    */
     describe("NFT staking", function(){
-      it("Deploys and registers s0 industry staking pool", async function () {
-        const nftStakePoolS0Factory = await ethers.getContractFactory("NFTStakePool_S0");
-        const nftStakePoolS0 = await nftStakePoolS0Factory.deploy(_registry.address);
-        await nftStakePoolS0.deployed();
-        _nftStakePoolS0 = nftStakePoolS0;
-        await _registry.registerAddress(ethers.utils.formatBytes32String("NFTStakePool"), _nftStakePoolS0.address, 1);
-      });
-      it("Player 1 stakes beast", async function () {
-        //await _nftStakePoolS0.stake(_beastToken.address, 0);
-        await _beastToken.transferFrom(P1, _nftStakePoolS0.address, 0);
-      });
-      it("World season advances", async function () {
-        //await _beast.advance(0);
-      });
+     
       it("Player 1 unstakes beast", async function () {
-        await _nftStakePoolS0._unstake(ethers.utils.keccak256(_beastToken.address, "0"));
+        //await _nftStakePoolS0._unstake(_beastToken.address, 0);
       });
-      it("Player 1 earned XP", async function () {
-        //await _nftStakePoolS0._unstake(ethers.utils.keccak256(_beastToken.address, "0"));
+      it("P1 cant unstake again", async function () {
+        //await expect(_nftStakePoolS0._unstake(_beastToken.address, 0)).to.be.reverted;
       });
-      it("Player 1 beast earned XP", async function () {
-        //await _nftStakePoolS0._unstake(ethers.utils.keccak256(_beastToken.address, "0"));
+      it("P1 earned XP", async function () {
       });
-      it("Player 1 beast advanced to current world season", async function () {
-        //await _nftStakePoolS0._unstake(ethers.utils.keccak256(_beastToken.address, "0"));
+      it("P1 beast earned XP", async function () {
+      });
+      it("P1 beast advanced to current world season", async function () {
       });
     });
     /*describe("battle royale passable threshold", function () {
