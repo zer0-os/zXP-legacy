@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "../../RegistryClient.sol";
 import "../../../interfaces/IZXP.sol";
 
@@ -21,8 +21,9 @@ contract NFTStakePool_S0 is RegistryClient{
     ///ZXP unstakes the nft item on season advancement
     function _unstake(bytes32 tokenHash) public{
         //require(staker[tokenHash] == msg.sender, "sender isnt staker");
-        //require(currentWorldSeason() > IZXP(addressOf("ZXP", 0)).itemSeason(uint(tokenHash)), "Must advance season to unstake");
+        require(currentWorldSeason() > IZXP(addressOf("ZXP", 1)).itemSeason(uint(tokenHash)), "Must advance season to unstake");
         staker[tokenHash] = address(0);
+        IERC721()
         //return(stakedAtBlock[tokenHash]);
     }
 
