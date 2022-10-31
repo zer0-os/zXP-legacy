@@ -21,7 +21,9 @@ contract NFTStakePool_S0 is RegistryClient{
     }
     ///ZXP unstakes the nft item on season advancement
     function _unstake(address contractAddress, uint tokenId) public{
-        require(msg.sender == staker[keccak256(abi.encodePacked(contractAddress, tokenId))], "Sender isnt staker");
+        bytes32 tokenHash = keccak256(abi.encodePacked(contractAddress, tokenId));
+        require(msg.sender == staker[tokenHash], "Sender isnt staker");
+        if(season < currentWorldSeason()){IZXP(addressOf("ZXP", season)).awardXP(uint(tokenHash), 100);}
         IERC721(contractAddress).transferFrom(address(this), msg.sender, tokenId);
     }
 

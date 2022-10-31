@@ -25,6 +25,7 @@ describe("zXP", function () {
   var P1;
   var P2;
   var _nftStakePoolS0;
+  var _nftStakeVaultS0;
   var _P1name = ethers.utils.formatBytes32String("durienb");
   var _P2name = ethers.utils.formatBytes32String("n3o");
   
@@ -184,21 +185,46 @@ describe("zXP", function () {
         const nftStakePoolS0 = await nftStakePoolS0Factory.deploy(_registry.address);
         await nftStakePoolS0.deployed();
         _nftStakePoolS0 = nftStakePoolS0;
-        await _registry.registerAddress(ethers.utils.formatBytes32String("NFTStakePool"), _nftStakePoolS0.address, 1);
+        await _registry.registerAddress(ethers.utils.formatBytes32String("NFTStakePool"), _nftStakePoolS0.address, 3);
+      });
+      it("Deploys and registers s0 industry staking vault", async function () {
+        const nftStakeVaultS0Factory = await ethers.getContractFactory("RewardVault_S0");
+        const nftStakeVaultS0 = await nftStakeVaultS0Factory.deploy(_registry.address);
+        await nftStakeVaultS0.deployed();
+        _nftStakeVaultS0 = nftStakeVaultS0;
+        await _registry.registerAddress(ethers.utils.formatBytes32String("NFTStakeVault"), _nftStakePoolS0.address, 3);
       });
       it("Player 1 stakes beast", async function () {
         await _beastToken["safeTransferFrom(address,address,uint256)"](P1, _nftStakePoolS0.address, 0);
       });
-      it("Player 1 unstakes beast", async function () {
-        //await _nftStakePoolS0.stake(_beastToken.address, 0);
+      it("Player 1 unstakes beast before season end", async function () {
         await _nftStakePoolS0._unstake(_beastToken.address, 0);
       });
-      it("Player 1 stakes beast", async function () {
-        //await _nftStakePoolS0.stake(_beastToken.address, 0);
+      it("Player 2 stakes beast", async function () {
+        await _beastToken.connect(p2signer)["safeTransferFrom(address,address,uint256)"](P2, _nftStakePoolS0.address, 1);
+      });
+      it("Player 2 unstakes beast before season end", async function () {
+        await _nftStakePoolS0.connect(p2signer)._unstake(_beastToken.address, 1);
+      });
+      it("Player 1 stakes beast again", async function () {
         await _beastToken["safeTransferFrom(address,address,uint256)"](P1, _nftStakePoolS0.address, 0);
-        //console.log(tx);
-        console.log(await _nftStakePoolS0.test());
-        console.log(await _nftStakePoolS0.staker(ethers.utils.solidityKeccak256(["address", "uint"], [_beastToken.address, 0])));
+      });
+      it("Player 2 stakes beast again", async function () {
+        await _beastToken.connect(p2signer)["safeTransferFrom(address,address,uint256)"](P2, _nftStakePoolS0.address, 1);
+      });
+      it("Player 1 stakes wheel", async function () {
+        await _wheelToken["safeTransferFrom(address,address,uint256)"](P1, _nftStakePoolS0.address, 0);
+        //console.log(await _nftStakePoolS0.staker(ethers.utils.solidityKeccak256(["address", "uint"], [_beastToken.address, 0])));
+      });
+      it("Player 2 stakes wheel", async function () {
+        await _wheelToken.connect(p2signer)["safeTransferFrom(address,address,uint256)"](P2, _nftStakePoolS0.address, 1);
+        //console.log(await _nftStakePoolS0.staker(ethers.utils.solidityKeccak256(["address", "uint"], [_beastToken.address, 0])));
+      });
+      it("Player 1 unstakes wheel before season end", async function () {
+        await _nftStakePoolS0._unstake(_wheelToken.address, 0);
+      });
+      it("P1 vaults wheel", async function () {
+        await _wheelToken["safeTransferFrom(address,address,uint256)"](P1, _nftStakeVaultS0.address, 0);
       });
     });
 
@@ -206,7 +232,7 @@ describe("zXP", function () {
       await _characterManager.create(_P1name);
     });
     //it("Player 1 can't create a character again", async function() {
-    //  expect(await _characterManager.create()).to.be.reverted();
+    //  expect(await _characterManager.create()).to.be.reverted;
     //});
     it("Player 1 beast is level 1", async function (){
       let lev = await _zxp.levelOf(0);
@@ -238,7 +264,6 @@ describe("zXP", function () {
     it("DeepMeme tourney official submits results", async function() {
       await _deepMeme.submitTop3Results(0, 1, 2, 0, 0, 0);
     });
-  
   });
 
   describe("zXP Season 1", function () {
@@ -277,12 +302,10 @@ describe("zXP", function () {
     it("P1 advances season", async function () {
       _characterManager.advance();
     });
-    it("P1 advances season", async function () {
-      _characterManager.advance();
+    it("P2 advances season", async function () {
+      _characterManager.connect(p2signer).advance();
     });
-    //it("Player 1 can't create a character again", async function() {
-    //  expect(await _characterManager.create()).to.be.reverted;
-    //});
+    
     it("Player 1 beast is still level 2", async function (){
       let lev = await _zxp.levelOf(0);
       lev = lev.toString();
@@ -492,16 +515,20 @@ describe("zXP", function () {
     });
     */
     describe("NFT staking", function(){
-     
+      
       it("Player 1 unstakes beast", async function () {
-        //await _nftStakePoolS0._unstake(_beastToken.address, 0);
+        await _nftStakePoolS0._unstake(_beastToken.address, 0);
       });
       it("P1 cant unstake again", async function () {
         //await expect(_nftStakePoolS0._unstake(_beastToken.address, 0)).to.be.reverted;
       });
       it("P1 earned XP", async function () {
+        
       });
-      it("P1 beast earned XP", async function () {
+      it("Beast 0 has 840 xp", async function(){
+        let xp = await _zxp.xp(0);
+        xp = xp.toString();
+        expect(xp).to.equal("840");
       });
       it("P1 beast advanced to current world season", async function () {
       });

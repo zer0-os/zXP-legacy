@@ -8,7 +8,7 @@ import "../../RegistryClient.sol";
 import "../../../interfaces/IZXP.sol";
 import "../../../Owned.sol";
 
-contract RewardVault is Owned, RegistryClient{
+contract RewardVault_S0 is Owned, RegistryClient{
     
     constructor(IRegistry registry) RegistryClient(registry) {}
     
