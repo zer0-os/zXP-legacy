@@ -187,11 +187,7 @@ describe("zXP", function () {
         await _registry.registerAddress(ethers.utils.formatBytes32String("NFTStakePool"), _nftStakePoolS0.address, 1);
       });
       it("Player 1 stakes beast", async function () {
-        //await _nftStakePoolS0.stake(_beastToken.address, 0);
         await _beastToken["safeTransferFrom(address,address,uint256)"](P1, _nftStakePoolS0.address, 0);
-        //console.log(tx);
-        console.log(await _nftStakePoolS0.test());
-        console.log(await _nftStakePoolS0.staker(ethers.utils.solidityKeccak256(["address", "uint"], [_beastToken.address, 0])));
       });
       it("Player 1 unstakes beast", async function () {
         //await _nftStakePoolS0.stake(_beastToken.address, 0);

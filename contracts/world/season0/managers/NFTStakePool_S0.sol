@@ -2,7 +2,8 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "../../RegistryClient.sol";
 import "../../../interfaces/IZXP.sol";
 
@@ -10,7 +11,6 @@ contract NFTStakePool_S0 is RegistryClient{
 
     constructor(IRegistry registry) RegistryClient(registry) {}
     
-    uint public test;
     mapping(bytes32 => address) public staker;
     mapping(bytes32 => uint) public stakedAtBlock;
     ///NFT holder locks item for the season by transferring NFT in
@@ -27,7 +27,6 @@ contract NFTStakePool_S0 is RegistryClient{
 
     function onERC721Received(address, address from, uint256 tokenId, bytes calldata) external returns(bytes4){
         _stake(from, msg.sender, tokenId);
-        test = 11111111;
         emit Staked(from, msg.sender, tokenId);
         return IERC721Receiver.onERC721Received.selector;
     }

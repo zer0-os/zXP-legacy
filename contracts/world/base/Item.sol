@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "../RegistryClient.sol";
 import "../../interfaces/IRegistry.sol";
 import "./XpRecipient.sol";
-
+import "../../interfaces/IZXP.sol";
 
 contract Item is RegistryClient, XpRecipient{
     bytes32 public itemType;
