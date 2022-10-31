@@ -33,8 +33,8 @@ contract BattleTournament is Officiated, RegistryClient{
         uint thirdPrize) 
         external officialOnly() payable
     {
-        require(msg.value == 2 * (firstPrize + secondPrize + thirdPrize), "ZXP invalid payment");
-        require(finalization[(block.timestamp - startTime) / roundLength] == 0, "ZXP round already resolved");
+        require(msg.value == 2 * (firstPrize + secondPrize + thirdPrize), "ZXP: invalid payment");
+        require(finalization[(block.timestamp - startTime) / roundLength] == 0, "ZXP: round already resolved");
         
         winnings[firstPlace] += firstPrize;
         winnings[secondPlace] += secondPrize;
@@ -54,7 +54,7 @@ contract BattleTournament is Officiated, RegistryClient{
     }
 
     function battle(uint id) public {
-        require(lastRoundBattled[msg.sender] < block.timestamp/roundLength, "ZXP already battled");
+        require(lastRoundBattled[msg.sender] < block.timestamp/roundLength, "ZXP: already battled");
         lastRoundBattled[msg.sender] = block.timestamp/roundLength;
         battlersCount[block.timestamp/roundLength]++;
         IZXP(addressOf("ZXP", season)).awardXP(id, roundXpReward);

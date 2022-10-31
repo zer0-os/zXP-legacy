@@ -24,19 +24,18 @@ contract RewardVault_S0 is Owned, RegistryClient{
         count++;
     }
 
-    function _unvault(uint rand, address to, address nftContractAddress, uint tokenId) internal {
-        contractAddress[rand] = contractAddress[count];
-        token[rand] = token[count];
+    function _unvault(address to, address nftContractAddress, uint tokenId) internal{
+        //contractAddress[rand] = contractAddress[count];
+        //token[rand] = token[count];
         count--;
         IERC721(nftContractAddress).safeTransferFrom(address(this), to, tokenId);
     }
 
-    function awardRandom(address to) public only("ZXP"){
+    function awardRandomItem(address to) public only("NFTStakePool"){
         _unvault(
-            block.difficulty % count,
             to,
-            contractAddress[block.difficulty % count], 
-            token[block.difficulty % count]);
+            contractAddress[count-1], 
+            token[count-1]);
     }
 
     function onERC721Received(address, address, uint256 tokenId, bytes calldata) external returns(bytes4){

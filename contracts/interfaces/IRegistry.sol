@@ -12,4 +12,5 @@ interface IRegistry {
     function seasonZeroOf(bytes32 _contractName) external view returns(uint);
     function name(address) external view returns(bytes32);
     function currentSeason() external view returns(uint);
+    function newSeason() external;
 }

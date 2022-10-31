@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "../../RegistryClient.sol";
 import "../../../interfaces/IZXP.sol";
+import "./RewardVault_S0.sol";
 
 contract NFTStakePool_S0 is RegistryClient{
 
@@ -15,15 +16,21 @@ contract NFTStakePool_S0 is RegistryClient{
     mapping(bytes32 => uint) public stakedAtBlock;
     ///NFT holder locks item for the season by transferring NFT in
     function _stake(address _staker, address nftContractAddress, uint tokenId) internal {
-        //require(ERC721(nftContractAddress).ownerOf(tokenId) == msg.sender);
-        staker[keccak256(abi.encodePacked(nftContractAddress, tokenId))] = _staker;
-        stakedAtBlock[keccak256(abi.encodePacked(nftContractAddress, tokenId))] = block.number;
+        bytes32 tokenHash = keccak256(abi.encodePacked(nftContractAddress, tokenId));
+        staker[tokenHash] = _staker;
+        stakedAtBlock[tokenHash] = block.number;
+        emit Staked(_staker, msg.sender, tokenId);
     }
-    ///ZXP unstakes the nft item on season advancement
+    function wtf() public{}
+    ///unstakes the nft item on season advancement
     function _unstake(address contractAddress, uint tokenId) public{
+        require(msg.sender == staker[keccak256(abi.encodePacked(contractAddress, tokenId))], "Sender isnt staker");
         bytes32 tokenHash = keccak256(abi.encodePacked(contractAddress, tokenId));
-        require(msg.sender == staker[tokenHash], "Sender isnt staker");
-        if(season < currentWorldSeason()){IZXP(addressOf("ZXP", season)).awardXP(uint(tokenHash), 100);}
+        if(currentWorldSeason() - 1 > IZXP(addressOf("ZXP", season)).itemSeason(uint(tokenHash))){
+            IZXP(addressOf("ZXP", season)).awardXP(uint(tokenHash), 100);
+            RewardVault_S0(addressOf("RewardVault", season)).awardRandomItem(msg.sender);
+        }
+        staker[tokenHash] = address(0);
         IERC721(contractAddress).transferFrom(address(this), msg.sender, tokenId);
     }
 
@@ -33,4 +40,5 @@ contract NFTStakePool_S0 is RegistryClient{
         return IERC721Receiver.onERC721Received.selector;
     }
     event Staked(address player, address nftContract, uint tokenId);
+    event Unstaked(address player, address nftContract, uint tokenId);
 } 
