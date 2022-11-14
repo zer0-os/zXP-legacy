@@ -11,7 +11,10 @@ import "./Equipment.sol";
 
 contract Character is RegistryClient, XpRecipient, Traverser, Stats, Equipment{
     mapping(address => uint) public character;
-    
+
+    constructor(IRegistry registry) 
+    RegistryClient(registry){}
+
     modifier playerOnly(uint id){
         require(character[msg.sender] == id);
         _;
@@ -22,15 +25,7 @@ contract Character is RegistryClient, XpRecipient, Traverser, Stats, Equipment{
         _;
     }
 
-    constructor(
-        IRegistry registry
-    )
-    RegistryClient(registry) {
-    }
-
-
     function create(address a, uint id) public characterManagerOnly(){
         character[a] = id;
     }
-
 }

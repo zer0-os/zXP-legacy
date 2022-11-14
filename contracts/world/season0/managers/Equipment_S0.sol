@@ -9,7 +9,7 @@ import "../../../interfaces/IZXP.sol";
 import "./RewardVault_S0.sol";
 
 ///Stakes with address owners
-contract NFTStakePool_S0 is RegistryClient{
+contract Equipment_S0 is RegistryClient{
 
     constructor(IRegistry registry) RegistryClient(registry) {}
     
@@ -37,5 +37,4 @@ contract NFTStakePool_S0 is RegistryClient{
         _stake(from, msg.sender, tokenId);
         return IERC721Receiver.onERC721Received.selector;
     }
-
 } 

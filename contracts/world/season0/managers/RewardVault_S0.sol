@@ -31,7 +31,7 @@ contract RewardVault_S0 is Owned, RegistryClient{
         IERC721(nftContractAddress).safeTransferFrom(address(this), to, tokenId);
     }
 
-    function awardRandomItem(address to) public only("NFTStakePool"){
+    function awardTopItem(address to) public only("NFTStakePool"){
         _unvault(
             to,
             contractAddress[count-1], 
