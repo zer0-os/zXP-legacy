@@ -58,12 +58,6 @@ contract ZXP is Owned, RegistryClient{
         started[season] = true;
     } 
 
-    function endSeason() public ownerOnly {
-        seasonFinalization[season] = uint(keccak256(abi.encode(block.difficulty, season)));
-        seasonFinalBlock[season] = block.number;
-        season++;
-    }
-
     function advance(uint id) public onlyType(2){
         itemSeason[id]++; 
     }
