@@ -9,7 +9,7 @@ import "../../../interfaces/IZXP.sol";
 import "./RewardVault_S0.sol";
 
 ///Stakes with address owners
-contract Equipment_S0 is RegistryClient{
+contract Vault_S0 is RegistryClient{
 
     constructor(IRegistry registry) RegistryClient(registry) {}
     
