@@ -32,7 +32,7 @@ contract RewardVault_S0 is Owned, RegistryClient{
     }
 
     function awardTopItem(address to) public only("NFTStakePool"){
-        //add return if count == 0 (left out for testing)
+        if(count == 0){return;} //no items left to reward
         _unvault(
             to,
             contractAddress[count-1], 
