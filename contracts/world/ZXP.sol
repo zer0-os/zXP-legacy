@@ -13,6 +13,9 @@ contract ZXP is Owned, RegistryClient{
     mapping(uint => uint) seasonFinalization;
     mapping(uint => uint) seasonFinalBlock;
 
+    function setSeason(uint tokenHash, uint season) public onlyGame(){
+        itemSeason[tokenHash] = season;
+    }
     /// awards XP and levels up if the new xp value exceeds the threshold defined by the xp curve
     function awardXP(uint id, uint amount) public onlyGame(){
         _awardXP(id, amount);

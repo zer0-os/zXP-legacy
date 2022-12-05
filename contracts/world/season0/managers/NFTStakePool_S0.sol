@@ -13,20 +13,22 @@ contract NFTStakePool_S0 is RegistryClient{
 
     constructor(IRegistry registry) RegistryClient(registry) {}
     
-    mapping(bytes32 => address) public staker;
-    mapping(bytes32 => uint) public stakedAtBlock;
+    mapping(uint => address) public staker;
+    mapping(uint => uint) public stakedAtBlock;
     ///NFT holder locks item for the season by transferring NFT in
     function _stake(address _staker, address nftContractAddress, uint tokenId) internal {
-        bytes32 tokenHash = keccak256(abi.encodePacked(nftContractAddress, tokenId));
+        uint tokenHash = uint(keccak256(abi.encodePacked(nftContractAddress, tokenId)));
+        IZXP(addressOf("ZXP", season)).setSeason(tokenHash, season);
         staker[tokenHash] = _staker;
         stakedAtBlock[tokenHash] = block.number;
     }
     ///unstakes the nft item on season advancement
     function _unstake(address contractAddress, uint tokenId) public{
-        require(msg.sender == staker[keccak256(abi.encodePacked(contractAddress, tokenId))], "Sender isnt staker");
-        bytes32 tokenHash = keccak256(abi.encodePacked(contractAddress, tokenId));
+        uint tokenHash = uint(keccak256(abi.encodePacked(contractAddress, tokenId)));
+        require(msg.sender == staker[tokenHash], "Sender isnt staker");
         if(currentWorldSeason() > IZXP(addressOf("ZXP", season)).itemSeason(uint(tokenHash))){
-            IZXP(addressOf("ZXP", season)).awardXP(uint(tokenHash), 100);
+            //@todo increment item season
+            IZXP(addressOf("ZXP", season)).awardXP(tokenHash, 100);
             RewardVault_S0(addressOf("RewardVault", season)).awardTopItem(msg.sender);
         }
         staker[tokenHash] = address(0);

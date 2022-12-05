@@ -21,7 +21,7 @@ contract CharacterManager is RegistryClient, NFTStaker{
 
     ///Creates character by setting season to 1
     ///@param name Names can be up to 32 characters, names are owned by addresses and transferable
-    function create(bytes32 name, uint _royalty, bool main) public payable {
+    function create(bytes32 name, uint _royalty) public payable {
         require(msg.value == cost, "CM Invalid payment");
         characterCreator[name] = msg.sender;
         characterPlayer[name] = msg.sender;
@@ -51,9 +51,9 @@ contract CharacterManager is RegistryClient, NFTStaker{
         characterCreator[name] = msg.sender;
         royalty[name] = newRoyalty;
     }
-    function equip(bytes32 tokenHash) public {
-        require()
-        equipped[tokenHash] = msg.sender;
+    function equip(ERC721 nftContract, uint tokenId) public {
+        require(nftContract.ownerOf(tokenId) == msg.sender, "You dont own this NFT");
+        equipped[keccak256(abi.encode(nftContract, tokenId))] = msg.sender;
         //increase character stats
     }
 

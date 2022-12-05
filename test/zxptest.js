@@ -222,6 +222,12 @@ describe("zXP", function () {
       it("Player 1 stakes beast", async function () {
         await _beastToken["safeTransferFrom(address,address,uint256)"](P1, _nftStakePoolS0.address, 0);
       });
+      it("Current world season is 1", async function () {
+        console.log(await _registry.currentSeason());
+      });
+      it("Vault season is 1", async function () {
+        console.log(await _nftStakePoolS0.season());
+      });
       it("Player 1 unstakes beast before season end", async function () {
         await _nftStakePoolS0._unstake(_beastToken.address, 0);
       });
@@ -262,15 +268,14 @@ describe("zXP", function () {
         expect(await _wheelToken.ownerOf(2)).to.equal(_nftStakeVaultS0.address);
       });
     });
-
+    //it("P1 awarded wheel 2", async function () {
+    //  expect(await _wheelToken.ownerOf(2)).to.equal(P1);
+    //});
     it("Player 1 creates character", async function () {
-      it("P1 awarded wheel 2", async function () {
-        expect(await _wheelToken.ownerOf(2)).to.equal(P1);
-      });
-      await _characterManager.create(_P1name);
+      await _characterManager.create(_P1name, 10);
     });
     it("Player 1 can't create a character again", async function() {
-      expect(await _characterManager.create(_P1name)).to.be.reverted;
+      expect(await _characterManager.create(_P1name, 10)).to.be.reverted;
     });
     it("Player 1 beast is level 1", async function (){
       let lev = await _zxp.levelOf(p1beastHash);
