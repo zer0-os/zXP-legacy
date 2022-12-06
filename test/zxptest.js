@@ -107,6 +107,10 @@ describe("zXP", function () {
       P2beastID = 1;
       expect(await _beastToken.ownerOf(1)).to.equal(P2);
     });
+    it("Mints beast 2 for P1", async function () {
+      await _beastToken.mint(P1);
+      expect(await _beastToken.ownerOf(2)).to.equal(P1);
+    });
 
     it("Calcs beast 0 hash", async function (){
       p1beastHash = ethers.utils.solidityKeccak256(["address", "uint"], [_beastToken.address, 0]);
@@ -327,11 +331,47 @@ describe("zXP", function () {
       it("Player 1 unstakes wheel before season end", async function () {
         await _vaultS0._unstake(_wheelToken.address, 0);
       });
-      it("P1 vaults wheel 0", async function () {
+      
+      //vault market
+      const p1VaultForSale = ethers.utils.hexZeroPad("0x567", 32)
+      const salePrice = ethers.utils.parseEther("1");
+      it("Player 1 creates vault", async function () {
+        await _vaultS0.createVault(p1VaultForSale);
+      });
+      it("P1 vaults beast 2", async function () {
+        await _beastToken["safeTransferFrom(address,address,uint256,bytes)"](P1, _vaultS0.address, 2, p1VaultForSale);
+        expect(await _beastToken.ownerOf(2)).to.equal(_vaultS0.address);
+      });
+      it("P1 vaults wheel 4", async function () {
+        await _wheelToken["safeTransferFrom(address,address,uint256,bytes)"](P1, _vaultS0.address, 4, p1VaultForSale);
+        expect(await _wheelToken.ownerOf(4)).to.equal(_vaultS0.address);
+      });
+      it("P1 vaults wheel 5", async function () {
+        await _wheelToken["safeTransferFrom(address,address,uint256,bytes)"](P1, _vaultS0.address, 5, p1VaultForSale);
+        expect(await _wheelToken.ownerOf(5)).to.equal(_vaultS0.address);
+      });
+      it("P1 posts vault for sale", async function () {
+        await _vaultS0.sell(p1VaultForSale, salePrice);
+      });
+      it("P2 buys vault", async function () {
+        await _vaultS0.connect(p2signer).buy(p1VaultForSale, {value: salePrice});
+      });
+      it("Player 2 unstakes beast 2", async function () {
+        await _vaultS0.connect(p2signer)._unstake(_beastToken.address, 2);
+      });
+      it("Player 2 unstakes wheel 4", async function () {
+        await _vaultS0.connect(p2signer)._unstake(_wheelToken.address, 4);
+      });
+      it("Player 2 unstakes wheel 5", async function () {
+        await _vaultS0.connect(p2signer)._unstake(_wheelToken.address, 5);
+      });
+
+      //put some items in the reward vault
+      it("P1 rewardvaults wheel 0", async function () {
         await _wheelToken["safeTransferFrom(address,address,uint256,bytes)"](P1, _nftStakeVaultS0.address, 0, p1VaultNumber);
         expect(await _wheelToken.ownerOf(0)).to.equal(_nftStakeVaultS0.address);
       });
-      it("P1 vaults wheel 2", async function () {
+      it("P1 rewardvaults wheel 2", async function () {
         await _wheelToken["safeTransferFrom(address,address,uint256,bytes)"](P1, _nftStakeVaultS0.address, 2, p1VaultNumber);
         expect(await _wheelToken.ownerOf(2)).to.equal(_nftStakeVaultS0.address);
       });

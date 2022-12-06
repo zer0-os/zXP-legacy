@@ -23,8 +23,8 @@ contract Vault_S0 is RegistryClient{
         vaultOwner[vaultNumber] = msg.sender;
     }
     ///NFT holder locks item for the season by transferring NFT in
-    function _stake(bytes32 vaultNumber, address _staker, address nftContractAddress, uint tokenId) internal {
-        bytes32 tokenHash = keccak256(abi.encodePacked(nftContractAddress, tokenId));
+    function _stake(bytes32 vaultNumber, address _staker, address contractAddress, uint tokenId) internal {
+        bytes32 tokenHash = keccak256(abi.encodePacked(contractAddress, tokenId));
         require(vaultedIn[tokenHash] == bytes32(0), "Token already vaulted");
         require(vaultOwner[vaultNumber] == _staker, "Staker isnt vault owner");
 
@@ -58,7 +58,7 @@ contract Vault_S0 is RegistryClient{
     }
 
     function getVault(address contractAddress, uint tokenId) public view returns(bytes32){
-        return vaultedIn[keccak256(abi.encode(contractAddress, tokenId))];
+        return vaultedIn[keccak256(abi.encodePacked(contractAddress, tokenId))];
     }
 
     function onERC721Received(address, address from, uint256 tokenId, bytes calldata vaultNumber) external returns(bytes4){
