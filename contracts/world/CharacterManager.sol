@@ -31,11 +31,11 @@ contract CharacterManager is RegistryClient, NFTStaker{
 
     ///Updates sale price
     ///@param price To cancel set price to 0
-    function sell(bytes32 name, uint price) public {
+    function sellCharacter(bytes32 name, uint price) public {
         require(characterPlayer[name] == msg.sender, "CM Not your name");
         salePrice[name] = price;
     }
-    function buy(bytes32 name) public payable{
+    function buyCharacter(bytes32 name) public payable{
         require(msg.value != 0, "CM No sale");
         require(msg.value == salePrice[name], "CM Invalid price");
         characterPlayer[name] = msg.sender;
@@ -51,15 +51,16 @@ contract CharacterManager is RegistryClient, NFTStaker{
         characterCreator[name] = msg.sender;
         royalty[name] = newRoyalty;
     }
-    function equip(ERC721 nftContract, uint tokenId) public {
-        require(nftContract.ownerOf(tokenId) == msg.sender, "You dont own this NFT");
-        equipped[keccak256(abi.encode(nftContract, tokenId))] = msg.sender;
+    function _equip(bytes32 tokenHash) internal {
+        //require(nftContract.ownerOf(tokenId) == msg.sender, "You dont own this NFT");
+        equipped[tokenHash] = msg.sender;
         //increase character stats
     }
 
     function _unequip(bytes32 name, bytes32 tokenHash) public {
         require(equipped[tokenHash] == msg.sender);
-        //decrease character stats
+        //update character stats
+        
         //advance season & award xp
         advance(name);
     }
@@ -68,9 +69,9 @@ contract CharacterManager is RegistryClient, NFTStaker{
         characterSeason[msg.sender][name] = currentWorldSeason();
     }
 
-    function onERC721Received(address operator, address from, uint256 tokenId, bytes memory data) public override returns(bytes4){
+    function onERC721Received(address operator, address from, uint256 tokenId, bytes memory) public override returns(bytes4){
         _stake(operator, from, tokenId);
-        //_equip(keccak256(abi.encode(from, tokenId)));
+        _equip(keccak256(abi.encode(from, tokenId)));
         return IERC721Receiver.onERC721Received.selector;
     }
 }
