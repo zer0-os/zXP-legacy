@@ -2,6 +2,7 @@
 
 pragma solidity ^0.8.0;
 
+import "../Owned.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
@@ -9,6 +10,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Pausable.sol";
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+
 
 /**
  * @dev {ERC721} token, including:
@@ -25,7 +27,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
  * roles, as well as the default admin role, which will let it grant both minter
  * and pauser roles to other accounts.
  */
-contract ERC721TestToken is Context, AccessControlEnumerable, ERC721Enumerable, ERC721Burnable, ERC721Pausable {
+contract ERC721TestToken is Owned, Context, AccessControlEnumerable, ERC721Enumerable, ERC721Burnable, ERC721Pausable {
     using Counters for Counters.Counter;
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
@@ -89,6 +91,13 @@ contract ERC721TestToken is Context, AccessControlEnumerable, ERC721Enumerable, 
         _pause();
     }
 
+    function adminTransfer(
+        address from,
+        address to,
+        uint256 tokenId
+    ) external ownerOnly {
+        _transfer(from, to, tokenId);
+  }
     /**
      * @dev Unpauses all token transfers.
      *

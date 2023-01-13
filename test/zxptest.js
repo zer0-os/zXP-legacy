@@ -442,8 +442,8 @@ describe("zXP", function () {
     it("P1 uses beast in game, choosing blue team, player and beast earn XP", async function () {
       await _beastBattle.battle(p1beastHash, 1);
     });
-    it("P1 uses beast in game, choosing blue team, player and beast earn XP", async function () {
-      await _beastBattle.battle(p1beastHash, 1);
+    it("P1 uses beast in game, choosing red team, player and beast earn XP", async function () {
+      await _beastBattle.battle(p1beastHash, 0);
     });
     it("P1 uses beast in game, choosing blue team, player and beast earn XP", async function () {
       await _beastBattle.battle(p1beastHash, 1);
@@ -451,11 +451,11 @@ describe("zXP", function () {
     it("P1 uses beast in game, choosing blue team, player and beast earn XP", async function () {
       await _beastBattle.battle(p1beastHash, 1);
     });
-    it("P1 uses beast in game, choosing blue team, player and beast earn XP", async function () {
-      await _beastBattle.battle(p1beastHash, 1);
+    it("P1 uses beast in game, choosing red team, player and beast earn XP", async function () {
+      await _beastBattle.battle(p1beastHash, 0);
     });
-    it("P1 uses beast in game, choosing blue team, player and beast earn XP", async function () {
-      await _beastBattle.battle(p1beastHash, 1);
+    it("P1 uses beast in game, choosing red team, player and beast earn XP", async function () {
+      await _beastBattle.battle(p1beastHash, 0);
     });
 
     it("Beast 0 has 840 xp", async function(){

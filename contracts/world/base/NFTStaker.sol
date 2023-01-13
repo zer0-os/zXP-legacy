@@ -16,6 +16,7 @@ contract NFTStaker{
 
         //IZXP(addressOf("ZXP", season)).setSeason(uint(tokenHash), season);
         //vaultedIn[tokenHash] = vaultNumber;
+        staker[tokenHash] = _staker;
         stakedAtBlock[tokenHash] = block.number;
     }
     ///ZXP unstakes the nft item on season advancement
