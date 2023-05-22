@@ -27,7 +27,7 @@ contract WheelsRace is EIP712, IERC721Receiver {
     /// The EIP-712 domain separators
     bytes32 private constant RACE_START_DECLARATION_TYPEHASH =
         keccak256(
-            "raceStartDeclaration(address player1,address player2,uint256 raceId,uint256 wheelId,uint256 raceStartTimestamp,uint256 raceExpiryTimestamp)"
+            "RaceStartDeclaration(address player,address opponent,uint256 raceId,uint256 wheelId,uint256 raceStartTimestamp,uint256 raceExpiryTimestamp)"
         );
     bytes32 private constant WINNER_DECLARATION_TYPEHASH =
         keccak256(
@@ -104,10 +104,13 @@ contract WheelsRace is EIP712, IERC721Receiver {
         RaceStartDeclaration memory opponentStartDeclaration,
         bytes memory opponentSignature
     ) public {
-        require(winnerDeclaration.raceId != 0, "RaceID does not match");
+        require(
+            winnerDeclaration.raceId == opponentStartDeclaration.raceId,
+            "RaceID does not match"
+        );
 
         bytes32 hash = createWinDeclarationHash(winnerDeclaration);
-        address signer = _recoverSigner(hash, wilderworldSignature);
+        address signer = ECDSA.recover(hash, wilderworldSignature);
 
         require(signer == wilderWorld, "Not signed by Wilder World");
         require(winnerDeclaration.winner == msg.sender, "Not the winner");
@@ -170,9 +173,9 @@ contract WheelsRace is EIP712, IERC721Receiver {
     }
 
     function _recoverSigner(
-        bytes32 thehash,
+        bytes32 hash,
         bytes memory signature
     ) private pure returns (address) {
-        return ECDSA.recover(thehash, signature);
+        return ECDSA.recover(hash, signature);
     }
 }

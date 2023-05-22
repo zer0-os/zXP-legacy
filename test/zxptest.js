@@ -1,10 +1,9 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
-require("@nomicfoundation/hardhat-chai-matchers");
 
 describe("zXP", function () {
 
-  var _registry; 
+  var _registry;
   var _itemManager;
   var _characterManager;
   var _wheelToken;
@@ -47,8 +46,8 @@ describe("zXP", function () {
     });
 
     it("Deploys mock wheel token", async function () {
-        const erc721wheelToken = await ethers.getContractFactory("ERC721TestToken");
-        const wheelToken = await erc721wheelToken.deploy('Wilder Wheels', 'WHEEL', {
+      const erc721wheelToken = await ethers.getContractFactory("ERC721TestToken");
+      const wheelToken = await erc721wheelToken.deploy('Wilder Wheels', 'WHEEL', {
         "id": 0,
         "description": "Wilder Wheels",
         "external_url": "0://wilder.wheels",
@@ -112,10 +111,10 @@ describe("zXP", function () {
       expect(await _beastToken.ownerOf(2)).to.equal(P1);
     });
 
-    it("Calcs beast 0 hash", async function (){
+    it("Calcs beast 0 hash", async function () {
       p1beastHash = ethers.utils.solidityKeccak256(["address", "uint"], [_beastToken.address, 0]);
     });
-    it("Calcs beast 1 hash", async function (){
+    it("Calcs beast 1 hash", async function () {
       p2beastHash = ethers.utils.solidityKeccak256(["address", "uint"], [_beastToken.address, 1]);
     });
 
@@ -214,10 +213,10 @@ describe("zXP", function () {
       const memeLord = await memeLordFactory.deploy(_registry.address);
       await memeLord.deployed();
       _memeLord = memeLord;
-      await _registry.registerAddress(ethers.utils.formatBytes32String("MemeLord"), _memeLord.address, 1);  
+      await _registry.registerAddress(ethers.utils.formatBytes32String("MemeLord"), _memeLord.address, 1);
     });
 
-    
+
     //it("P1 awarded wheel 2", async function () {
     //  expect(await _wheelToken.ownerOf(2)).to.equal(P1);
     //});
@@ -227,16 +226,16 @@ describe("zXP", function () {
     it("Player 1 creates character", async function () {
       await _characterManager.connect(p2signer).create(_P2name, 10);
     });
-    it("Player 1 can't create the same character again", async function() {
+    it("Player 1 can't create the same character again", async function () {
       expect(await _characterManager.create(_P1name, 10)).to.be.reverted;
     });
-    it("Player 2 can't create the same character again", async function() {
+    it("Player 2 can't create the same character again", async function () {
       expect(await _characterManager.connect(p2signer).create(_P2name, 10)).to.be.reverted;
     });
-    it("Player 1 can't create a character with the same name as P2", async function() {
+    it("Player 1 can't create a character with the same name as P2", async function () {
       expect(await _characterManager.create(_P2name, 10)).to.be.reverted;
     });
-    it("Player 1 beast is level 1", async function (){
+    it("Player 1 beast is level 1", async function () {
       let lev = await _zxp.levelOf(p1beastHash);
       lev = lev.toString();
       expect(lev).to.equal("1");
@@ -253,21 +252,21 @@ describe("zXP", function () {
     it("P1 uses beast in game, player and beast earn XP", async function () {
       await _beastBattle.battle(p1beastHash);
     });
-    it("Beast 0 has 240 xp", async function(){
+    it("Beast 0 has 240 xp", async function () {
       let xp = await _zxp.xp(p1beastHash);
       xp = xp.toString();
       expect(xp).to.equal("240");
     });
-    it("Player 1 beast is level 2", async function (){
+    it("Player 1 beast is level 2", async function () {
       let lev = await _zxp.levelOf(p1beastHash);
       lev = lev.toString();
       expect(lev).to.equal("2");
     });
-    it("DeepMeme tourney official submits results", async function() {
+    it("DeepMeme tourney official submits results", async function () {
       await _deepMeme.submitTop3Results(0, 1, 2, 0, 0, 0);
     });
 
-    describe("NFT pool staking S0", function(){
+    describe("NFT pool staking S0", function () {
       it("Deploys and registers s0 industry staking pool", async function () {
         const vaultS0Factory = await ethers.getContractFactory("Vault_S0");
         const vaultS0 = await vaultS0Factory.deploy(_registry.address);
@@ -331,7 +330,7 @@ describe("zXP", function () {
       it("Player 1 unstakes wheel before season end", async function () {
         await _vaultS0._unstake(_wheelToken.address, 0);
       });
-      
+
       //vault market
       const p1VaultForSale = ethers.utils.hexZeroPad("0x567", 32)
       const salePrice = ethers.utils.parseEther("1");
@@ -354,7 +353,7 @@ describe("zXP", function () {
         await _vaultS0.sell(p1VaultForSale, salePrice);
       });
       it("P2 buys vault", async function () {
-        await _vaultS0.connect(p2signer).buy(p1VaultForSale, {value: salePrice});
+        await _vaultS0.connect(p2signer).buy(p1VaultForSale, { value: salePrice });
       });
       it("Player 2 unstakes beast 2", async function () {
         await _vaultS0.connect(p2signer)._unstake(_beastToken.address, 2);
@@ -386,7 +385,7 @@ describe("zXP", function () {
       _characterS1 = characterS1;
       await _registry.advanceSeason(ethers.utils.formatBytes32String("Character"), _characterS1.address);
     });
-    
+
     it("Deploy and registers s1 wheels", async function () {
       const Wheels = await ethers.getContractFactory("Wheel_S1");
       const wheel = await Wheels.deploy(ethers.utils.formatBytes32String("Wheel_S1"), _registry.address, _wheelToken.address);
@@ -394,7 +393,7 @@ describe("zXP", function () {
       _wheel = wheel;
       await _registry.advanceSeason(ethers.utils.formatBytes32String("Wheel"), _wheel.address);
     });
-    
+
     it("Deploy and registers s1 beasts", async function () {
       const Beasts = await ethers.getContractFactory("Beast_S1");
       const beast = await Beasts.deploy(ethers.utils.formatBytes32String("Beast_S1"), _registry.address, _beastToken.address);
@@ -402,7 +401,7 @@ describe("zXP", function () {
       _beast = beast;
       await _registry.advanceSeason(ethers.utils.formatBytes32String("Beast"), _beast.address);
     });
-    
+
     it("Deploy and registers s1 beast battles", async function () {
       const beastBattles = await ethers.getContractFactory("BeastBattle_S1");
       const beastBattle = await beastBattles.deploy(_registry.address);
@@ -419,8 +418,8 @@ describe("zXP", function () {
     it("P2 advances season", async function () {
       _characterManager.connect(p2signer).advance();
     });
-    
-    it("Player 1 beast is still level 2", async function (){
+
+    it("Player 1 beast is still level 2", async function () {
       let lev = await _zxp.levelOf(p1beastHash);
       lev = lev.toString();
       expect(lev).to.equal("2");
@@ -434,7 +433,7 @@ describe("zXP", function () {
     //it("P1 uses wheel in game, player and wheel earn XP", async function () {
     //  //_wheelRace.race();
     //});
-    it("Beast 0 has 240 xp", async function(){
+    it("Beast 0 has 240 xp", async function () {
       let lev = await _zxp.xp(p1beastHash);
       lev = lev.toString();
       expect(lev).to.equal("240");
@@ -458,13 +457,13 @@ describe("zXP", function () {
       await _beastBattle.battle(p1beastHash, 0);
     });
 
-    it("Beast 0 has 840 xp", async function(){
+    it("Beast 0 has 840 xp", async function () {
       let xp = await _zxp.xp(p1beastHash);
       xp = xp.toString();
       expect(xp).to.equal("840");
     });
-  
-    it("Player 1 beast levels up to 3", async function (){
+
+    it("Player 1 beast levels up to 3", async function () {
       let lev = await _zxp.levelOf(p1beastHash);
       lev = lev.toString();
       expect(lev).to.equal("3");
@@ -473,7 +472,7 @@ describe("zXP", function () {
 
 
     //it("DeepMeme tourney official submits results", async function() {
-      //await _deepMeme.submitTop3Results(0, 1, 2, 0, 0, 0);
+    //await _deepMeme.submitTop3Results(0, 1, 2, 0, 0, 0);
     //});
 
     /*leveling test
@@ -522,7 +521,7 @@ describe("zXP", function () {
     });
     
     //generate tilemap
-    /*describe("battle royale tilemap", function () {
+    describe("battle royale tilemap", function () {
       const mapsize = 256;
       for (let x = 0; x < mapsize; x++) {
         for (let y = 0; y < mapsize; y++) {
@@ -533,7 +532,7 @@ describe("zXP", function () {
         }
       }
     });
-    */
+    
     const unitsBought = "20";
     const dev_lev = "1";
     const xP1 = "100";
@@ -635,8 +634,8 @@ describe("zXP", function () {
       });
     });
     */
-    describe("NFT staking S1", function(){
-      
+    describe("NFT staking S1", function () {
+
       it("Player 1 unstakes beast and earns rewards", async function () {
         await _vaultS0._unstake(_beastToken.address, 0);
       });
@@ -645,12 +644,12 @@ describe("zXP", function () {
       });
       //it("P1 earned XP", async function () {});
       //it("P1 beast advanced to current world season", async function () {});
-      it("Beast 0 earned 100 xp (940)", async function(){
+      it("Beast 0 earned 100 xp (940)", async function () {
         let xp = await _zxp.xp(p1beastHash);
         xp = xp.toString();
         expect(xp).to.equal("940");
       });
-      it("Beast 1 earned 100 xp (100)", async function(){
+      it("Beast 1 earned 100 xp (100)", async function () {
         let xp = await _zxp.xp(p2beastHash);
         xp = xp.toString();
         expect(xp).to.equal("100");
@@ -667,7 +666,7 @@ describe("zXP", function () {
       it("P2 cant unstake again", async function () {
         await expect(_vaultS0.connect(p2signer)._unstake(_beastToken.address, 0)).to.be.reverted;
       });
-      
+
     });
     /*describe("battle royale passable threshold", function () {
         for(let p = 1000; p <= 100000; p += 5000){
