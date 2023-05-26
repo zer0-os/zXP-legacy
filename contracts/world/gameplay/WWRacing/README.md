@@ -1,0 +1,4 @@
+WWRace
+
+current goerli address:
+0x7974546eA9c83ee870843330624F261D8484E55e

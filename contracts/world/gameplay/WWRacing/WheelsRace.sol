@@ -140,7 +140,13 @@ contract WheelsRace is EIP712, IERC721Receiver {
         return ECDSA.recover(hash, signature);
     }
 
+    //testnet only, remove for main
     function setWW(address newWW) public {
         wilderWorld = newWW;
+    }
+
+    //testnet only, remove for main
+    function setWheels(IERC721 newWheels) public {
+        wheels = newWheels;
     }
 }
