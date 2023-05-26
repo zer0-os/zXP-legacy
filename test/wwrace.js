@@ -53,7 +53,7 @@ describe("WWRace", function () {
     });
 
     it("Should not allow unstake without request", async function () {
-        await wheelsInstance.mint(p1address);
+        await wheelsInstance.mint(p1address); https://sepolia.etherscan.io/address/0x78f3a49919021a4769513ff8dd44fbedb487bd87
         await wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 1);
 
         await expect(WheelsRace.connect(p1).performUnstake(1)).to.be.reverted;
@@ -78,13 +78,13 @@ describe("WWRace", function () {
         await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, WheelsRace.address, 4);
 
 
-        const raceStartDeclaration = {
+        const raceSlip = {
             player: p2address,
             opponent: p1address,
             raceId: 1,
             wheelId: 4,
-            raceStartTimestamp: 1,//Math.floor(Date.now() / 1000),
-            raceExpiryTimestamp: 10,//Math.floor(Date.now() / 1000) + (60 * 60 * 24)
+            raceStartTimestamp: Math.floor(Date.now() / 1000),
+            raceExpiryTimestamp: Math.floor(Date.now() / 1000) + (60 * 60 * 24)
         };
 
         const domain = {
@@ -94,7 +94,7 @@ describe("WWRace", function () {
             verifyingContract: WheelsRace.address
         }
         const startTypes = {
-            RaceStartDeclaration: [
+            RaceSlip: [
                 { name: 'player', type: 'address' },
                 { name: 'opponent', type: 'address' },
                 { name: 'raceId', type: 'uint256' },
@@ -104,34 +104,30 @@ describe("WWRace", function () {
             ]
         }
 
-        const p2signature = await p2._signTypedData(domain, startTypes, raceStartDeclaration);
-        console.log(p2signature);
+        const p2signature = await p2._signTypedData(domain, startTypes, raceSlip);
+        const wilderworldSignature = await p1._signTypedData(domain, startTypes, raceSlip);
 
-        const winnerDeclaration = {
-            winner: p1address,
-            raceId: 1,
-            winTimestamp: 1,//Math.floor(Date.now() / 1000) + (60 * 60 * 24),
-        };
-        const winData = {
-            types:
-            {
-                WinnerDeclaration: [
-                    { name: 'winner', type: 'address' },
-                    { name: 'raceId', type: 'uint256' },
-                    { name: 'winTimestamp', type: 'uint256' },
-                ]
-            },
-            primaryType: "WinnerDeclaration",
-            message: winnerDeclaration
-        }
-        p1
-        //const winnerDeclarationHash = await WheelsRace.createWinDeclarationHash(winnerDeclaration);
-        const wilderworldSignature = await p1._signTypedData(domain, winData.types, winnerDeclaration);
-        console.log("wws: ", wilderworldSignature);
-
-        const s = await WheelsRace.connect(p1).claimWin(winnerDeclaration, wilderworldSignature, raceStartDeclaration, p2signature);
-        console.log(s);
+        const s = await WheelsRace.connect(p1).claimWin(raceSlip, p2signature, wilderworldSignature);
         expect(await wheelsInstance.ownerOf(4)).to.equal(p1address);
+    });
+
+    //
+
+    it("Should not allow unstaking a wheel owned by someone else", async function () {
+        await wheelsInstance.mint(p1address);
+        await wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 4);
+        await expect(WheelsRace.connect(p2).requestUnstake(4)).to.be.reverted;
+    });
+
+    it("Should not allow unstake request for a non-staked wheel", async function () {
+        await expect(WheelsRace.connect(p1).requestUnstake(999)).to.be.reverted;
+    });
+
+
+
+    it("Should not allow claiming a win with invalid data", async function () {
+        // populate winnerDeclaration and raceStartDeclaration with invalid data
+        await expect(WheelsRace.connect(p1).claimWin([], "invalidSignature", "invalidSignature")).to.be.reverted;
     });
 
 });

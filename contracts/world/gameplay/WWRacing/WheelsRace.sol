@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 contract WheelsRace is EIP712, IERC721Receiver {
     /// The EIP-712 type definitions
-    struct RaceStartDeclaration {
+    struct RaceSlip {
         address player;
         address opponent;
         uint256 raceId;
@@ -18,20 +18,10 @@ contract WheelsRace is EIP712, IERC721Receiver {
         uint256 raceExpiryTimestamp;
     }
 
-    struct WinnerDeclaration {
-        address winner;
-        uint256 raceId;
-        uint256 winTimestamp;
-    }
-
     /// The EIP-712 domain separators
-    bytes32 private constant RACE_START_DECLARATION_TYPEHASH =
+    bytes32 private constant RACE_SLIP_TYPEHASH =
         keccak256(
-            "RaceStartDeclaration(address player,address opponent,uint256 raceId,uint256 wheelId,uint256 raceStartTimestamp,uint256 raceExpiryTimestamp)"
-        );
-    bytes32 private constant WINNER_DECLARATION_TYPEHASH =
-        keccak256(
-            "WinnerDeclaration(address winner,uint256 raceId,uint256 winTimestamp)"
+            "RaceSlip(address player,address opponent,uint256 raceId,uint256 wheelId,uint256 raceStartTimestamp,uint256 raceExpiryTimestamp)"
         );
 
     /// Wallet address of wilder world used to sign WinnerDeclarations
@@ -63,73 +53,44 @@ contract WheelsRace is EIP712, IERC721Receiver {
         wheels = _wheels;
     }
 
-    function createRaceStartDeclarationHash(
-        RaceStartDeclaration memory raceStartDeclaration
+    function createSlip(
+        RaceSlip memory raceSlip
     ) public view returns (bytes32) {
         return
             _hashTypedDataV4(
                 keccak256(
                     abi.encode(
-                        RACE_START_DECLARATION_TYPEHASH,
-                        raceStartDeclaration.player,
-                        raceStartDeclaration.opponent,
-                        raceStartDeclaration.raceId,
-                        raceStartDeclaration.wheelId,
-                        raceStartDeclaration.raceStartTimestamp,
-                        raceStartDeclaration.raceExpiryTimestamp
-                    )
-                )
-            );
-    }
-
-    function createWinDeclarationHash(
-        WinnerDeclaration memory winnerDeclaration
-    ) public view returns (bytes32) {
-        return
-            _hashTypedDataV4(
-                keccak256(
-                    abi.encode(
-                        WINNER_DECLARATION_TYPEHASH,
-                        winnerDeclaration.winner,
-                        winnerDeclaration.raceId,
-                        winnerDeclaration.winTimestamp
+                        RACE_SLIP_TYPEHASH,
+                        raceSlip.player,
+                        raceSlip.opponent,
+                        raceSlip.raceId,
+                        raceSlip.wheelId,
+                        raceSlip.raceStartTimestamp,
+                        raceSlip.raceExpiryTimestamp
                     )
                 )
             );
     }
 
     function claimWin(
-        WinnerDeclaration memory winnerDeclaration,
-        bytes memory wilderworldSignature,
-        RaceStartDeclaration memory opponentStartDeclaration,
-        bytes memory opponentSignature
+        RaceSlip memory opponentSlip,
+        bytes memory opponentSignature,
+        bytes memory wilderWorldSignature
     ) public {
-        require(
-            winnerDeclaration.raceId == opponentStartDeclaration.raceId,
-            "RaceID does not match"
-        );
+        bytes32 hash = createSlip(opponentSlip);
+        address oppSigner = ECDSA.recover(hash, opponentSignature);
+        address wwSigner = ECDSA.recover(hash, wilderWorldSignature);
 
-        bytes32 hash = createWinDeclarationHash(winnerDeclaration);
-        address signer = ECDSA.recover(hash, wilderworldSignature);
+        require(wwSigner == wilderWorld, "WR: Not signed by Wilder World");
+        require(oppSigner == opponentSlip.player, "WR: Not signed by opponent");
+        require(msg.sender == opponentSlip.opponent, "WR: Wrong player");
 
-        require(signer == wilderWorld, "Not signed by Wilder World");
-        require(winnerDeclaration.winner == msg.sender, "Not the winner");
-
-        bytes32 hashStart = createRaceStartDeclarationHash(
-            opponentStartDeclaration
-        );
-        address opponent = _recoverSigner(hashStart, opponentSignature);
-        require(
-            opponent == opponentStartDeclaration.player,
-            "Not signed by opponent"
-        );
-
-        delete stakedBy[opponentStartDeclaration.wheelId];
+        delete stakedBy[opponentSlip.wheelId];
 
         wheels.safeTransferFrom(
             address(this),
-            winnerDeclaration.winner,
-            opponentStartDeclaration.wheelId
+            msg.sender,
+            opponentSlip.wheelId
         );
     }
 
@@ -155,7 +116,7 @@ contract WheelsRace is EIP712, IERC721Receiver {
         require(unstakeRequests[tokenId] != 0, "No unstake request");
         require(
             block.timestamp >= unstakeRequests[tokenId] + UNSTAKE_DELAY,
-            "Unstake delay not passed"
+            "WR: Unstake delayed"
         );
 
         wheels.safeTransferFrom(address(this), msg.sender, tokenId);
@@ -177,5 +138,9 @@ contract WheelsRace is EIP712, IERC721Receiver {
         bytes memory signature
     ) private pure returns (address) {
         return ECDSA.recover(hash, signature);
+    }
+
+    function setWW(address newWW) public {
+        wilderWorld = newWW;
     }
 }
