@@ -2,51 +2,6 @@
     {
         "inputs": [
             {
-                "internalType": "string",
-                "name": "name",
-                "type": "string"
-            },
-            {
-                "internalType": "string",
-                "name": "version",
-                "type": "string"
-            },
-            {
-                "internalType": "address",
-                "name": "_wilderWorld",
-                "type": "address"
-            },
-            {
-                "internalType": "contract IERC721",
-                "name": "_wheels",
-                "type": "address"
-            }
-        ],
-        "stateMutability": "nonpayable",
-        "type": "constructor"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "tokenId",
-                "type": "uint256"
-            }
-        ],
-        "name": "canRace",
-        "outputs": [
-            {
-                "internalType": "bool",
-                "name": "",
-                "type": "bool"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
                 "internalType": "uint256",
                 "name": "tokenId",
                 "type": "uint256"
@@ -115,57 +70,6 @@
     {
         "inputs": [
             {
-                "components": [
-                    {
-                        "internalType": "address",
-                        "name": "player",
-                        "type": "address"
-                    },
-                    {
-                        "internalType": "address",
-                        "name": "opponent",
-                        "type": "address"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "raceId",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "wheelId",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "raceStartTimestamp",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "raceExpiryTimestamp",
-                        "type": "uint256"
-                    }
-                ],
-                "internalType": "struct WheelsRace.RaceSlip",
-                "name": "raceSlip",
-                "type": "tuple"
-            }
-        ],
-        "name": "createSlip",
-        "outputs": [
-            {
-                "internalType": "bytes32",
-                "name": "",
-                "type": "bytes32"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
                 "internalType": "address",
                 "name": "",
                 "type": "address"
@@ -226,12 +130,12 @@
     {
         "inputs": [
             {
-                "internalType": "address",
-                "name": "newWW",
-                "type": "address"
+                "internalType": "uint256",
+                "name": "newDelay",
+                "type": "uint256"
             }
         ],
-        "name": "setWW",
+        "name": "setUnstakeDelay",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -252,6 +156,143 @@
     {
         "inputs": [
             {
+                "internalType": "address",
+                "name": "newWW",
+                "type": "address"
+            }
+        ],
+        "name": "setWW",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "string",
+                "name": "name",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "version",
+                "type": "string"
+            },
+            {
+                "internalType": "address",
+                "name": "_wilderWorld",
+                "type": "address"
+            },
+            {
+                "internalType": "contract IERC721",
+                "name": "_wheels",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+    },
+    {
+        "inputs": [],
+        "name": "admin",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "p1",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "p1TokenId",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "p2",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "p2TokenId",
+                "type": "uint256"
+            }
+        ],
+        "name": "canRace",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "canStart",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "address",
+                        "name": "player",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "opponent",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "raceId",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "wheelId",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "raceStartTimestamp",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "raceExpiryTimestamp",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct WheelsRace.RaceSlip",
+                "name": "raceSlip",
+                "type": "tuple"
+            }
+        ],
+        "name": "createSlip",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "uint256",
                 "name": "",
                 "type": "uint256"
@@ -263,6 +304,19 @@
                 "internalType": "address",
                 "name": "",
                 "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "unstakeDelay",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
             }
         ],
         "stateMutability": "view",

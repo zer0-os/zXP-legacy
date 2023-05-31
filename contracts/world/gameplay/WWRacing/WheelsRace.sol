@@ -27,6 +27,9 @@ contract WheelsRace is EIP712, IERC721Receiver {
     /// Wallet address of wilder world used to sign WinnerDeclarations
     address public wilderWorld;
 
+    ///Admin
+    address public admin;
+
     /// Contract address of Wilder Wheels
     IERC721 public wheels;
 
@@ -36,10 +39,16 @@ contract WheelsRace is EIP712, IERC721Receiver {
     /// Mapping from tokenId to unstake request time
     mapping(uint256 => uint256) public unstakeRequests;
 
-    uint256 private UNSTAKE_DELAY = 1 days;
+    ///Time delay for unstaking
+    uint256 public unstakeDelay = 1 seconds;
 
     modifier onlyStaker(uint256 tokenId) {
         require(stakedBy[tokenId] == msg.sender, "NFT not staked by sender");
+        _;
+    }
+
+    modifier onlyAdmin() {
+        require(admin == msg.sender, "Sender isnt admin");
         _;
     }
 
@@ -51,6 +60,7 @@ contract WheelsRace is EIP712, IERC721Receiver {
     ) EIP712(name, version) {
         wilderWorld = _wilderWorld;
         wheels = _wheels;
+        admin = msg.sender;
     }
 
     function createSlip(
@@ -110,7 +120,6 @@ contract WheelsRace is EIP712, IERC721Receiver {
     }
 
     function requestUnstake(uint256 tokenId) public onlyStaker(tokenId) {
-        require(stakedBy[tokenId] == msg.sender, "NFT not staked by sender");
         unstakeRequests[tokenId] = block.timestamp;
     }
 
@@ -118,7 +127,7 @@ contract WheelsRace is EIP712, IERC721Receiver {
     function performUnstake(uint256 tokenId) public onlyStaker(tokenId) {
         require(unstakeRequests[tokenId] != 0, "No unstake request");
         require(
-            block.timestamp >= unstakeRequests[tokenId] + UNSTAKE_DELAY,
+            block.timestamp >= unstakeRequests[tokenId] + unstakeDelay,
             "WR: Unstake delayed"
         );
 
@@ -132,8 +141,18 @@ contract WheelsRace is EIP712, IERC721Receiver {
         unstakeRequests[tokenId] = 0;
     }
 
-    function canRace(uint256 tokenId) public view returns (bool) {
-        return unstakeRequests[tokenId] == 0;
+    function canRace(
+        address p1,
+        uint256 p1TokenId,
+        address p2,
+        uint256 p2TokenId
+    ) public view returns (bool canStart) {
+        require(unstakeRequests[p1TokenId] == 0, "P1 has unstake request");
+        require(unstakeRequests[p2TokenId] == 0, "P2 has unstake request");
+        require(stakedBy[p1TokenId] == p1, "P1 wheel not staked");
+        require(stakedBy[p2TokenId] == p2, "P2 wheel not staked");
+        canStart = true;
+        return canStart;
     }
 
     function _recoverSigner(
@@ -143,13 +162,18 @@ contract WheelsRace is EIP712, IERC721Receiver {
         return ECDSA.recover(hash, signature);
     }
 
-    //testnet only, remove for main
-    function setWW(address newWW) public {
+    //testnet
+    function setWW(address newWW) public onlyAdmin {
         wilderWorld = newWW;
     }
 
-    //testnet only, remove for main
-    function setWheels(IERC721 newWheels) public {
+    //testnet
+    function setWheels(IERC721 newWheels) public onlyAdmin {
         wheels = newWheels;
+    }
+
+    //testnet
+    function setUnstakeDelay(uint256 newDelay) public onlyAdmin {
+        unstakeDelay = newDelay;
     }
 }
