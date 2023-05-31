@@ -63,33 +63,6 @@
                 "components": [
                     {
                         "internalType": "address",
-                        "name": "winner",
-                        "type": "address"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "raceId",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "winTimestamp",
-                        "type": "uint256"
-                    }
-                ],
-                "internalType": "struct WheelsRace.WinnerDeclaration",
-                "name": "winnerDeclaration",
-                "type": "tuple"
-            },
-            {
-                "internalType": "bytes",
-                "name": "wilderworldSignature",
-                "type": "bytes"
-            },
-            {
-                "components": [
-                    {
-                        "internalType": "address",
                         "name": "player",
                         "type": "address"
                     },
@@ -119,13 +92,18 @@
                         "type": "uint256"
                     }
                 ],
-                "internalType": "struct WheelsRace.RaceStartDeclaration",
-                "name": "opponentStartDeclaration",
+                "internalType": "struct WheelsRace.RaceSlip",
+                "name": "opponentSlip",
                 "type": "tuple"
             },
             {
                 "internalType": "bytes",
                 "name": "opponentSignature",
+                "type": "bytes"
+            },
+            {
+                "internalType": "bytes",
+                "name": "wilderWorldSignature",
                 "type": "bytes"
             }
         ],
@@ -169,48 +147,12 @@
                         "type": "uint256"
                     }
                 ],
-                "internalType": "struct WheelsRace.RaceStartDeclaration",
-                "name": "raceStartDeclaration",
+                "internalType": "struct WheelsRace.RaceSlip",
+                "name": "raceSlip",
                 "type": "tuple"
             }
         ],
-        "name": "createRaceStartDeclarationHash",
-        "outputs": [
-            {
-                "internalType": "bytes32",
-                "name": "",
-                "type": "bytes32"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "components": [
-                    {
-                        "internalType": "address",
-                        "name": "winner",
-                        "type": "address"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "raceId",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "winTimestamp",
-                        "type": "uint256"
-                    }
-                ],
-                "internalType": "struct WheelsRace.WinnerDeclaration",
-                "name": "winnerDeclaration",
-                "type": "tuple"
-            }
-        ],
-        "name": "createWinDeclarationHash",
+        "name": "createSlip",
         "outputs": [
             {
                 "internalType": "bytes32",
@@ -290,6 +232,19 @@
             }
         ],
         "name": "setWW",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "contract IERC721",
+                "name": "newWheels",
+                "type": "address"
+            }
+        ],
+        "name": "setWheels",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"

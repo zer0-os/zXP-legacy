@@ -84,10 +84,7 @@ contract WheelsRace is EIP712, IERC721Receiver {
         require(wwSigner == wilderWorld, "WR: Not signed by Wilder World");
         require(oppSigner == opponentSlip.player, "WR: Not signed by opponent");
         require(msg.sender == opponentSlip.opponent, "WR: Wrong player");
-        require(
-            stakedBy[opponentSlip.wheelId] == opponentSlip.player,
-            "WR: Opponent isnt staker"
-        );
+
         delete stakedBy[opponentSlip.wheelId];
 
         wheels.safeTransferFrom(

@@ -4,7 +4,7 @@ const {
     signTypedData,
     SignTypedDataVersion,
 } = require("@metamask/eth-sig-util");
-const { randomBytes } = require("crypto");
+const axios = require('axios');
 
 describe("WWRace", function () {
     var p1address;
@@ -71,6 +71,7 @@ describe("WWRace", function () {
         expect(await wheelsInstance.ownerOf(2)).to.equal(p1address);
         expect(await WheelsRace.stakedBy(2)).to.equal(ethers.constants.AddressZero);
     });
+
     it("Should allow a player to claim a win", async function () {
         await wheelsInstance.mint(p1address);
         await wheelsInstance.mint(p2address);
@@ -111,8 +112,6 @@ describe("WWRace", function () {
         expect(await wheelsInstance.ownerOf(4)).to.equal(p1address);
     });
 
-    //
-
     it("Should not allow unstaking a wheel owned by someone else", async function () {
         await wheelsInstance.mint(p1address);
         await wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 4);
@@ -123,11 +122,135 @@ describe("WWRace", function () {
         await expect(WheelsRace.connect(p1).requestUnstake(999)).to.be.reverted;
     });
 
-
-
     it("Should not allow claiming a win with invalid data", async function () {
         // populate winnerDeclaration and raceStartDeclaration with invalid data
         await expect(WheelsRace.connect(p1).claimWin([], "invalidSignature", "invalidSignature")).to.be.reverted;
     });
+
+    it("API: Should get signature from wilderworld for win", async function () {
+        const raceSlip = {
+            player: p2address,
+            opponent: p1address,
+            raceId: 1,
+            wheelId: 7,
+            raceStartTimestamp: Math.floor(Date.now() / 1000),
+            raceExpiryTimestamp: Math.floor(Date.now() / 1000) + (60 * 60 * 24)
+        };
+
+        const domain = {
+            name: 'Wheels Race',
+            version: '1',
+            chainId: (await ethers.provider.getNetwork()).chainId,
+            verifyingContract: WheelsRace.address
+        }
+
+        const startTypes = {
+            RaceSlip: [
+                { name: 'player', type: 'address' },
+                { name: 'opponent', type: 'address' },
+                { name: 'raceId', type: 'uint256' },
+                { name: 'wheelId', type: 'uint256' },
+                { name: 'raceStartTimestamp', type: 'uint256' },
+                { name: 'raceExpiryTimestamp', type: 'uint256' },
+            ]
+        }
+
+        const loserSlip = {
+            domain: domain,
+            types: startTypes,
+            message: raceSlip
+        }
+
+        const p2signature = await p2._signTypedData(domain, startTypes, raceSlip);
+
+        const response = await axios.post('http://localhost:8181/sign', { loserSlip }, {
+            headers: { 'Content-Type': 'application/json' },
+        })
+            .then(function (response) {
+                console.log(response.data);
+                return response.data;
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+        const wilderworldSignature = response.signature;
+        console.log("wwsig: ", wilderworldSignature);
+        const a = ethers.utils.verifyTypedData(domain, startTypes, raceSlip, wilderworldSignature);
+        console.log("recovered: ", a);
+    });
+
+    it("API: should pass canRaceStart", async function () {
+        const start = Math.floor(Date.now() / 1000);
+        const expire = Math.floor(Date.now() / 1000) + (60 * 60 * 24);
+        const raceSlip = {
+            player: p1address,
+            opponent: p2address,
+            raceId: 1,
+            wheelId: 7,
+            raceStartTimestamp: start,
+            raceExpiryTimestamp: expire
+        };
+
+        const domain = {
+            name: 'Wheels Race',
+            version: '1',
+            chainId: (await ethers.provider.getNetwork()).chainId,
+            verifyingContract: WheelsRace.address
+        }
+
+        const startTypes = {
+            RaceSlip: [
+                { name: 'player', type: 'address' },
+                { name: 'opponent', type: 'address' },
+                { name: 'raceId', type: 'uint256' },
+                { name: 'wheelId', type: 'uint256' },
+                { name: 'raceStartTimestamp', type: 'uint256' },
+                { name: 'raceExpiryTimestamp', type: 'uint256' },
+            ]
+        }
+
+        const raceSlipP2 = {
+            player: p2address,
+            opponent: p1address,
+            raceId: 1,
+            wheelId: 8,
+            raceStartTimestamp: start,
+            raceExpiryTimestamp: expire
+        };
+
+        const domainP2 = {
+            name: 'Wheels Race',
+            version: '1',
+            chainId: (await ethers.provider.getNetwork()).chainId,
+            verifyingContract: WheelsRace.address
+        }
+
+        const p1Slip = {
+            domain: domain,
+            types: startTypes,
+            message: raceSlip
+        }
+
+        const p2Slip = {
+            domain: domainP2,
+            types: startTypes,
+            message: raceSlipP2
+        }
+
+        const slips = { p1Slip, p2Slip }
+
+        const response = await axios.post('http://localhost:8181/canRaceStart', slips, {
+            headers: { 'Content-Type': 'application/json' },
+        })
+            .then(function (response) {
+                console.log(response.data);
+                return response.data;
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+        console.log(response);
+    });
+
 
 });
