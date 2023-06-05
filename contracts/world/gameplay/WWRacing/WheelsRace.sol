@@ -2,12 +2,13 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
-contract WheelsRace is EIP712, IERC721Receiver {
+contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
     /// The EIP-712 type definitions
     struct RaceSlip {
         address player;
@@ -33,6 +34,9 @@ contract WheelsRace is EIP712, IERC721Receiver {
     /// Contract address of Wilder Wheels
     IERC721 public wheels;
 
+    ///RaceIds that have been used
+    mapping(uint256 => bool) private consumed;
+
     /// Mapping from tokenId to holder address
     mapping(uint256 => address) public stakedBy;
 
@@ -55,9 +59,11 @@ contract WheelsRace is EIP712, IERC721Receiver {
     constructor(
         string memory name,
         string memory version,
+        string memory tokenName,
+        string memory tokenSymbol,
         address _wilderWorld,
         IERC721 _wheels
-    ) EIP712(name, version) {
+    ) EIP712(name, version) ERC721(tokenName, tokenSymbol) {
         wilderWorld = _wilderWorld;
         wheels = _wheels;
         admin = msg.sender;
@@ -91,6 +97,10 @@ contract WheelsRace is EIP712, IERC721Receiver {
         address oppSigner = ECDSA.recover(hash, opponentSignature);
         address wwSigner = ECDSA.recover(hash, wilderWorldSignature);
 
+        require(
+            block.timestamp < opponentSlip.raceExpiryTimestamp,
+            "WR: Race expired"
+        );
         require(wwSigner == wilderWorld, "WR: Not signed by Wilder World");
         require(oppSigner == opponentSlip.player, "WR: Not signed by opponent");
         require(msg.sender == opponentSlip.opponent, "WR: Wrong player");
@@ -98,7 +108,11 @@ contract WheelsRace is EIP712, IERC721Receiver {
             stakedBy[opponentSlip.wheelId] == opponentSlip.player,
             "WR: Opponent isnt staker"
         );
+        require(!consumed[opponentSlip.raceId], "RaceId already used");
+
+        consumed[opponentSlip.raceId] = true;
         delete stakedBy[opponentSlip.wheelId];
+        _burn(opponentSlip.wheelId);
 
         wheels.safeTransferFrom(
             address(this),
@@ -116,6 +130,16 @@ contract WheelsRace is EIP712, IERC721Receiver {
         require(msg.sender == address(wheels), "NFT isnt Wilder Wheel");
         stakedBy[tokenId] = from;
         unstakeRequests[tokenId] = 0;
+
+        IERC721Metadata token = IERC721Metadata(msg.sender);
+
+        // Get the tokenURI of the incoming token
+        string memory incomingTokenURI = token.tokenURI(tokenId);
+
+        // Mint a new token with the same tokenId and tokenURI
+        _mint(from, tokenId);
+        _setTokenURI(tokenId, incomingTokenURI);
+
         return this.onERC721Received.selector;
     }
 
@@ -135,10 +159,12 @@ contract WheelsRace is EIP712, IERC721Receiver {
 
         delete stakedBy[tokenId];
         delete unstakeRequests[tokenId];
+        _burn(tokenId);
     }
 
     function cancelUnstake(uint256 tokenId) public onlyStaker(tokenId) {
         unstakeRequests[tokenId] = 0;
+        _burn(tokenId);
     }
 
     function canRace(
@@ -162,18 +188,31 @@ contract WheelsRace is EIP712, IERC721Receiver {
         return ECDSA.recover(hash, signature);
     }
 
-    //testnet
+    //admin (testnet)
     function setWW(address newWW) public onlyAdmin {
         wilderWorld = newWW;
     }
 
-    //testnet
     function setWheels(IERC721 newWheels) public onlyAdmin {
         wheels = newWheels;
     }
 
-    //testnet
     function setUnstakeDelay(uint256 newDelay) public onlyAdmin {
         unstakeDelay = newDelay;
+    }
+
+    ///Ability to return NFTs mistakenly sent with transferFrom instead of safeTransferFrom
+    function transferOut(address to, uint256 tokenId) public onlyAdmin {
+        require(stakedBy[tokenId] == address(0));
+        wheels.safeTransferFrom(address(this), to, tokenId);
+    }
+
+    function cancelRace(uint256 raceId) public onlyAdmin {
+        consumed[raceId] = true;
+    }
+
+    // Overriding transfer function
+    function _transfer(address, address, uint256) internal virtual override {
+        require(false, "WR: Token is soulbound");
     }
 }

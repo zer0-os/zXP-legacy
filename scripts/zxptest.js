@@ -475,11 +475,11 @@ describe("zXP", function () {
     //await _deepMeme.submitTop3Results(0, 1, 2, 0, 0, 0);
     //});
 
-    /*leveling test
-    describe("leveling to 99", function () {
+    //leveling test
+    describe("leveling to 20", function () {
       let randSeed = 133250;
-      it("gets the random seed value", async function(){
-        randSeed = await(_beast.randSeed());
+      it("gets the random seed value", async function () {
+        randSeed = await (_beast.randSeed());
         console.log(randSeed);
       })
       const healthCurve = 25;
@@ -491,10 +491,10 @@ describe("zXP", function () {
       const baseCoef = 10;
       const baseMod = 3;
       const beastID = 1;
-      
-      for (let level = 1; level < 99; level++) {
+
+      for (let level = 1; level < 20; level++) {
         let lto = "levels to " + (level + 1).toString();
-        it(lto, async function() {
+        it(lto, async function () {
           await _zxp.levelUp(beastID);
           expect(await _zxp.levelOf(beastID)).to.equal(level + 1);
         });
@@ -502,37 +502,37 @@ describe("zXP", function () {
         let hinc = (1 + randSeed % baseMod) * baseHealth * baseCoef + healthCurve * (level + 1) * (level + 1);
         //console.log(hinc);
         let hincs = "increased health to " + hinc.toString();
-        it(hincs, async function() {
+        it(hincs, async function () {
           expect(await _beast.health(beastID)).to.equal(hinc);
         });
 
         let minc = (1 + randSeed % baseMod) * baseMana * baseCoef + manaCurve * (level + 1) * (level + 1);
         let mincs = "increased mana to " + minc.toString();
-        it(mincs, async function() {
+        it(mincs, async function () {
           expect(await _beast.mana(beastID)).to.equal(minc);
         });
 
         let pinc = (1 + randSeed % baseMod) * basePower * baseCoef + powerCurve * (level + 1) * (level + 1);
         let pincs = "increased power to " + pinc.toString();
-        it(pincs, async function() {
+        it(pincs, async function () {
           expect(await _beast.power(beastID)).to.equal(pinc);
         });
       }
     });
-    
+
     //generate tilemap
     describe("battle royale tilemap", function () {
-      const mapsize = 256;
+      const mapsize = 6;
       for (let x = 0; x < mapsize; x++) {
         for (let y = 0; y < mapsize; y++) {
           let s = "gets tile " + x + "," + y;
-          it(s, async function() {
-            console.log(await _battleRoyale.get_tile(x,y));
+          it(s, async function () {
+            console.log(await _battleRoyale.get_tile(x, y));
           });
         }
       }
     });
-    
+
     const unitsBought = "20";
     const dev_lev = "1";
     const xP1 = "100";
@@ -540,7 +540,7 @@ describe("zXP", function () {
     const xP2 = "101";
     const yP2 = "100";
 
-    /*describe("battle royale land", function () {
+    describe("battle royale land", function () {
       it("Deploy and registers s0 battle royale", async function () {
         const battleRoyales = await ethers.getContractFactory("BattleRoyale_S0");
         const battleRoyale = await battleRoyales.deploy(_registry.address, _wildToken.address);
@@ -548,55 +548,55 @@ describe("zXP", function () {
         _battleRoyale = battleRoyale;
         await _registry.registerAddress(ethers.utils.formatBytes32String("BattleRoyale"), _battleRoyale.address, 3);
       });
-      
+
       const salePrice = 1;
       let landPrice, unitPrice, total, passThresh;
       //let landString = "gets land price of " + xP1 + "," + yP1;
-      it("gets passable threshold", async function(){
+      it("gets passable threshold", async function () {
         passThresh = await _battleRoyale.get_passable_threshold();
       });
-      it("gets tile", async function(){
-        let tile = await _battleRoyale.get_tile(xP1,yP1);
+      it("gets tile", async function () {
+        let tile = await _battleRoyale.get_tile(xP1, yP1);
       });
-      it("gets land price of 0,0", async function(){
+      it("gets land price of 0,0", async function () {
         landPrice = await _battleRoyale.get_land_price(xP1, yP1);
         landPrice = landPrice.mul(ethers.BigNumber.from(dev_lev));
       });
-      it("gets unit price of 0,0", async function(){
-        unitPrice = await _battleRoyale.get_unit_price(xP1,yP1);
+      it("gets unit price of 0,0", async function () {
+        unitPrice = await _battleRoyale.get_unit_price(xP1, yP1);
         unitPrice = unitPrice.mul(unitsBought);
       });
-      it("calcs total", async function(){
+      it("calcs total", async function () {
         total = landPrice.add(unitPrice);
       });
-      it("buys tile", async function(){
-        await _battleRoyale.buy_land_with_wei(xP1,yP1,unitsBought,dev_lev, {value: total});
+      it("buys tile", async function () {
+        await _battleRoyale.buy_land_with_wei(xP1, yP1, unitsBought, dev_lev, { value: total });
       });
-      it("posts tile for sale", async function(){
+      it("posts tile for sale", async function () {
         await _battleRoyale.market_sell(xP1, yP1, salePrice);
       });
-      it("buys tile from market", async function(){
+      it("buys tile from market", async function () {
         //await _battleRoyale.connect(p2signer).market_buy(xP1, yP1, {value: salePrice});
       });
-      it("buys units on tile", async function(){
-        await _battleRoyale.buy_units_with_wei(xP1, yP1, unitsBought, {value: unitPrice*unitsBought});
+      it("buys units on tile", async function () {
+        await _battleRoyale.buy_units_with_wei(xP1, yP1, unitsBought, { value: unitPrice * unitsBought });
       });
 
-      it("gets land price", async function(){
+      it("gets land price", async function () {
         landPrice = await _battleRoyale.get_land_price(xP2, yP2);
         landPrice = landPrice.mul(ethers.BigNumber.from(dev_lev));
       });
-      it("gets unit price", async function(){
-        unitPrice = await _battleRoyale.get_unit_price(xP2,yP2);
+      it("gets unit price", async function () {
+        unitPrice = await _battleRoyale.get_unit_price(xP2, yP2);
         unitPrice = unitPrice.mul(unitsBought);
       });
-      it("calcs total", async function(){
+      it("calcs total", async function () {
         total = landPrice.add(unitPrice);
       });
-      it("P2 buys tile", async function(){
-        await _battleRoyale.connect(p2signer).buy_land_with_wei(xP2,yP2,unitsBought,dev_lev, {value: total});
+      it("P2 buys tile", async function () {
+        await _battleRoyale.connect(p2signer).buy_land_with_wei(xP2, yP2, unitsBought, dev_lev, { value: total });
       });
-      
+
     });
     describe("tile neighbors", function () {
       it("Deploys tile sphere", async function () {
@@ -605,20 +605,20 @@ describe("zXP", function () {
         await tileSphere.deployed();
         _tileSphere = tileSphere;
       });
-      
-        for (let i = 0; i < 42; i++) {
-          let s = "tile " + i + " has neighbors set";
-          it(s, async function () {
-            var neighbors = [];
-            for (let x = 0; x < 6; x++) {
-              const neighbor = await _tileSphere.neighbors(i, x);
-              neighbors.push(neighbor);
-            }
-            console.log(neighbors.toString());
-          });
-        } 
+
+      for (let i = 0; i < 42; i++) {
+        let s = "tile " + i + " has neighbors set";
+        it(s, async function () {
+          var neighbors = [];
+          for (let x = 0; x < 6; x++) {
+            const neighbor = await _tileSphere.neighbors(i, x);
+            neighbors.push(neighbor);
+          }
+          console.log(neighbors.toString());
+        });
+      }
     });
-    
+
     describe("tile automaton", function () {
       it("Deploys automaton library", async function () {
         const automatonFactory = await ethers.getContractFactory("Automata");
@@ -629,11 +629,11 @@ describe("zXP", function () {
     });
 
     describe("battle royale combat", function () {
-      it("P2 attacks P1", async function(){
-        await _battleRoyale.connect(p2signer).move(xP2,yP2,xP1,yP1, 10);
+      it("P2 attacks P1", async function () {
+        await _battleRoyale.connect(p2signer).move(xP2, yP2, xP1, yP1, 10);
       });
     });
-    */
+
     describe("NFT staking S1", function () {
 
       it("Player 1 unstakes beast and earns rewards", async function () {
@@ -668,43 +668,42 @@ describe("zXP", function () {
       });
 
     });
-    /*describe("battle royale passable threshold", function () {
-        for(let p = 1000; p <= 100000; p += 5000){
-          it("", async function(){
-            console.log(await _battleRoyale.get_passable_threshold_at(p));
-          });
-        }
+    describe("battle royale passable threshold", function () {
+      for (let p = 1000; p <= 100000; p += 5000) {
+        it("", async function () {
+          console.log(await _battleRoyale.get_passable_threshold_at(p));
+        });
+      }
     });
     describe("battle royale storm closing", function () {
-      const mapsize = 60;
+      const mapsize = 6;
       let numpass = [];
-      for(let p = 0; p <= 100000; p += 10000){
+      for (let p = 0; p <= 100000; p += 10000) {
         let numPassable = 0;
         let pass = 0;
-        it("gets passable threshold", async function(){
+        it("gets passable threshold", async function () {
           pass = await _battleRoyale.get_passable_threshold_at(p);
         });
-        
+
         for (let x = 0; x < mapsize; x++) {
           for (let y = 0; y < mapsize; y++) {
             let s = "gets tile " + x + "," + y;
-            it(s, async function() {
-              let tile = await _battleRoyale.get_tile(x,y);
-              if(tile >= pass){
+            it(s, async function () {
+              let tile = await _battleRoyale.get_tile(x, y);
+              if (tile >= pass) {
                 numPassable++;
               }
-              if(x == mapsize - 1 && y == mapsize - 1){
+              if (x == mapsize - 1 && y == mapsize - 1) {
                 console.log(pass.toString() + " " + numPassable)
                 numpass.push(numPassable);
-                if(p == 100000){
+                if (p == 100000) {
                   console.log(numpass);
                 }
               };
             });
           }
-        }  
+        }
       }
     });
-  */
   });
 });
