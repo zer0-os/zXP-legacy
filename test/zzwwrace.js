@@ -12,10 +12,25 @@ describe("WWRace", function () {
     var p1;
     var p2;
     var WheelsRace;
+    var goerliRace;
     var wheelsInstance;
     // Generate a random private key
-    //const privateKey = randomBytes(32);
-    //const signingKey = new ethers.utils.SigningKey(privateKey);
+    //0x24a87341149402922AEE8230e30324864Bd4f5C3
+    //61542046481300809449350218852237881182759362590482592350887904669406209867305
+    const p1pkey = "0x4ca9fa9d82c86267303de3dbeab29d66433850ececbcf2acc82a30618dd49320";
+
+    //0x3387B9eA13Bc6c97E11DC93650f753353A499Aca
+    //33984923448272799104450017303065461695744043458962660621372049648542077111162
+    const p2pkey = "0x71fc96cf1cc30404aea060459b940bebbe6807732e94d3ee7d04d830bf953437";
+    //const p1k = new ethers.utils.SigningKey(p1pkey);
+    //const p2k = new ethers.utils.SigningKey(p2pkey);
+
+    const p1gid = "61542046481300809449350218852237881182759362590482592350887904669406209867305";
+    const p2gid = "33984923448272799104450017303065461695744043458962660621372049648542077111162";
+
+    const goerliProvider = new ethers.providers.JsonRpcProvider("https://goerli.infura.io/v3/d18cedabbb184eacbb538718ffbbe100");
+    const p1g = new ethers.Wallet(p1pkey, goerliProvider);
+    const p2g = new ethers.Wallet(p2pkey, goerliProvider);
 
     before(async function () {
         const erc721wheelToken = await ethers.getContractFactory("ERC721TestToken");
@@ -27,6 +42,1073 @@ describe("WWRace", function () {
             "name": "Wilder Wheels"
         });
         await wheelsInstance.deployed();
+
+        const gwaddress = "0x009A11617dF427319210e842D6B202f3831e0116";
+        const gwabi = [
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": true,
+                        "internalType": "address",
+                        "name": "owner",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": true,
+                        "internalType": "address",
+                        "name": "approved",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": true,
+                        "internalType": "uint256",
+                        "name": "tokenId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "Approval",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": true,
+                        "internalType": "address",
+                        "name": "owner",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": true,
+                        "internalType": "address",
+                        "name": "operator",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "bool",
+                        "name": "approved",
+                        "type": "bool"
+                    }
+                ],
+                "name": "ApprovalForAll",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": true,
+                        "internalType": "address",
+                        "name": "from",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": true,
+                        "internalType": "address",
+                        "name": "to",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": true,
+                        "internalType": "uint256",
+                        "name": "tokenId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "Transfer",
+                "type": "event"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "to",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "tokenId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "approve",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "owner",
+                        "type": "address"
+                    }
+                ],
+                "name": "balanceOf",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "balance",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "tokenId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "getApproved",
+                "outputs": [
+                    {
+                        "internalType": "address",
+                        "name": "operator",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "owner",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "operator",
+                        "type": "address"
+                    }
+                ],
+                "name": "isApprovedForAll",
+                "outputs": [
+                    {
+                        "internalType": "bool",
+                        "name": "",
+                        "type": "bool"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "tokenId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "ownerOf",
+                "outputs": [
+                    {
+                        "internalType": "address",
+                        "name": "owner",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "from",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "to",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "tokenId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "safeTransferFrom",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "from",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "to",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "tokenId",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "bytes",
+                        "name": "data",
+                        "type": "bytes"
+                    }
+                ],
+                "name": "safeTransferFrom",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "operator",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "_approved",
+                        "type": "bool"
+                    }
+                ],
+                "name": "setApprovalForAll",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "bytes4",
+                        "name": "interfaceId",
+                        "type": "bytes4"
+                    }
+                ],
+                "name": "supportsInterface",
+                "outputs": [
+                    {
+                        "internalType": "bool",
+                        "name": "",
+                        "type": "bool"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "from",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "to",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "tokenId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "transferFrom",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ];
+        goerliWheels = new ethers.Contract(gwaddress, gwabi, goerliProvider);
+
+        const gaddress = "0xdC2E35268DcD06406d659D339290FD0c43A3143a";
+        const gabi = [
+            {
+                "inputs": [
+                    {
+                        "internalType": "string",
+                        "name": "name",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "version",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "tokenName",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "tokenSymbol",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "_wilderWorld",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "contract IERC721",
+                        "name": "_wheels",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": true,
+                        "internalType": "address",
+                        "name": "owner",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": true,
+                        "internalType": "address",
+                        "name": "approved",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": true,
+                        "internalType": "uint256",
+                        "name": "tokenId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "Approval",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": true,
+                        "internalType": "address",
+                        "name": "owner",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": true,
+                        "internalType": "address",
+                        "name": "operator",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "bool",
+                        "name": "approved",
+                        "type": "bool"
+                    }
+                ],
+                "name": "ApprovalForAll",
+                "type": "event"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "to",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "tokenId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "approve",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "_fromTokenId",
+                        "type": "uint256"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "_toTokenId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "BatchMetadataUpdate",
+                "type": "event"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "raceId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "cancelRace",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "tokenId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "cancelUnstake",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            {
+                                "internalType": "address",
+                                "name": "player",
+                                "type": "address"
+                            },
+                            {
+                                "internalType": "address",
+                                "name": "opponent",
+                                "type": "address"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "raceId",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "wheelId",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "raceStartTimestamp",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "raceExpiryTimestamp",
+                                "type": "uint256"
+                            }
+                        ],
+                        "internalType": "struct WheelsRace.RaceSlip",
+                        "name": "opponentSlip",
+                        "type": "tuple"
+                    },
+                    {
+                        "internalType": "bytes",
+                        "name": "opponentSignature",
+                        "type": "bytes"
+                    },
+                    {
+                        "internalType": "bytes",
+                        "name": "wilderWorldSignature",
+                        "type": "bytes"
+                    }
+                ],
+                "name": "claimWin",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "_tokenId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "MetadataUpdate",
+                "type": "event"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "from",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "tokenId",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "bytes",
+                        "name": "",
+                        "type": "bytes"
+                    }
+                ],
+                "name": "onERC721Received",
+                "outputs": [
+                    {
+                        "internalType": "bytes4",
+                        "name": "",
+                        "type": "bytes4"
+                    }
+                ],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "tokenId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "performUnstake",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "tokenId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "requestUnstake",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "from",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "to",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "tokenId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "safeTransferFrom",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "from",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "to",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "tokenId",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "bytes",
+                        "name": "data",
+                        "type": "bytes"
+                    }
+                ],
+                "name": "safeTransferFrom",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "operator",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "approved",
+                        "type": "bool"
+                    }
+                ],
+                "name": "setApprovalForAll",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "newDelay",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "setUnstakeDelay",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "contract IERC721",
+                        "name": "newWheels",
+                        "type": "address"
+                    }
+                ],
+                "name": "setWheels",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "newWW",
+                        "type": "address"
+                    }
+                ],
+                "name": "setWW",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": true,
+                        "internalType": "address",
+                        "name": "from",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": true,
+                        "internalType": "address",
+                        "name": "to",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": true,
+                        "internalType": "uint256",
+                        "name": "tokenId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "Transfer",
+                "type": "event"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "from",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "to",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "tokenId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "transferFrom",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "to",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "tokenId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "transferOut",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "admin",
+                "outputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "owner",
+                        "type": "address"
+                    }
+                ],
+                "name": "balanceOf",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "p1",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "p1TokenId",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "p2",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "p2TokenId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "canRace",
+                "outputs": [
+                    {
+                        "internalType": "bool",
+                        "name": "canStart",
+                        "type": "bool"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "components": [
+                            {
+                                "internalType": "address",
+                                "name": "player",
+                                "type": "address"
+                            },
+                            {
+                                "internalType": "address",
+                                "name": "opponent",
+                                "type": "address"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "raceId",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "wheelId",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "raceStartTimestamp",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "raceExpiryTimestamp",
+                                "type": "uint256"
+                            }
+                        ],
+                        "internalType": "struct WheelsRace.RaceSlip",
+                        "name": "raceSlip",
+                        "type": "tuple"
+                    }
+                ],
+                "name": "createSlip",
+                "outputs": [
+                    {
+                        "internalType": "bytes32",
+                        "name": "",
+                        "type": "bytes32"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "tokenId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "getApproved",
+                "outputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "owner",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "operator",
+                        "type": "address"
+                    }
+                ],
+                "name": "isApprovedForAll",
+                "outputs": [
+                    {
+                        "internalType": "bool",
+                        "name": "",
+                        "type": "bool"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "name",
+                "outputs": [
+                    {
+                        "internalType": "string",
+                        "name": "",
+                        "type": "string"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "tokenId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "ownerOf",
+                "outputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "stakedBy",
+                "outputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "bytes4",
+                        "name": "interfaceId",
+                        "type": "bytes4"
+                    }
+                ],
+                "name": "supportsInterface",
+                "outputs": [
+                    {
+                        "internalType": "bool",
+                        "name": "",
+                        "type": "bool"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "symbol",
+                "outputs": [
+                    {
+                        "internalType": "string",
+                        "name": "",
+                        "type": "string"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "tokenId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "tokenURI",
+                "outputs": [
+                    {
+                        "internalType": "string",
+                        "name": "",
+                        "type": "string"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "unstakeDelay",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "unstakeRequests",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "wheels",
+                "outputs": [
+                    {
+                        "internalType": "contract IERC721",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "wilderWorld",
+                "outputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            }
+        ];
+        goerliRace = new ethers.Contract(gaddress, gabi, goerliProvider);
+
 
         [p1, p2] = await ethers.getSigners();
         p1address = p1.address;
@@ -513,67 +1595,28 @@ describe("WWRace", function () {
         await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 6);
         await expect(WheelsRace.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 6)).to.be.revertedWith("WR: Token is soulbound");
     });
-    /*
-    it("myAPI: Should get signature from wilderworld for win", async function () {
-        const raceSlip = {
-            player: p2address,
-            opponent: p1address,
-            raceId: 1,
-            wheelId: 7,
-            raceStartTimestamp: Math.floor(Date.now() / 1000),
-            raceExpiryTimestamp: Math.floor(Date.now() / 1000) + (60 * 60 * 24)
-        };
+    it("Should transfer out token mistakenly sent with transferFrom", async function () {
+        await wheelsInstance.mint(p1address);
+        await wheelsInstance.connect(p1)["transferFrom(address,address,uint256)"](p1address, WheelsRace.address, 7);
+        await WheelsRace.transferOut(p1address, 7);
+        expect(await wheelsInstance.ownerOf(7)).to.equal(p1address);
+    });
 
-        const domain = {
-            name: 'Wheels Race',
-            version: '1',
-            chainId: (await ethers.provider.getNetwork()).chainId,
-            verifyingContract: WheelsRace.address
-        }
-
-        const startTypes = {
-            RaceSlip: [
-                { name: 'player', type: 'address' },
-                { name: 'opponent', type: 'address' },
-                { name: 'raceId', type: 'uint256' },
-                { name: 'wheelId', type: 'uint256' },
-                { name: 'raceStartTimestamp', type: 'uint256' },
-                { name: 'raceExpiryTimestamp', type: 'uint256' },
-            ]
-        }
-
-        const loserSlip = {
-            domain: domain,
-            types: startTypes,
-            message: raceSlip
-        }
-
-        const response = await axios.post('http://localhost:8181/sign', { loserSlip }, {
-            headers: { 'Content-Type': 'application/json' },
-        })
-            .then(function (response) {
-                console.log(response.data);
-                return response.data;
-            })
-            .catch(function (error) {
-                console.log(error);
-            });
-        const wilderworldSignature = response.signature;
-        console.log("wwsig: ", wilderworldSignature);
-        const a = ethers.utils.verifyTypedData(domain, startTypes, raceSlip, wilderworldSignature);
-        console.log("recovered: ", a);
+    it("Goerli: should stake wheels", async function () {
+        await expect(goerliWheels.connect(p1g)["safeTransferFrom(address,address,uint256)"](p1g.address, goerliRace.address, p1gid)).to.be.reverted;
+        await expect(goerliWheels.connect(p2g)["safeTransferFrom(address,address,uint256)"](p2g.address, goerliRace.address, p2gid)).to.be.reverted;
     });
 
     it("API: should get slips", async function () {
         //player1 = 0x1699E3509E0993dAF971D97f3323Cb4591D6701F & player2=0xf86202bB61909083194aDa24e32E3766F2A22d33 & player1WheelId=69663397254254126517230868800323562519247494034614092385221476236310933604750 & player2WheelId=73097851658437357582176135055287038418959903636735131830759981735090502369936 & raceStartTimestamp=15 & raceExpiryTimestamp=18"
 
         const data = {
-            player1: "0x1699E3509E0993dAF971D97f3323Cb4591D6701F",
-            player2: "0xf86202bB61909083194aDa24e32E3766F2A22d33",
-            player1WheelId: 69663397254254126517230868800323562519247494034614092385221476236310933604750,
-            player2WheelId: 73097851658437357582176135055287038418959903636735131830759981735090502369936,
-            raceStartTimestamp: 10,
-            raceExpiryTimestamp: 200,
+            player1: p1g.address,
+            player2: p2g.address,
+            player1WheelId: "61542046481300809449350218852237881182759362590482592350887904669406209867305",
+            player2WheelId: "33984923448272799104450017303065461695744043458962660621372049648542077111162",
+            raceStartTimestamp: "10",
+            raceExpiryTimestamp: "200000000000000",
         }
 
         const response = await axios.get('http://54.196.218.144:3000/raceSlips', {
@@ -581,7 +1624,7 @@ describe("WWRace", function () {
             headers: { 'Content-Type': 'application/json' },
         })
             .then(function (response) {
-                console.log(response.data);
+                //console.log(response.data);
                 return response.data;
             })
             .catch(function (error) {
@@ -590,22 +1633,116 @@ describe("WWRace", function () {
 
         const player1Slip = response.player1Slip;
         const player2Slip = response.player2Slip;
-        const player1Signature = await p1._signTypedData(player1Slip.domain, player1Slip.types, player1Slip.message);
-        const player2Signature = await p2._signTypedData(player2Slip.domain, player2Slip.types, player2Slip.message);
+        const player1Signature = await p1g._signTypedData(player1Slip.domain, player1Slip.types, player1Slip.message);
+        const player2Signature = await p2g._signTypedData(player2Slip.domain, player2Slip.types, player2Slip.message);
         const slips = { player1Slip, player1Signature, player2Slip, player2Signature };
+        //console.log(slips);
+    });
+
+    it("API: should get canRaceStart true", async function () {
+        //player1 = 0x1699E3509E0993dAF971D97f3323Cb4591D6701F & player2=0xf86202bB61909083194aDa24e32E3766F2A22d33 & player1WheelId=69663397254254126517230868800323562519247494034614092385221476236310933604750 & player2WheelId=73097851658437357582176135055287038418959903636735131830759981735090502369936 & raceStartTimestamp=15 & raceExpiryTimestamp=18"
+
+        const data = {
+            player1: p1g.address,
+            player2: p2g.address,
+            player1WheelId: "61542046481300809449350218852237881182759362590482592350887904669406209867305",
+            player2WheelId: "33984923448272799104450017303065461695744043458962660621372049648542077111162",
+            raceStartTimestamp: "10",
+            raceExpiryTimestamp: "200000000000000",
+        }
+
+        const response = await axios.get('http://54.196.218.144:3000/raceSlips', {
+            params: data,
+            headers: { 'Content-Type': 'application/json' },
+        })
+            .then(function (response) {
+                //console.log(response.data);
+                return response.data;
+            })
+            .catch(function (error) {
+                //console.log(error);
+            });
+
+        const player1Slip = response.player1Slip;
+        const player2Slip = response.player2Slip;
+        const player1Signature = await p1g._signTypedData(player1Slip.domain, player1Slip.types, player1Slip.message);
+        const player2Signature = await p2g._signTypedData(player2Slip.domain, player2Slip.types, player2Slip.message);
+        const slips = { player1Slip, player1Signature, player2Slip, player2Signature };
+        //console.log(slips);
 
         const aresponse = await axios.post('http://54.196.218.144:3000/canRaceStart', slips, {
             headers: { 'Content-Type': 'application/json' },
         })
             .then(function (response) {
-                console.log(response.data);
+                //console.log(response.data);
                 return response.data;
             })
             .catch(function (error) {
                 console.log(error);
             });
-        console.log(aresponse);
+        //console.log(aresponse);
+        expect(aresponse.canStart).to.equal(true);
 
+    });
+
+    it("API: Should get signature from wilderworld for win", async function () {
+
+        const data = {
+            player1: p1g.address,
+            player2: p2g.address,
+            player1WheelId: "61542046481300809449350218852237881182759362590482592350887904669406209867305",
+            player2WheelId: "33984923448272799104450017303065461695744043458962660621372049648542077111162",
+            raceStartTimestamp: "10",
+            raceExpiryTimestamp: "200000000000000",
+        }
+
+        const response = await axios.get('http://54.196.218.144:3000/raceSlips', {
+            params: data,
+            headers: { 'Content-Type': 'application/json' },
+        })
+            .then(function (response) {
+                //console.log(response.data);
+                return response.data;
+            })
+            .catch(function (error) {
+                //console.log(error);
+            });
+
+        const player1Slip = response.player1Slip;
+        const player2Slip = response.player2Slip;
+        const player1Signature = await p1g._signTypedData(player1Slip.domain, player1Slip.types, player1Slip.message);
+        const player2Signature = await p2g._signTypedData(player2Slip.domain, player2Slip.types, player2Slip.message);
+        const slips = { player1Slip, player1Signature, player2Slip, player2Signature };
+        //console.log(slips);
+
+        const aresponse = await axios.post('http://54.196.218.144:3000/canRaceStart', slips, {
+            headers: { 'Content-Type': 'application/json' },
+        })
+            .then(function (response) {
+                //console.log(response.data);
+                return response.data;
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+        //console.log(aresponse);
+        expect(aresponse.canStart).to.equal(true);
+
+        const loserSlip = player2Slip;
+        const bresponse = await axios.post('http://54.196.218.144:3000/sign', { loserSlip }, {
+            headers: { 'Content-Type': 'application/json' },
+        })
+            .then(function (response) {
+                //console.log(response.data);
+                return response.data;
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+        //console.log("wwsig: ", bresponse.signature);
+        const wilderworldSignature = bresponse.signature;
+        const a = ethers.utils.verifyTypedData(loserSlip.domain, loserSlip.types, loserSlip.message, wilderworldSignature);
+        //console.log("recovered: ", a);
     });
 
     /*it("API: should pass canRaceStart??????", async function () {
@@ -618,7 +1755,7 @@ describe("WWRace", function () {
             raceStartTimestamp: 10,
             raceExpiryTimestamp: 200,
         }
-
+ 
         const response = await axios.get('http://54.196.218.144:3000/raceSlips', {
             params: data,
             headers: { 'Content-Type': 'application/json' },
