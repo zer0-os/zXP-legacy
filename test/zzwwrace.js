@@ -1602,8 +1602,10 @@ describe("WWRace", function () {
         expect(await wheelsInstance.ownerOf(7)).to.equal(p1address);
     });
 
-    it("Goerli: should stake wheels", async function () {
+    it("Goerli: p1 wheel staked", async function () {
         await expect(goerliWheels.connect(p1g)["safeTransferFrom(address,address,uint256)"](p1g.address, goerliRace.address, p1gid)).to.be.reverted;
+    });
+    it("Goerli: p2 wheel staked", async function () {
         await expect(goerliWheels.connect(p2g)["safeTransferFrom(address,address,uint256)"](p2g.address, goerliRace.address, p2gid)).to.be.reverted;
     });
 
@@ -1744,6 +1746,65 @@ describe("WWRace", function () {
         const a = ethers.utils.verifyTypedData(loserSlip.domain, loserSlip.types, loserSlip.message, wilderworldSignature);
         //console.log("recovered: ", a);
     });
+    /*
+    it("API: Should claim the win", async function () {
+        const data = {
+            player1: p1g.address,
+            player2: p2g.address,
+            player1WheelId: "61542046481300809449350218852237881182759362590482592350887904669406209867305",
+            player2WheelId: "33984923448272799104450017303065461695744043458962660621372049648542077111162",
+            raceStartTimestamp: "10",
+            raceExpiryTimestamp: "200000000000000",
+        }
+
+        const response = await axios.get('http://54.196.218.144:3000/raceSlips', {
+            params: data,
+            headers: { 'Content-Type': 'application/json' },
+        })
+            .then(function (response) {
+                //console.log(response.data);
+                return response.data;
+            })
+            .catch(function (error) {
+                //console.log(error);
+            });
+
+        const player1Slip = response.player1Slip;
+        const player2Slip = response.player2Slip;
+        const player1Signature = await p1g._signTypedData(player1Slip.domain, player1Slip.types, player1Slip.message);
+        const player2Signature = await p2g._signTypedData(player2Slip.domain, player2Slip.types, player2Slip.message);
+        const slips = { player1Slip, player1Signature, player2Slip, player2Signature };
+        //console.log(slips);
+
+        const aresponse = await axios.post('http://54.196.218.144:3000/canRaceStart', slips, {
+            headers: { 'Content-Type': 'application/json' },
+        })
+            .then(function (response) {
+                //console.log(response.data);
+                return response.data;
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+        //console.log(aresponse);
+        expect(aresponse.canStart).to.equal(true);
+
+        const loserSlip = player2Slip;
+        const bresponse = await axios.post('http://54.196.218.144:3000/sign', { loserSlip }, {
+            headers: { 'Content-Type': 'application/json' },
+        })
+            .then(function (response) {
+                //console.log(response.data);
+                return response.data;
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+        //console.log("wwsig: ", bresponse.signature);
+        const wilderworldSignature = bresponse.signature;
+        const a = ethers.utils.verifyTypedData(loserSlip.domain, loserSlip.types, loserSlip.message, wilderworldSignature);
+        //console.log("recovered: ", a);
+    });*/
 
     /*it("API: should pass canRaceStart??????", async function () {
         const data = {
