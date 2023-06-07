@@ -40,6 +40,10 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
     /// Mapping from tokenId to holder address
     mapping(uint256 => address) public stakedBy;
 
+    /// Mapping from slip hash to canceled status
+    mapping(bytes32 => bool) private canceled;
+    uint256 cancelBuffer;
+
     /// Mapping from tokenId to unstake request time
     mapping(uint256 => uint256) public unstakeRequests;
 
@@ -119,6 +123,21 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
             msg.sender,
             opponentSlip.wheelId
         );
+    }
+
+    function cancel(RaceSlip calldata slip) public {
+        require(msg.sender == slip.player, "WR: Sender isnt player");
+        require(
+            block.timestamp < slip.raceStartTimestamp - cancelBuffer,
+            "WR: Cancel period ended"
+        );
+        bytes32 hash = createSlip(slip);
+        canceled[hash] = true;
+    }
+
+    function isCanceled(RaceSlip calldata slip) public view returns (bool) {
+        bytes32 hash = createSlip(slip);
+        return canceled[hash];
     }
 
     function onERC721Received(

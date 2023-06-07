@@ -7,6 +7,11 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
+/**
+ * @title WheelsRace
+ * @dev A contract for staking NFTs and engaging in a race. Winners can claim other's staked NFTs.
+ * Uses ERC721 standards for token manipulations.
+ */
 contract WheelsRace is EIP712, IERC721Receiver {
     /// The EIP-712 type definitions
     struct RaceSlip {
@@ -44,8 +49,8 @@ contract WheelsRace is EIP712, IERC721Receiver {
     }
 
     constructor(
-        string memory name,
-        string memory version,
+        string calldata name,
+        string calldata version,
         address _wilderWorld,
         IERC721 _wheels
     ) EIP712(name, version) {
@@ -53,8 +58,11 @@ contract WheelsRace is EIP712, IERC721Receiver {
         wheels = _wheels;
     }
 
+    /**
+     * @dev Generates a hash for a race slip.
+     */
     function createSlip(
-        RaceSlip memory raceSlip
+        RaceSlip calldata raceSlip
     ) public view returns (bytes32) {
         return
             _hashTypedDataV4(
@@ -72,12 +80,20 @@ contract WheelsRace is EIP712, IERC721Receiver {
             );
     }
 
+    /**
+     * @dev Allows players to claim wins. This function accepts the race details,
+     * opponent's signature and Wilder World's signature as proof.
+     * @param opponentSlip The EIP-712 typedData.message the opponent signed
+     * @param opponentSignature The player's signature on the opponentSlip
+     * @param wilderWorldSignature The official Wilder World signature on the opponentSlip
+     */
     function claimWin(
-        RaceSlip memory opponentSlip,
-        bytes memory opponentSignature,
-        bytes memory wilderWorldSignature
+        RaceSlip calldata opponentSlip,
+        bytes calldata opponentSignature,
+        bytes calldata wilderWorldSignature
     ) public {
         bytes32 hash = createSlip(opponentSlip);
+        require(!canceled[hash], "Canceled before start");
         address oppSigner = ECDSA.recover(hash, opponentSignature);
         address wwSigner = ECDSA.recover(hash, wilderWorldSignature);
 
@@ -135,7 +151,7 @@ contract WheelsRace is EIP712, IERC721Receiver {
 
     function _recoverSigner(
         bytes32 hash,
-        bytes memory signature
+        bytes calldata signature
     ) private pure returns (address) {
         return ECDSA.recover(hash, signature);
     }

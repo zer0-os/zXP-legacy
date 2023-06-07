@@ -32,6 +32,8 @@ describe("WWRace", function () {
     const p1g = new ethers.Wallet(p1pkey, goerliProvider);
     const p2g = new ethers.Wallet(p2pkey, goerliProvider);
 
+    const apiurl = "http://localhost:8181"; //http://54.196.218.144:3000/
+
     before(async function () {
         const erc721wheelToken = await ethers.getContractFactory("ERC721TestToken");
         wheelsInstance = await erc721wheelToken.deploy('Wilder Wheels', 'WHL', {
@@ -1251,7 +1253,26 @@ describe("WWRace", function () {
         await expect(WheelsRace.connect(p1).claimWin(value, p2signature, wilderworldSignature)).to.be.revertedWith('RaceId already used');
     });
 
-    it("Should cancel race", async function () {
+    it("Should allow to cancel a race", async function () {
+        const slip = { player: p1address, opponent: p2address, raceId: 5, wheelId: 0, raceStartTimestamp: "10000000000000000", raceExpiryTimestamp: (Math.floor(Date.now() / 1000) + 20000) };
+        await WheelsRace.connect(p1).cancel(slip);
+        expect(await WheelsRace.isCanceled(slip)).to.be.true;
+    });
+
+    it("Should not allow to cancel a race after cancelBuffer", async function () {
+        const slip = { player: p1address, opponent: p2address, raceId: 6, wheelId: 0, raceStartTimestamp: (Math.floor(Date.now() / 1000) + 10000), raceExpiryTimestamp: (Math.floor(Date.now() / 1000) + 20000) };
+        await ethers.provider.send("evm_increaseTime", [10000]); // Assuming cancelBuffer to be less than 10000 seconds
+        await ethers.provider.send("evm_mine");
+
+        await expect(WheelsRace.connect(p1).cancel(slip)).to.be.revertedWith("WR: Cancel period ended");
+    });
+
+    it("Should not allow a non-player to cancel a race", async function () {
+        const slip = { player: p1address, opponent: p2address, raceId: 7, wheelId: 0, raceStartTimestamp: (Math.floor(Date.now() / 1000) + 10000), raceExpiryTimestamp: (Math.floor(Date.now() / 1000) + 20000) };
+        await expect(WheelsRace.connect(p2).cancel(slip)).to.be.revertedWith("WR: Sender isnt player");
+    });
+
+    it("Admin: Should cancel race", async function () {
         await WheelsRace.connect(p1).cancelRace("1234");
     });
 
@@ -1595,13 +1616,18 @@ describe("WWRace", function () {
         await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 6);
         await expect(WheelsRace.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 6)).to.be.revertedWith("WR: Token is soulbound");
     });
-    it("Should transfer out token mistakenly sent with transferFrom", async function () {
+    it("Admin: Should transfer out token mistakenly sent with transferFrom", async function () {
         await wheelsInstance.mint(p1address);
         await wheelsInstance.connect(p1)["transferFrom(address,address,uint256)"](p1address, WheelsRace.address, 7);
+
         await WheelsRace.transferOut(p1address, 7);
         expect(await wheelsInstance.ownerOf(7)).to.equal(p1address);
     });
-
+    it("Admin: Should not allow transfer out of a token that is staked", async function () {
+        await wheelsInstance.mint(p1address);
+        await wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 8);
+        await expect(WheelsRace.transferOut(p1address, 8)).to.be.reverted;
+    });
     it("Goerli: p1 wheel staked", async function () {
         await expect(goerliWheels.connect(p1g)["safeTransferFrom(address,address,uint256)"](p1g.address, goerliRace.address, p1gid)).to.be.reverted;
     });
@@ -1621,7 +1647,7 @@ describe("WWRace", function () {
             raceExpiryTimestamp: "200000000000000",
         }
 
-        const response = await axios.get('http://54.196.218.144:3000/raceSlips', {
+        const response = await axios.get(apiurl + '/raceSlips', {
             params: data,
             headers: { 'Content-Type': 'application/json' },
         })
@@ -1653,7 +1679,7 @@ describe("WWRace", function () {
             raceExpiryTimestamp: "200000000000000",
         }
 
-        const response = await axios.get('http://54.196.218.144:3000/raceSlips', {
+        const response = await axios.get(apiurl + '/raceSlips', {
             params: data,
             headers: { 'Content-Type': 'application/json' },
         })
@@ -1672,7 +1698,7 @@ describe("WWRace", function () {
         const slips = { player1Slip, player1Signature, player2Slip, player2Signature };
         //console.log(slips);
 
-        const aresponse = await axios.post('http://54.196.218.144:3000/canRaceStart', slips, {
+        const aresponse = await axios.post(apiurl + '/canRaceStart', slips, {
             headers: { 'Content-Type': 'application/json' },
         })
             .then(function (response) {
@@ -1698,7 +1724,7 @@ describe("WWRace", function () {
             raceExpiryTimestamp: "200000000000000",
         }
 
-        const response = await axios.get('http://54.196.218.144:3000/raceSlips', {
+        const response = await axios.get(apiurl + '/raceSlips', {
             params: data,
             headers: { 'Content-Type': 'application/json' },
         })
@@ -1717,7 +1743,7 @@ describe("WWRace", function () {
         const slips = { player1Slip, player1Signature, player2Slip, player2Signature };
         //console.log(slips);
 
-        const aresponse = await axios.post('http://54.196.218.144:3000/canRaceStart', slips, {
+        const aresponse = await axios.post(apiurl + '/canRaceStart', slips, {
             headers: { 'Content-Type': 'application/json' },
         })
             .then(function (response) {
@@ -1731,7 +1757,7 @@ describe("WWRace", function () {
         expect(aresponse.canStart).to.equal(true);
 
         const loserSlip = player2Slip;
-        const bresponse = await axios.post('http://54.196.218.144:3000/sign', { loserSlip }, {
+        const bresponse = await axios.post(apiurl + '/sign', { loserSlip }, {
             headers: { 'Content-Type': 'application/json' },
         })
             .then(function (response) {
@@ -1757,7 +1783,7 @@ describe("WWRace", function () {
             raceExpiryTimestamp: "200000000000000",
         }
 
-        const response = await axios.get('http://54.196.218.144:3000/raceSlips', {
+        const response = await axios.get(apiurl + '/raceSlips', {
             params: data,
             headers: { 'Content-Type': 'application/json' },
         })
@@ -1776,7 +1802,7 @@ describe("WWRace", function () {
         const slips = { player1Slip, player1Signature, player2Slip, player2Signature };
         //console.log(slips);
 
-        const aresponse = await axios.post('http://54.196.218.144:3000/canRaceStart', slips, {
+        const aresponse = await axios.post(apiurl + '/canRaceStart', slips, {
             headers: { 'Content-Type': 'application/json' },
         })
             .then(function (response) {
@@ -1790,7 +1816,7 @@ describe("WWRace", function () {
         expect(aresponse.canStart).to.equal(true);
 
         const loserSlip = player2Slip;
-        const bresponse = await axios.post('http://54.196.218.144:3000/sign', { loserSlip }, {
+        const bresponse = await axios.post(apiurl + '/sign', { loserSlip }, {
             headers: { 'Content-Type': 'application/json' },
         })
             .then(function (response) {
@@ -1817,7 +1843,7 @@ describe("WWRace", function () {
             raceExpiryTimestamp: 200,
         }
  
-        const response = await axios.get('http://54.196.218.144:3000/raceSlips', {
+        const response = await axios.get(apiurl + '/raceSlips', {
             params: data,
             headers: { 'Content-Type': 'application/json' },
         })
@@ -1830,7 +1856,7 @@ describe("WWRace", function () {
             });
         const loserSlip = response.player1Slip;
         console.log("loserslip", loserSlip);
-        const aresponse = await axios.post('http://54.196.218.144:3000/sign', { loserSlip }, {
+        const aresponse = await axios.post(apiurl + '/sign', { loserSlip }, {
             headers: { 'Content-Type': 'application/json' },
         })
             .then(function (response) {
