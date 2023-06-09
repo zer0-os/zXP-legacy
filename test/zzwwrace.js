@@ -1452,6 +1452,49 @@ describe("WWRace", function () {
 
         await expect(WheelsRace.connect(p1).claimWin(value, p2signature, wilderworldSignature)).to.be.reverted;
     });
+
+    it("Should not allow claiming a win with invalid expire time", async function () {
+
+        const jsonString = `{
+            "types": {
+                "EIP712Domain": [
+                    { "name": "name", "type": "string" },
+                    { "name": "version", "type": "string" },
+                    { "name": "chainId", "type": "uint256" },
+                    { "name": "verifyingContract", "type": "address" }
+                ],
+                "RaceSlip": [
+                    { "name": "player", "type": "address" },
+                    { "name": "opponent", "type": "address" },
+                    { "name": "raceId", "type": "uint256" },
+                    { "name": "wheelId", "type": "uint256" },
+                    { "name": "raceStartTimestamp", "type": "uint256" },
+                    { "name": "raceExpiryTimestamp", "type": "uint256" }
+                ]
+            },
+            "primaryType": "RaceSlip",
+            "domain": {
+                "name": "Wheels Race",
+                "version": "1",
+                "chainId": <CHAIN_ID>,
+                "verifyingContract": "<CONTRACT_ADDRESS>"
+            },
+            "message": {
+                "player": "<PLAYER_ADDRESS>",
+                "opponent": "<OPPONENT_ADDRESS>",
+                "raceId": "100000000000000001000000000000000000000000000000000",
+                "wheelId": "5",
+                "raceStartTimestamp": "10000",
+                "raceExpiryTimestamp": "0"
+            }
+        }`;
+
+        console.log(jsonString.replace(/"/g, '\\"'));
+    });
+
+
+
+
     it("Should not allow claiming a win with invalid domain name", async function () {
         const value = {
             player: p2address,

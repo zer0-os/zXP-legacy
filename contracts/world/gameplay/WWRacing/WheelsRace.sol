@@ -42,7 +42,11 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
 
     /// Mapping from slip hash to canceled status
     mapping(bytes32 => bool) private canceled;
-    uint256 cancelBuffer;
+    uint256 private cancelBuffer;
+
+    /// Mapping from wheelId to time locked after win claim
+    mapping(uint256 => uint256) lockTime;
+    uint256 private lockPeriod = 7 days;
 
     /// Mapping from tokenId to unstake request time
     mapping(uint256 => uint256) public unstakeRequests;
@@ -74,7 +78,7 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
     }
 
     function createSlip(
-        RaceSlip memory raceSlip
+        RaceSlip calldata raceSlip
     ) public view returns (bytes32) {
         return
             _hashTypedDataV4(
@@ -85,19 +89,29 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
                         raceSlip.opponent,
                         raceSlip.raceId,
                         raceSlip.wheelId,
-                        raceSlip.raceStartTimestamp,
-                        raceSlip.raceExpiryTimestamp
+                        raceSlip.raceStartTimestamp, //slipStartTime
+                        raceSlip.raceExpiryTimestamp //slipExpiryTime
                     )
                 )
             );
     }
 
     function claimWin(
-        RaceSlip memory opponentSlip,
-        bytes memory opponentSignature,
-        bytes memory wilderWorldSignature
+        RaceSlip calldata opponentSlip,
+        bytes calldata opponentSignature,
+        bytes calldata wilderWorldSignature
     ) public {
         bytes32 hash = createSlip(opponentSlip);
+        require(!canceled[hash], "Canceled before start");
+        require(
+            block.timestamp > opponentSlip.raceStartTimestamp,
+            "WR: Race hasnt started"
+        );
+        require(
+            block.timestamp >= lockTime[opponentSlip.wheelId] + lockPeriod,
+            "WR: Within lock period"
+        );
+
         address oppSigner = ECDSA.recover(hash, opponentSignature);
         address wwSigner = ECDSA.recover(hash, wilderWorldSignature);
 
@@ -115,14 +129,11 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
         require(!consumed[opponentSlip.raceId], "RaceId already used");
 
         consumed[opponentSlip.raceId] = true;
-        delete stakedBy[opponentSlip.wheelId];
-        _burn(opponentSlip.wheelId);
-
-        wheels.safeTransferFrom(
-            address(this),
-            msg.sender,
-            opponentSlip.wheelId
-        );
+        ///Set state for wheel
+        stakedBy[opponentSlip.wheelId] = msg.sender;
+        lockTime[opponentSlip.wheelId] = block.timestamp;
+        ///Transfer wheel_staked
+        _transfer(opponentSlip.player, msg.sender, opponentSlip.wheelId);
     }
 
     function cancel(RaceSlip calldata slip) public {
@@ -163,6 +174,10 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
     }
 
     function requestUnstake(uint256 tokenId) public onlyStaker(tokenId) {
+        require(
+            block.timestamp >= lockTime[tokenId] + lockPeriod,
+            "WR: Within lock period"
+        );
         unstakeRequests[tokenId] = block.timestamp;
     }
 
@@ -186,38 +201,59 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
         _burn(tokenId);
     }
 
+    /**
+     * @dev Tells you if a race can start by erroring if false
+     * @param p1 Player 1 address
+     * @param p1TokenId Player 1 Wheel Token ID
+     * @param p2 Player 2 address
+     * @param p2TokenId Player 2 Wheel Token ID
+     */
     function canRace(
         address p1,
         uint256 p1TokenId,
         address p2,
         uint256 p2TokenId
-    ) public view returns (bool canStart) {
+    ) public view {
         require(unstakeRequests[p1TokenId] == 0, "P1 has unstake request");
         require(unstakeRequests[p2TokenId] == 0, "P2 has unstake request");
         require(stakedBy[p1TokenId] == p1, "P1 wheel not staked");
         require(stakedBy[p2TokenId] == p2, "P2 wheel not staked");
-        canStart = true;
-        return canStart;
+        require(
+            block.timestamp >= lockTime[p1TokenId] + lockPeriod,
+            "WR: P1 within lock period"
+        );
+        require(
+            block.timestamp >= lockTime[p2TokenId] + lockPeriod,
+            "WR: P2 within lock period"
+        );
     }
 
     function _recoverSigner(
         bytes32 hash,
-        bytes memory signature
+        bytes calldata signature
     ) private pure returns (address) {
         return ECDSA.recover(hash, signature);
     }
 
-    //admin (testnet)
-    function setWW(address newWW) public onlyAdmin {
-        wilderWorld = newWW;
+    ///To turn off claimWin, set this to a burn address other than 0
+    function setWW(address newAdmin) public onlyAdmin {
+        require(newAdmin != address(0), "WR: missing newAdmin");
+        wilderWorld = newAdmin;
     }
 
     function setWheels(IERC721 newWheels) public onlyAdmin {
+        require(address(newWheels) != address(0), "WR: missing newWheels");
         wheels = newWheels;
     }
 
     function setUnstakeDelay(uint256 newDelay) public onlyAdmin {
+        require(newDelay != 0, "WR: missing newDelay");
         unstakeDelay = newDelay;
+    }
+
+    function setLockPeriod(uint256 newLock) public onlyAdmin {
+        require(newLock != 0, "WR: missing newLock");
+        lockPeriod = newLock;
     }
 
     ///Ability to return NFTs mistakenly sent with transferFrom instead of safeTransferFrom
@@ -226,12 +262,27 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
         wheels.safeTransferFrom(address(this), to, tokenId);
     }
 
+    ///Ability to 'undo' a race by removing a locked nft
+    function transferLocked(address to, uint256 tokenId) public onlyAdmin {
+        require(block.timestamp >= lockTime[tokenId], "WR: token not locked");
+        require(
+            block.timestamp < lockTime[tokenId] + lockPeriod,
+            "WR: token unlocked"
+        );
+        wheels.safeTransferFrom(address(this), to, tokenId);
+    }
+
     function cancelRace(uint256 raceId) public onlyAdmin {
         consumed[raceId] = true;
     }
 
+    // Overriding transfer functions
+    function transferFrom(address, address, uint256) public override {
+        require(false, "WR: Token is soulbound");
+    }
+
     // Overriding transfer function
-    function _transfer(address, address, uint256) internal virtual override {
+    function safeTransferFrom(address, address, uint256) public override {
         require(false, "WR: Token is soulbound");
     }
 }

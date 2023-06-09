@@ -93,7 +93,6 @@ contract WheelsRace is EIP712, IERC721Receiver {
         bytes calldata wilderWorldSignature
     ) public {
         bytes32 hash = createSlip(opponentSlip);
-        require(!canceled[hash], "Canceled before start");
         address oppSigner = ECDSA.recover(hash, opponentSignature);
         address wwSigner = ECDSA.recover(hash, wilderWorldSignature);
 
