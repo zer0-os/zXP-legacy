@@ -220,11 +220,11 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
         require(stakedBy[p2TokenId] == p2, "P2 wheel not staked");
         require(
             block.timestamp >= lockTime[p1TokenId] + lockPeriod,
-            "WR: P1 within lock period"
+            "WR: P1Wheel locked"
         );
         require(
             block.timestamp >= lockTime[p2TokenId] + lockPeriod,
-            "WR: P2 within lock period"
+            "WR: P2Wheel locked"
         );
     }
 
@@ -277,12 +277,12 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
     }
 
     // Overriding transfer functions
-    function transferFrom(address, address, uint256) public override {
+    function transferFrom(address, address, uint256) public pure override {
         require(false, "WR: Token is soulbound");
     }
 
     // Overriding transfer function
-    function safeTransferFrom(address, address, uint256) public override {
+    function safeTransferFrom(address, address, uint256) public pure override {
         require(false, "WR: Token is soulbound");
     }
 }

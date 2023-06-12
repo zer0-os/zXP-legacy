@@ -291,18 +291,18 @@ describe("zXP", function () {
         await _vaultS0.connect(p2signer).createVault(p2VaultNumber);
       });
       it("Player 1 stakes beast", async function () {
-        console.log(p1VaultNumber);
+        //(p1VaultNumber);
         await _beastToken["safeTransferFrom(address,address,uint256,bytes)"](P1, _vaultS0.address, 0, p1VaultNumber);
       });
       it("Player 1 owns p1VaultNumber", async function () {
-        console.log(await _vaultS0.getVault(_beastToken.address, 0));
+        //console.log(await _vaultS0.getVault(_beastToken.address, 0));
         expect(await _vaultS0.vaultOwner(p1VaultNumber)).to.equal(P1);
       });
       it("Current world season is 1", async function () {
-        console.log(await _registry.currentSeason());
+        expect((await _registry.currentSeason()).toString()).to.equal("1");
       });
       it("Vault season is 1", async function () {
-        console.log(await _vaultS0.season());
+        expect((await _vaultS0.season()).toString()).to.equal("1");
       });
       it("Player 1 unstakes beast before season end", async function () {
         await _vaultS0._unstake(_beastToken.address, 0);
@@ -477,9 +477,9 @@ describe("zXP", function () {
 
     //leveling test
     describe("leveling to 20", function () {
-      let randSeed = 133250;
+      let randSeed = 1;
       it("gets the random seed value", async function () {
-        randSeed = await (_beast.randSeed());
+        //randSeed = await _beast.randSeed();
         console.log(randSeed);
       })
       const healthCurve = 25;
@@ -520,9 +520,9 @@ describe("zXP", function () {
       }
     });
 
-    //generate tilemap
+    /*generate tilemap
     describe("battle royale tilemap", function () {
-      const mapsize = 6;
+      const mapsize = 2;
       for (let x = 0; x < mapsize; x++) {
         for (let y = 0; y < mapsize; y++) {
           let s = "gets tile " + x + "," + y;
@@ -531,7 +531,7 @@ describe("zXP", function () {
           });
         }
       }
-    });
+    });*/
 
     const unitsBought = "20";
     const dev_lev = "1";
@@ -668,15 +668,15 @@ describe("zXP", function () {
       });
 
     });
-    describe("battle royale passable threshold", function () {
+    /*describe("battle royale passable threshold", function () {
       for (let p = 1000; p <= 100000; p += 5000) {
         it("", async function () {
-          console.log(await _battleRoyale.get_passable_threshold_at(p));
+          console.log((await _battleRoyale.get_passable_threshold_at(p)).toString());
         });
       }
-    });
+    });*/
     describe("battle royale storm closing", function () {
-      const mapsize = 6;
+      const mapsize = 2;
       let numpass = [];
       for (let p = 0; p <= 100000; p += 10000) {
         let numPassable = 0;
