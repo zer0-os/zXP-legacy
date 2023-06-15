@@ -15,24 +15,27 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
         address opponent;
         uint256 raceId;
         uint256 wheelId;
+        uint256 opponentWheelId;
         uint256 raceStartTimestamp;
-        uint256 raceExpiryTimestamp;
     }
 
     /// The EIP-712 domain separators
     bytes32 private constant RACE_SLIP_TYPEHASH =
         keccak256(
-            "RaceSlip(address player,address opponent,uint256 raceId,uint256 wheelId,uint256 raceStartTimestamp,uint256 raceExpiryTimestamp)"
+            "RaceSlip(address player,address opponent,uint256 raceId,uint256 wheelId,uint256 opponentWheelId, uint256 raceStartTimestamp)"
         );
 
-    /// Wallet address of wilder world used to sign WinnerDeclarations
-    address public wilderWorld;
+    /// Wallet address of wilder world used to sign losing opponents race slip
+    address private wilderWorld;
 
-    ///Admin
-    address public admin;
+    /// Admin
+    address private admin;
 
     /// Contract address of Wilder Wheels
-    IERC721 public wheels;
+    IERC721 private wheels;
+
+    /// Length of time before races expire after their startTimestamp
+    uint256 private expirePeriodLength = 24 hours;
 
     ///RaceIds that have been used
     mapping(uint256 => bool) private consumed;
@@ -49,9 +52,9 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
     uint256 private lockPeriod = 7 days;
 
     /// Mapping from tokenId to unstake request time
-    mapping(uint256 => uint256) public unstakeRequests;
+    mapping(uint256 => uint256) private unstakeRequests;
 
-    ///Time delay for unstaking
+    /// Time delay for unstaking
     uint256 public unstakeDelay = 1 seconds;
 
     modifier onlyStaker(uint256 tokenId) {
@@ -89,44 +92,75 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
                         raceSlip.opponent,
                         raceSlip.raceId,
                         raceSlip.wheelId,
-                        raceSlip.raceStartTimestamp, //slipStartTime
-                        raceSlip.raceExpiryTimestamp //slipExpiryTime
+                        raceSlip.opponentWheelId,
+                        raceSlip.raceStartTimestamp
                     )
                 )
             );
     }
 
+    /**
+     * @dev Allows a player to claim a win for a race by validating the race data signed by both the opponent and Wilder World.
+     *
+     * Requirements:
+     * - The race must not have been canceled.
+     * - The current time must be after the race's start time.
+     * - The current time must be after the lock period of the race.
+     * - The current time must be before the race's expiry time.
+     * - The race data must have been signed by Wilder World and the opponent.
+     * - The sender must be the opponent of the race.
+     * - The sender must be the same who staked the opponent wheel.
+     * - The player of the race must be the one who staked the race wheel.
+     * - The race ID must not have been used before.
+     *
+     * After successful execution:
+     * - The race ID is marked as used.
+     * - The stakedBy state for the wheel is set to msg.sender.
+     * - The wheelId is locked for the lock period.
+     * - The staked wheel is transferred from the player to the sender.
+     *
+     * @param opponentSlip The race data that the opponent signed
+     * @param opponentSignature The opponent's signature on the race data
+     * @param wilderWorldSignature Wilder World's signature on the race data
+     */
     function claimWin(
         RaceSlip calldata opponentSlip,
         bytes calldata opponentSignature,
         bytes calldata wilderWorldSignature
     ) public {
         bytes32 hash = createSlip(opponentSlip);
-        require(!canceled[hash], "Canceled before start");
+        require(
+            block.timestamp <
+                opponentSlip.raceStartTimestamp + expirePeriodLength,
+            "WR: Race expired"
+        );
         require(
             block.timestamp > opponentSlip.raceStartTimestamp,
             "WR: Race hasnt started"
         );
+        require(!canceled[hash], "Canceled before start");
         require(
             block.timestamp >= lockTime[opponentSlip.wheelId] + lockPeriod,
             "WR: Within lock period"
         );
-
-        address oppSigner = ECDSA.recover(hash, opponentSignature);
-        address wwSigner = ECDSA.recover(hash, wilderWorldSignature);
-
-        require(
-            block.timestamp < opponentSlip.raceExpiryTimestamp,
-            "WR: Race expired"
-        );
-        require(wwSigner == wilderWorld, "WR: Not signed by Wilder World");
-        require(oppSigner == opponentSlip.player, "WR: Not signed by opponent");
         require(msg.sender == opponentSlip.opponent, "WR: Wrong player");
+        require(
+            msg.sender == stakedBy[opponentSlip.opponentWheelId],
+            "WR: Player wheel unstaked"
+        );
         require(
             stakedBy[opponentSlip.wheelId] == opponentSlip.player,
             "WR: Opponent isnt staker"
         );
         require(!consumed[opponentSlip.raceId], "RaceId already used");
+        require(
+            ECDSA.recover(hash, wilderWorldSignature) == wilderWorld,
+            "WR: Not signed by Wilder World"
+        );
+        require(
+            ECDSA.recover(hash, opponentSignature) == opponentSlip.player,
+            "WR: Not signed by opponent"
+        );
 
         consumed[opponentSlip.raceId] = true;
         ///Set state for wheel
@@ -136,6 +170,15 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
         _transfer(opponentSlip.player, msg.sender, opponentSlip.wheelId);
     }
 
+    /**
+     * @dev Allows a player to cancel a slip that they signed, as long as the race has not started yet.
+     *
+     * Requirements:
+     * - `msg.sender` must be the player that created the slip.
+     * - The current time must be before the race start time minus the cancel buffer.
+     *
+     * @param slip The race data that was signed
+     */
     function cancel(RaceSlip calldata slip) public {
         require(msg.sender == slip.player, "WR: Sender isnt player");
         require(
@@ -146,11 +189,20 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
         canceled[hash] = true;
     }
 
+    /**
+     * @dev Checks if a player canceled their slip
+     * @param slip The race data
+     */
     function isCanceled(RaceSlip calldata slip) public view returns (bool) {
         bytes32 hash = createSlip(slip);
         return canceled[hash];
     }
 
+    /**
+     * @dev Fails if the transferred token is not a Wilder Wheel NFT
+     * @param from The players EOA
+     * @param tokenId  The wheel token
+     */
     function onERC721Received(
         address,
         address from,
@@ -173,6 +225,15 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
         return this.onERC721Received.selector;
     }
 
+    /**
+     * @dev Allows a player to remove a staked token in two steps.
+     * The player must wait for a delay period as long as the race expiration.
+     *
+     * Requirements:
+     * - The wheel token must not be currently locked.
+     *
+     * @param tokenId The wheel token
+     */
     function requestUnstake(uint256 tokenId) public onlyStaker(tokenId) {
         require(
             block.timestamp >= lockTime[tokenId] + lockPeriod,
@@ -181,7 +242,18 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
         unstakeRequests[tokenId] = block.timestamp;
     }
 
-    ///breaks if win claimed because NFT is transferred out
+    /**
+     * @dev Transfers the token back to the stakedBy address.
+     *
+     * Requirements:
+     * - There must be an unstakeRequest
+     * - The current time must be after the delay
+     *
+     * After successful execution:
+     * - The stakedBy state is deleted
+     * - The unstakeRequest time is deleted
+     * - The staked wheel token is burned
+     */
     function performUnstake(uint256 tokenId) public onlyStaker(tokenId) {
         require(unstakeRequests[tokenId] != 0, "No unstake request");
         require(
@@ -198,7 +270,6 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
 
     function cancelUnstake(uint256 tokenId) public onlyStaker(tokenId) {
         unstakeRequests[tokenId] = 0;
-        _burn(tokenId);
     }
 
     /**
