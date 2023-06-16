@@ -35,6 +35,7 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
     IERC721 private wheels;
 
     /// Length of time before races expire after their startTimestamp
+    /// Also controls unstake delay period, making the races secure by disallowing unstaking during a race, as long as canRace is checked before.
     uint256 private expirePeriodLength = 24 hours;
 
     ///RaceIds that have been used
@@ -49,13 +50,10 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
 
     /// Mapping from wheelId to time locked after win claim
     mapping(uint256 => uint256) lockTime;
-    uint256 private lockPeriod = 7 days;
+    uint256 private lockPeriod = 24 hours;
 
     /// Mapping from tokenId to unstake request time
     mapping(uint256 => uint256) private unstakeRequests;
-
-    /// Time delay for unstaking
-    uint256 public unstakeDelay = 1 seconds;
 
     modifier onlyStaker(uint256 tokenId) {
         require(stakedBy[tokenId] == msg.sender, "NFT not staked by sender");
@@ -257,7 +255,7 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
     function performUnstake(uint256 tokenId) public onlyStaker(tokenId) {
         require(unstakeRequests[tokenId] != 0, "No unstake request");
         require(
-            block.timestamp >= unstakeRequests[tokenId] + unstakeDelay,
+            block.timestamp >= unstakeRequests[tokenId] + expirePeriodLength,
             "WR: Unstake delayed"
         );
 
@@ -315,11 +313,6 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
     function setWheels(IERC721 newWheels) public onlyAdmin {
         require(address(newWheels) != address(0), "WR: missing newWheels");
         wheels = newWheels;
-    }
-
-    function setUnstakeDelay(uint256 newDelay) public onlyAdmin {
-        require(newDelay != 0, "WR: missing newDelay");
-        unstakeDelay = newDelay;
     }
 
     function setLockPeriod(uint256 newLock) public onlyAdmin {
