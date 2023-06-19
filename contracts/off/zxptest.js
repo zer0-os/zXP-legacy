@@ -469,8 +469,6 @@ describe("zXP", function () {
       expect(lev).to.equal("3");
     });
 
-
-
     //it("DeepMeme tourney official submits results", async function() {
     //await _deepMeme.submitTop3Results(0, 1, 2, 0, 0, 0);
     //});
@@ -598,6 +596,7 @@ describe("zXP", function () {
       });
 
     });
+
     describe("tile neighbors", function () {
       it("Deploys tile sphere", async function () {
         const tileSphereFactory = await ethers.getContractFactory("TileSphere");

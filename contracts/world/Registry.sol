@@ -25,6 +25,7 @@ contract Registry is IRegistry, Owned, Utils {
     function addressOf(bytes32 _contractName, uint256 season) public view override returns (address) {
         return objects[_contractName].contractAddress[season];
     }
+    
     function seasonZeroOf(bytes32 _contractName) public view override returns (uint){
         return objects[_contractName].seasonZero;
     }
