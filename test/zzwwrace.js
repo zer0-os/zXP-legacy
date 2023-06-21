@@ -38,7 +38,7 @@ describe("WWRace", function () {
 
     var domain, types;
 
-    beforeEach(async function () {
+    before(async function () {
         const erc721wheelToken = await ethers.getContractFactory("ERC721TestToken");
         wheelsInstance = await erc721wheelToken.deploy('Wilder Wheels', 'WHL', {
             "id": 0,
@@ -54,7 +54,6 @@ describe("WWRace", function () {
 
         const gaddress = "0xdC2E35268DcD06406d659D339290FD0c43A3143a";
         goerliRace = new ethers.Contract(gaddress, goerliRaceABI, goerliProvider);
-
 
         [p1, p2] = await ethers.getSigners();
         p1address = p1.address;
@@ -95,39 +94,38 @@ describe("WWRace", function () {
         expect(stakedTokenURI).to.equal(originalTokenURI);
         expect(await WheelsRace.ownerOf(0)).to.equal(p1address);
         expect(await WheelsRace.stakedBy(0)).to.equal(p1address);
-        expect((await WheelsRace.unstakeRequests(0)).toNumber()).to.equal(0);
     });
 
     it("Should not allow unstake without request", async function () {
-        await wheelsInstance.mint(p1address); https://sepolia.etherscan.io/address/0x78f3a49919021a4769513ff8dd44fbedb487bd87
-        await wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 0);
+        await wheelsInstance.mint(p1address);
+        await wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 1);
 
         await expect(WheelsRace.connect(p1).performUnstake(1)).to.be.reverted;
     });
 
     it("Should allow unstake after request and delay", async function () {
         await wheelsInstance.mint(p1address);
-        await wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 0);
+        await wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 2);
 
-        await WheelsRace.connect(p1).requestUnstake(0);
+        await WheelsRace.connect(p1).requestUnstake(2);
         await ethers.provider.send("evm_increaseTime", [24 * 60 * 60]);
         await ethers.provider.send("evm_mine");
 
-        await WheelsRace.connect(p1).performUnstake(0);
-        expect(await wheelsInstance.ownerOf(0)).to.equal(p1address);
-        expect(await WheelsRace.stakedBy(0)).to.equal(ethers.constants.AddressZero);
+        await WheelsRace.connect(p1).performUnstake(2);
+        expect(await wheelsInstance.ownerOf(2)).to.equal(p1address);
+        expect(await WheelsRace.stakedBy(2)).to.equal(ethers.constants.AddressZero);
     });
 
     it("Should have burned the staked token after unstake", async function () {
-        await expect(WheelsRace.ownerOf(0)).to.be.revertedWith("ERC721: invalid token ID");
+        await expect(WheelsRace.ownerOf(2)).to.be.revertedWith("ERC721: invalid token ID");
     });
 
     it("Should allow a player to claim a win", async function () {
         await wheelsInstance.mint(p1address);
         await wheelsInstance.mint(p2address);
-        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 0);
-        await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, WheelsRace.address, 1);
-        expect(await WheelsRace.ownerOf(1)).to.equal(p2address);
+        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 3);
+        await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, WheelsRace.address, 4);
+        //expect(await WheelsRace.ownerOf(4)).to.equal(p2address);
 
         const latestBlockNumber = await ethers.provider.getBlockNumber();
         const latestBlock = await ethers.provider.getBlock(latestBlockNumber);
@@ -137,22 +135,32 @@ describe("WWRace", function () {
             player: p2address,
             opponent: p1address,
             raceId: "100000000000000000000000000000000000000000000000000",
-            wheelId: "1",
-            opponentWheelId: "0",
+            wheelId: "4",
+            opponentWheelId: "3",
             raceStartTimestamp: startTime
         };
 
         const p2signature = await p2._signTypedData(domain, types, slip);
         const wilderworldSignature = await p1._signTypedData(domain, types, slip);
 
-        //const v1 = ethers.utils.verifyTypedData(domain, types, slip, p2signature);
-        //const v2 = ethers.utils.verifyTypedData(domain, types, slip, wilderworldSignature);
+        const v1 = ethers.utils.verifyTypedData(domain, types, slip, p2signature);
+        const v2 = ethers.utils.verifyTypedData(domain, types, slip, wilderworldSignature);
+
+        console.log(domain);
+        console.log(types);
+        console.log(slip);
+        console.log(await WheelsRace.wilderWorld());
+        console.log(p1address);
+        console.log(p2address);
+        console.log(v1);
+        console.log(v2);
 
         const s = await WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature);
-        expect(await WheelsRace.stakedBy(1)).to.equal(p1address);
+        console.log("helloo???", s);
+        expect(await WheelsRace.stakedBy(4)).to.equal(p1address);
     });
 
-    it("Should have transfered the staked token after win", async function () {
+    it("Should have transferred the staked token after win", async function () {
         expect(await WheelsRace.ownerOf(4)).to.equal(p1address);
     });
 
@@ -482,7 +490,7 @@ describe("WWRace", function () {
         await expect(WheelsRace.transferOut(p1address, 8)).to.be.reverted;
     });*/
 
-    it("Goerli: p1 wheel staked", async function () {
+    /*it("Goerli: p1 wheel staked", async function () {
         await goerliWheels.connect(p2g)["safeTransferFrom(address,address,uint256)"](p2g.address, "0x1699E3509E0993dAF971D97f3323Cb4591D6701F", "33984923448272799104450017303065461695744043458962660621372049648542077111162");
     });
     it("Goerli: p2 wheel staked", async function () {
@@ -491,9 +499,9 @@ describe("WWRace", function () {
 
     it("Goerli: tx", async function () {
         await p2g.sendTransaction({ to: "0xf86202bB61909083194aDa24e32E3766F2A22d33", value: ethers.utils.parseEther("0.03") });
-    });
+    });*/
 
-    /*
+
     it("API: should get slips", async function () {
         //player1 = 0x1699E3509E0993dAF971D97f3323Cb4591D6701F & player2=0xf86202bB61909083194aDa24e32E3766F2A22d33 & player1WheelId=69663397254254126517230868800323562519247494034614092385221476236310933604750 & player2WheelId=73097851658437357582176135055287038418959903636735131830759981735090502369936 & raceStartTimestamp=15 & raceExpiryTimestamp=18"
 
@@ -520,10 +528,10 @@ describe("WWRace", function () {
 
         const player1Slip = response.player1Slip;
         const player2Slip = response.player2Slip;
-        const player1Signature = await p1g._signTypedData(player1Slip.domain, player1Slip.types, player1Slip.message);
-        const player2Signature = await p2g._signTypedData(player2Slip.domain, player2Slip.types, player2Slip.message);
-        const slips = { player1Slip, player1Signature, player2Slip, player2Signature };
-        //console.log(slips);
+        //const player1Signature = await p1g._signTypedData(player1Slip.domain, player1Slip.types, player1Slip.message);
+        //const player2Signature = await p2g._signTypedData(player2Slip.domain, player2Slip.types, player2Slip.message);
+        const slips = { player1Slip, player2Slip };
+        console.log(slips);
     });
 
     it("API: should get canRaceStart true", async function () {
@@ -547,13 +555,16 @@ describe("WWRace", function () {
                 return response.data;
             })
             .catch(function (error) {
-                //console.log(error);
+                console.log(error);
             });
 
-        const player1Slip = response.player1Slip;
-        const player2Slip = response.player2Slip;
-        const player1Signature = await p1g._signTypedData(player1Slip.domain, player1Slip.types, player1Slip.message);
-        const player2Signature = await p2g._signTypedData(player2Slip.domain, player2Slip.types, player2Slip.message);
+        const p1Slip = response.player1Slip;
+        const p2Slip = response.player2Slip;
+        const player1Slip = { RaceSlip: p1Slip.RaceSlip };
+        const player2Slip = { RaceSlip: p2Slip.RaceSlip };
+
+        const player1Signature = await p1g._signTypedData(player1Slip.domain, player1Slip, player1Slip.message);
+        const player2Signature = await p2g._signTypedData(player2Slip.domain, player2Slip, player2Slip.message);
         const slips = { player1Slip, player1Signature, player2Slip, player2Signature };
         //console.log(slips);
 
@@ -561,15 +572,12 @@ describe("WWRace", function () {
             headers: { 'Content-Type': 'application/json' },
         })
             .then(function (response) {
-                //console.log(response.data);
                 return response.data;
             })
             .catch(function (error) {
                 console.log(error);
             });
-        //console.log(aresponse);
         expect(aresponse.canStart).to.equal(true);
-
     });
 
     it("API: Should get signature from wilderworld for win", async function () {
@@ -597,8 +605,12 @@ describe("WWRace", function () {
 
         const player1Slip = response.player1Slip;
         const player2Slip = response.player2Slip;
-        const player1Signature = await p1g._signTypedData(player1Slip.domain, player1Slip.types, player1Slip.message);
-        const player2Signature = await p2g._signTypedData(player2Slip.domain, player2Slip.types, player2Slip.message);
+
+        const p1types = { RaceSlip: player1Slip.types.RaceSlip };
+        const p2types = { RaceSlip: player2Slip.types.RaceSlip };
+
+        const player1Signature = await p1g._signTypedData(player1Slip.domain, p1types, player1Slip.message);
+        const player2Signature = await p2g._signTypedData(player2Slip.domain, p2types, player2Slip.message);
         const slips = { player1Slip, player1Signature, player2Slip, player2Signature };
         //console.log(slips);
 
@@ -629,8 +641,8 @@ describe("WWRace", function () {
         //console.log("wwsig: ", bresponse.signature);
         const wilderworldSignature = bresponse.signature;
         const a = ethers.utils.verifyTypedData(loserSlip.domain, loserSlip.types, loserSlip.message, wilderworldSignature);
-        //console.log("recovered: ", a);
-    });*/
+        console.log("recovered: ", a);
+    });
     /*
     it("API: Should claim the win", async function () {
         const data = {
@@ -790,61 +802,3 @@ describe("WWRace", function () {
    
        });*/
 });
-
-describe("WWRace", function () {
-    var p1address;
-    var p2address;
-    var p1;
-    var p2;
-    var WheelsRace;
-    var goerliRace;
-    var wheelsInstance;
-    // Generate a random private key
-    //0x24a87341149402922AEE8230e30324864Bd4f5C3
-    //61542046481300809449350218852237881182759362590482592350887904669406209867305
-    const p1pkey = "0x4ca9fa9d82c86267303de3dbeab29d66433850ececbcf2acc82a30618dd49320";
-
-    //0x3387B9eA13Bc6c97E11DC93650f753353A499Aca
-    //33984923448272799104450017303065461695744043458962660621372049648542077111162
-    const p2pkey = "0x71fc96cf1cc30404aea060459b940bebbe6807732e94d3ee7d04d830bf953437";
-    //const p1k = new ethers.utils.SigningKey(p1pkey);
-    //const p2k = new ethers.utils.SigningKey(p2pkey);
-
-    const p1gid = "61542046481300809449350218852237881182759362590482592350887904669406209867305";
-    const p2gid = "33984923448272799104450017303065461695744043458962660621372049648542077111162";
-
-    const goerliProvider = new ethers.providers.JsonRpcProvider("https://goerli.infura.io/v3/d18cedabbb184eacbb538718ffbbe100");
-    const p1g = new ethers.Wallet(p1pkey, goerliProvider);
-    const p2g = new ethers.Wallet(p2pkey, goerliProvider);
-
-    const apiurl = "http://localhost:8181"; //http://54.196.218.144:3000/
-
-    before(async function () {
-        const erc721wheelToken = await ethers.getContractFactory("ERC721TestToken");
-        wheelsInstance = await erc721wheelToken.deploy('Wilder Wheels', 'WHL', {
-            "id": 0,
-            "description": "Wilder Wheels",
-            "external_url": "0://wilder.wheels",
-            "image": "wheel.png",
-            "name": "Wilder Wheels"
-        });
-        await wheelsInstance.deployed();
-
-        const gwaddress = "0x009A11617dF427319210e842D6B202f3831e0116";
-        goerliWheels = new ethers.Contract(gwaddress, goerliWheelsABI, goerliProvider);
-
-        const gaddress = "0xdC2E35268DcD06406d659D339290FD0c43A3143a";
-        goerliRace = new ethers.Contract(gaddress, goerliRaceABI, goerliProvider);
-
-
-        [p1, p2] = await ethers.getSigners();
-        p1address = p1.address;
-        p2address = p2.address;
-
-        const Race = await ethers.getContractFactory("WheelsRace");
-        WheelsRace = await Race.deploy("Wheels Race", "1", "Wheel_Staked", "WWS", p1address, wheelsInstance.address);
-        await WheelsRace.deployed();
-    });
-});
-    //beforeEach(async function () {
-    //});
