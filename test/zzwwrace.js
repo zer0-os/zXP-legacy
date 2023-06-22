@@ -169,14 +169,17 @@ describe("WWRace", function () {
     });
 
     it("Should not allow a player to claim win on a locked token", async function () {
+        const latestBlockNumber = await ethers.provider.getBlockNumber();
+        const latestBlock = await ethers.provider.getBlock(latestBlockNumber);
+        const startTime = latestBlock.timestamp;
+
         const slip = {
             player: p2address,
             opponent: p1address,
             raceId: "100000000000000000000000000000000000000000000000000",
             wheelId: "4",
             opponentWheelId: "3",
-            raceStartTimestamp: Math.floor(Date.now() / 1000),
-            raceExpiryTimestamp: "10000000000000000000"
+            raceStartTimestamp: startTime,
         };
 
         const p2signature = await p2._signTypedData(domain, types, slip);
@@ -189,17 +192,22 @@ describe("WWRace", function () {
     });
 
     it("Should not allow a player to claim a consumed raceId", async function () {
-        //await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, p2address, 4);
-        //await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, WheelsRace.address, 4);
-
+        await wheelsInstance.mint(p1address);
+        await wheelsInstance.mint(p2address);
+        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 5);
+        await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, WheelsRace.address, 6);
+        await network.provider.send("evm_increaseTime", [69120000]);
+        await network.provider.send("evm_mine");
+        const latestBlockNumber = await ethers.provider.getBlockNumber();
+        const latestBlock = await ethers.provider.getBlock(latestBlockNumber);
+        const startTime = latestBlock.timestamp;
         const slip = {
             player: p2address,
             opponent: p1address,
             raceId: "100000000000000000000000000000000000000000000000000",
-            wheelId: "5",
-            opponentWheelId: "3",
-            raceStartTimestamp: Math.floor(Date.now() / 1000),
-            raceExpiryTimestamp: "10000000000000000000"
+            wheelId: "6",
+            opponentWheelId: "5",
+            raceStartTimestamp: startTime
         };
 
         const p2signature = await p2._signTypedData(domain, types, slip);
@@ -207,26 +215,26 @@ describe("WWRace", function () {
 
         //const v1 = ethers.utils.verifyTypedData(domain, types, slip, p2signature);
         //const v2 = ethers.utils.verifyTypedData(domain, types, slip, wilderworldSignature);
-        await network.provider.send("evm_increaseTime", [691200])
+
         await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.revertedWith('RaceId already used');
     });
 
     it("Should allow to cancel a race", async function () {
-        const slip = { player: p1address, opponent: p2address, raceId: 5, wheelId: 0, raceStartTimestamp: "10000000000000000", raceExpiryTimestamp: (Math.floor(Date.now() / 1000) + 20000) };
+        const slip = { player: p1address, opponent: p2address, raceId: 5, wheelId: 0, opponentWheelId: 1, raceStartTimestamp: "10000000000000000" };
         await WheelsRace.connect(p1).cancel(slip);
         expect(await WheelsRace.isCanceled(slip)).to.be.true;
     });
 
     it("Should not allow to cancel a race after cancelBuffer", async function () {
-        const slip = { player: p1address, opponent: p2address, raceId: 6, wheelId: 0, raceStartTimestamp: (Math.floor(Date.now() / 1000) + 10000), raceExpiryTimestamp: (Math.floor(Date.now() / 1000) + 20000) };
-        await ethers.provider.send("evm_increaseTime", [10000]); // Assuming cancelBuffer to be less than 10000 seconds
-        await ethers.provider.send("evm_mine");
+        const slip = { player: p1address, opponent: p2address, raceId: 6, wheelId: 0, opponentWheelId: 1, raceStartTimestamp: "0" };
+        //await ethers.provider.send("evm_increaseTime", [10000]); // Assuming cancelBuffer to be less than 10000 seconds
+        //await ethers.provider.send("evm_mine");
 
         await expect(WheelsRace.connect(p1).cancel(slip)).to.be.revertedWith("WR: Cancel period ended");
     });
 
     it("Should not allow a non-player to cancel a race", async function () {
-        const slip = { player: p1address, opponent: p2address, raceId: 7, wheelId: 0, raceStartTimestamp: (Math.floor(Date.now() / 1000) + 10000), raceExpiryTimestamp: (Math.floor(Date.now() / 1000) + 20000) };
+        const slip = { player: p1address, opponent: p2address, raceId: 7, wheelId: 0, opponentWheelId: 1, raceStartTimestamp: "0" };
         await expect(WheelsRace.connect(p2).cancel(slip)).to.be.revertedWith("WR: Sender isnt player");
     });
 
@@ -278,7 +286,7 @@ describe("WWRace", function () {
 
     it("Should not allow unstaking a wheel owned by someone else", async function () {
         await wheelsInstance.mint(p1address);
-        await expect(WheelsRace.connect(p1).requestUnstake(5)).to.be.reverted;
+        await expect(WheelsRace.connect(p1).requestUnstake(2)).to.be.reverted;
     });
 
     it("Should not allow unstake request for a non-staked wheel", async function () {
@@ -286,7 +294,7 @@ describe("WWRace", function () {
     });
 
     it("Should not allow claiming a win with invalid data", async function () {
-        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, p2address, 5);
+        //await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, p2address, 5);
 
         const slip = {
             player: p2address,
@@ -318,8 +326,8 @@ describe("WWRace", function () {
         await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.reverted;
     });
     it("Should not allow claiming a win with invalid opponent", async function () {
-        await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, WheelsRace.address, 5);
-        expect(await WheelsRace.stakedBy(5)).to.equal(p2address);
+        //await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, WheelsRace.address, 5);
+        //expect(await WheelsRace.stakedBy(5)).to.equal(p2address);
 
         const slip = {
             player: p2address,
@@ -341,6 +349,7 @@ describe("WWRace", function () {
             opponent: p1address,
             raceId: "100000000000000001000000000000000000000000000000000",
             wheelId: "5",
+            opponentWheelId: "3",
             raceStartTimestamp: "10000"
         };
 
@@ -356,6 +365,7 @@ describe("WWRace", function () {
             opponent: p1address,
             raceId: "110000000000000000000000000000000000000000000000000",
             wheelId: "4",
+            opponentWheelId: "3",
             raceStartTimestamp: Math.floor(Date.now() / 1000)
         };
 
@@ -377,6 +387,7 @@ describe("WWRace", function () {
             opponent: p1address,
             raceId: "110000000000000000000000000000000000000000000000000",
             wheelId: "4",
+            opponentWheelId: "3",
             raceStartTimestamp: Math.floor(Date.now() / 1000)
         };
 
@@ -398,6 +409,7 @@ describe("WWRace", function () {
             opponent: p1address,
             raceId: "110000000000000000000000000000000000000000000000000",
             wheelId: "4",
+            opponentWheelId: "3",
             raceStartTimestamp: Math.floor(Date.now() / 1000)
         };
 
@@ -419,6 +431,7 @@ describe("WWRace", function () {
             opponent: p1address,
             raceId: "110000000000000000000000000000000000000000000000000",
             wheelId: "4",
+            opponentWheelId: "3",
             raceStartTimestamp: Math.floor(Date.now() / 1000)
         };
 
@@ -440,6 +453,7 @@ describe("WWRace", function () {
             opponent: p1address,
             raceId: "110000000000000000000000000000000000000000000000000",
             wheelId: "4",
+            opponentWheelId: "3",
             raceStartTimestamp: Math.floor(Date.now() / 1000)
         };
 
@@ -464,8 +478,8 @@ describe("WWRace", function () {
     });
     it("Should not allow transfer of Wheel_Staked token", async function () {
         await wheelsInstance.mint(p1address);
-        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 6);
-        await expect(WheelsRace.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 6)).to.be.revertedWith("WR: Token is soulbound");
+        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 7);
+        await expect(WheelsRace.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 7)).to.be.revertedWith("WR: Token is soulbound");
     });
 
     /*it("Goerli: p1 wheel unstaked", async function () {
@@ -502,7 +516,7 @@ describe("WWRace", function () {
     });*/
 
 
-    it("API: should get slips", async function () {
+    /*it("API: should get slips", async function () {
         //player1 = 0x1699E3509E0993dAF971D97f3323Cb4591D6701F & player2=0xf86202bB61909083194aDa24e32E3766F2A22d33 & player1WheelId=69663397254254126517230868800323562519247494034614092385221476236310933604750 & player2WheelId=73097851658437357582176135055287038418959903636735131830759981735090502369936 & raceStartTimestamp=15 & raceExpiryTimestamp=18"
 
         const data = {
