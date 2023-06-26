@@ -242,7 +242,7 @@ describe("WWRace", function () {
         await WheelsRace.connect(p1).cancelRace("1234");
     });
 
-    /*it("Should not allow a player to claim a canceled race", async function () {
+    it("Should not allow a player to claim a canceled race", async function () {
         //await wheelsInstance.mint(p1address);
         //await wheelsInstance.mint(p1address);
         //await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, p2address, 4);
@@ -281,7 +281,7 @@ describe("WWRace", function () {
         //const v2 = ethers.utils.verifyTypedData(domain, types, slip, wilderworldSignature);
 
         await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.revertedWith('RaceId already used');
-    });*/
+    });
 
 
     it("Should not allow unstaking a wheel owned by someone else", async function () {
@@ -482,13 +482,12 @@ describe("WWRace", function () {
         await expect(WheelsRace.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 7)).to.be.revertedWith("WR: Token is soulbound");
     });
 
-    /*it("Goerli: p1 wheel unstaked", async function () {
-        await goerliRace.connect(p1g).performUnstake(p1gid);
+    it("Goerli: p1 wheel unstaked", async function () {
+        let l = await goerliWheels.connect(p1g).ownerOf("16182371156789264589045257455208882703455605296569376559339298298769691645037");
+        console.log(l);
     });
 
-    it("Goerli: p2 wheel unstaked", async function () {
-        await goerliRace.connect(p2g).performUnstake(p2gid);
-    });*/
+
 
 
     /*it("Admin: Should transfer out token mistakenly sent with transferFrom", async function () {
