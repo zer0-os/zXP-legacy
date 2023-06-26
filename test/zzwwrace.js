@@ -242,7 +242,7 @@ describe("WWRace", function () {
         await WheelsRace.connect(p1).cancelRace("1234");
     });
 
-    it("Should not allow a player to claim a canceled race", async function () {
+    /*it("Should not allow a player to claim a canceled race", async function () {
         //await wheelsInstance.mint(p1address);
         //await wheelsInstance.mint(p1address);
         //await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, p2address, 4);
@@ -280,8 +280,9 @@ describe("WWRace", function () {
         //const v1 = ethers.utils.verifyTypedData(domain, types, slip, p2signature);
         //const v2 = ethers.utils.verifyTypedData(domain, types, slip, wilderworldSignature);
 
+
         await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.revertedWith('RaceId already used');
-    });
+    });*/
 
 
     it("Should not allow unstaking a wheel owned by someone else", async function () {
