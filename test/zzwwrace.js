@@ -143,20 +143,7 @@ describe("WWRace", function () {
         const p2signature = await p2._signTypedData(domain, types, slip);
         const wilderworldSignature = await p1._signTypedData(domain, types, slip);
 
-        const v1 = ethers.utils.verifyTypedData(domain, types, slip, p2signature);
-        const v2 = ethers.utils.verifyTypedData(domain, types, slip, wilderworldSignature);
-
-        console.log(domain);
-        console.log(types);
-        console.log(slip);
-        console.log(await WheelsRace.wilderWorld());
-        console.log(p1address);
-        console.log(p2address);
-        console.log(v1);
-        console.log(v2);
-
         const s = await WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature);
-        console.log("helloo???", s);
         expect(await WheelsRace.stakedBy(4)).to.equal(p1address);
     });
 
@@ -216,13 +203,43 @@ describe("WWRace", function () {
         //const v1 = ethers.utils.verifyTypedData(domain, types, slip, p2signature);
         //const v2 = ethers.utils.verifyTypedData(domain, types, slip, wilderworldSignature);
 
-        await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.revertedWith('RaceId already used');
+        await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.revertedWith('WR: RaceId used');
     });
 
     it("Should allow to cancel a race", async function () {
-        const slip = { player: p1address, opponent: p2address, raceId: 5, wheelId: 0, opponentWheelId: 1, raceStartTimestamp: "10000000000000000" };
+        const slip = { player: p1address, opponent: p2address, raceId: 999, wheelId: 6, opponentWheelId: 5, raceStartTimestamp: "10000000000000000" };
         await WheelsRace.connect(p1).cancel(slip);
         expect(await WheelsRace.isCanceled(slip)).to.be.true;
+    });
+
+    it("Should not allow a player to claim a canceled race", async function () {
+        //await wheelsInstance.mint(p1address);
+        //await wheelsInstance.mint(p1address);
+        //await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, p2address, 4);
+        //await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, WheelsRace.address, 4);
+        const latestBlockNumber = await ethers.provider.getBlockNumber();
+        const latestBlock = await ethers.provider.getBlock(latestBlockNumber);
+        const startTime = latestBlock.timestamp;
+        const slip = {
+            player: p2address,
+            opponent: p1address,
+            raceId: "1234",
+            wheelId: "6",
+            opponentWheelId: "5",
+            raceStartTimestamp: startTime + 100000,
+        };
+
+        await WheelsRace.connect(p2).cancel(slip);
+
+        const p2signature = await p2._signTypedData(domain, types, slip);
+        const wilderworldSignature = await p1._signTypedData(domain, types, slip);
+
+        await network.provider.send("evm_increaseTime", [100000]);
+        await network.provider.send("evm_mine");
+        //const v1 = ethers.utils.verifyTypedData(domain, types, slip, p2signature);
+        //const v2 = ethers.utils.verifyTypedData(domain, types, slip, wilderworldSignature);
+
+        await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.revertedWith("WR: Slip Canceled");
     });
 
     it("Should not allow to cancel a race after cancelBuffer", async function () {
@@ -238,53 +255,6 @@ describe("WWRace", function () {
         await expect(WheelsRace.connect(p2).cancel(slip)).to.be.revertedWith("WR: Sender isnt player");
     });
 
-    it("Admin: Should cancel race", async function () {
-        await WheelsRace.connect(p1).cancelRace("1234");
-    });
-
-    /*it("Should not allow a player to claim a canceled race", async function () {
-        //await wheelsInstance.mint(p1address);
-        //await wheelsInstance.mint(p1address);
-        //await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, p2address, 4);
-        //await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, WheelsRace.address, 4);
-
-        const slip = {
-            player: p2address,
-            opponent: p1address,
-            raceId: "1234",
-            wheelId: "5",
-            raceStartTimestamp: Math.floor(Date.now() / 1000),
-            raceExpiryTimestamp: "10000000000000000000"
-        };
-
-        const domain = {
-            name: 'Wheels Race',
-            version: '1',
-            chainId: (await ethers.provider.getNetwork()).chainId,
-            verifyingContract: WheelsRace.address
-        }
-        const types = {
-            RaceSlip: [
-                { name: 'player', type: 'address' },
-                { name: 'opponent', type: 'address' },
-                { name: 'raceId', type: 'uint256' },
-                { name: 'wheelId', type: 'uint256' },
-                { name: 'raceStartTimestamp', type: 'uint256' },
-                { name: 'raceExpiryTimestamp', type: 'uint256' },
-            ]
-        }
-
-        const p2signature = await p2._signTypedData(domain, types, slip);
-        const wilderworldSignature = await p1._signTypedData(domain, types, slip);
-
-        //const v1 = ethers.utils.verifyTypedData(domain, types, slip, p2signature);
-        //const v2 = ethers.utils.verifyTypedData(domain, types, slip, wilderworldSignature);
-
-
-        await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.revertedWith('RaceId already used');
-    });*/
-
-
     it("Should not allow unstaking a wheel owned by someone else", async function () {
         await wheelsInstance.mint(p1address);
         await expect(WheelsRace.connect(p1).requestUnstake(2)).to.be.reverted;
@@ -294,6 +264,72 @@ describe("WWRace", function () {
         await expect(WheelsRace.connect(p1).requestUnstake(999)).to.be.reverted;
     });
 
+    it("Admin: Should cancel race", async function () {
+        await WheelsRace.connect(p1).cancelRace("1234");
+    });
+
+    it("Should not allow a player to claim an admin canceled race", async function () {
+        //await wheelsInstance.mint(p1address);
+        //await wheelsInstance.mint(p1address);
+        //await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, p2address, 4);
+        //await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, WheelsRace.address, 4);
+        const latestBlockNumber = await ethers.provider.getBlockNumber();
+        const latestBlock = await ethers.provider.getBlock(latestBlockNumber);
+        const startTime = latestBlock.timestamp;
+        const slip = {
+            player: p2address,
+            opponent: p1address,
+            raceId: "1234",
+            wheelId: "6",
+            opponentWheelId: "5",
+            raceStartTimestamp: startTime,
+        };
+
+        const p2signature = await p2._signTypedData(domain, types, slip);
+        const wilderworldSignature = await p1._signTypedData(domain, types, slip);
+
+        //const v1 = ethers.utils.verifyTypedData(domain, types, slip, p2signature);
+        //const v2 = ethers.utils.verifyTypedData(domain, types, slip, wilderworldSignature);
+
+        await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.revertedWith("WR: RaceId used");
+    });
+    it("Should not allow claiming a win before a race starts", async function () {
+        //await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, p2address, 5);
+
+        const slip = {
+            player: p2address,
+            opponent: p1address,
+            raceId: "1234",
+            wheelId: "6",
+            opponentWheelId: "5",
+            raceStartTimestamp: "10000000000000000",
+        };
+
+        const p2signature = await p2._signTypedData(domain, types, slip);
+        const wilderworldSignature = await p1._signTypedData(domain, types, slip);
+
+        await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.revertedWith("WR: Race hasnt started");
+    });
+    it("Should not allow claiming win on an expired slip", async function () {
+        //await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, p2address, 5);
+        const latestBlockNumber = await ethers.provider.getBlockNumber();
+        const latestBlock = await ethers.provider.getBlock(latestBlockNumber);
+        const startTime = latestBlock.timestamp;
+        const slip = {
+            player: p2address,
+            opponent: p1address,
+            raceId: "1234",
+            wheelId: "6",
+            opponentWheelId: "5",
+            raceStartTimestamp: startTime,
+        };
+        await ethers.provider.send("evm_increaseTime", [24 * 60 * 60]);
+        await ethers.provider.send("evm_mine");
+        const p2signature = await p2._signTypedData(domain, types, slip);
+        const wilderworldSignature = await p1._signTypedData(domain, types, slip);
+
+        await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.revertedWith("WR: Race expired");
+    });
     it("Should not allow claiming a win with invalid data", async function () {
         //await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, p2address, 5);
 
@@ -324,40 +360,27 @@ describe("WWRace", function () {
         const p2signature = await p2._signTypedData(domain, types, slip);
         const wilderworldSignature = await p1._signTypedData(domain, types, slip);
 
-        await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.reverted;
+        await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.revertedWith("WR: Not signed by opponent");
     });
     it("Should not allow claiming a win with invalid opponent", async function () {
         //await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, WheelsRace.address, 5);
         //expect(await WheelsRace.stakedBy(5)).to.equal(p2address);
-
+        const latestBlockNumber = await ethers.provider.getBlockNumber();
+        const latestBlock = await ethers.provider.getBlock(latestBlockNumber);
+        const startTime = latestBlock.timestamp;
         const slip = {
             player: p2address,
             opponent: p2address,
             raceId: "100000000000000001000000000000000000000000000000000",
             wheelId: "5",
             opponentWheelId: "3",
-            raceStartTimestamp: Math.floor(Date.now() / 1000)
+            raceStartTimestamp: startTime
         };
 
         const p2signature = await p2._signTypedData(domain, types, slip);
         const wilderworldSignature = await p1._signTypedData(domain, types, slip);
 
-        await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.reverted;
-    });
-    it("Should not allow claiming a win with invalid expire time", async function () {
-        const slip = {
-            player: p2address,
-            opponent: p1address,
-            raceId: "100000000000000001000000000000000000000000000000000",
-            wheelId: "5",
-            opponentWheelId: "3",
-            raceStartTimestamp: "10000"
-        };
-
-        const p2signature = await p2._signTypedData(domain, types, slip);
-        const wilderworldSignature = await p1._signTypedData(domain, types, slip);
-
-        await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.reverted;
+        await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.revertedWith("WR: Sender isnt opponent");
     });
 
     it("Should not allow claiming a win with invalid domain name", async function () {
@@ -380,7 +403,7 @@ describe("WWRace", function () {
         const p2signature = await p2._signTypedData(invalidDomain, types, slip);
         const wilderworldSignature = await p1._signTypedData(invalidDomain, types, slip);
 
-        await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.reverted;
+        await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.revertedWith("WR: Not signed by opponent");
     });
     it("Should not allow claiming a win with invalid domain version", async function () {
         const slip = {
@@ -402,7 +425,7 @@ describe("WWRace", function () {
         const p2signature = await p2._signTypedData(invalidDomain, types, slip);
         const wilderworldSignature = await p1._signTypedData(invalidDomain, types, slip);
 
-        await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.reverted;
+        await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.revertedWith("WR: Not signed by opponent");
     });
     it("Should not allow claiming a win with invalid domain chainID", async function () {
         const slip = {
@@ -424,7 +447,7 @@ describe("WWRace", function () {
         const p2signature = await p2._signTypedData(invalidDomain, types, slip);
         const wilderworldSignature = await p1._signTypedData(invalidDomain, types, slip);
 
-        await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.reverted;
+        await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.revertedWith("WR: Not signed by opponent");
     });
     it("Should not allow claiming a win with invalid domain verifyingContract", async function () {
         const slip = {
@@ -446,7 +469,7 @@ describe("WWRace", function () {
         const p2signature = await p2._signTypedData(invalidDomain, types, slip);
         const wilderworldSignature = await p1._signTypedData(invalidDomain, types, slip);
 
-        await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.reverted;
+        await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.revertedWith("WR: Not signed by opponent");
     });
     it("Should not allow claiming a win with invalid types", async function () {
         const slip = {
@@ -471,11 +494,70 @@ describe("WWRace", function () {
         const p2signature = await p2._signTypedData(domain, invalidTypes, slip);
         const wilderworldSignature = await p1._signTypedData(domain, invalidTypes, slip);
 
-        await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.reverted;
+        await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.revertedWith("WR: Not signed by opponent");
+    });
+    it("Should not allow claiming a win with unstaked player wheel", async function () {
+        const latestBlockNumber = await ethers.provider.getBlockNumber();
+        const latestBlock = await ethers.provider.getBlock(latestBlockNumber);
+        const startTime = latestBlock.timestamp;
+        const slip = {
+            player: p2address,
+            opponent: p1address,
+            raceId: "1234567",
+            wheelId: "6000",
+            opponentWheelId: "5",
+            raceStartTimestamp: startTime,
+        };
+
+        const p2signature = await p2._signTypedData(domain, types, slip);
+        const wilderworldSignature = await p1._signTypedData(domain, types, slip);
+
+        //const v1 = ethers.utils.verifyTypedData(domain, types, slip, p2signature);
+        //const v2 = ethers.utils.verifyTypedData(domain, types, slip, wilderworldSignature);
+
+        await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.revertedWith("WR: Opponent wheel unstaked");
+    });
+    it("Should not allow claiming a win with unstaked opponent wheel", async function () {
+        const latestBlockNumber = await ethers.provider.getBlockNumber();
+        const latestBlock = await ethers.provider.getBlock(latestBlockNumber);
+        const startTime = latestBlock.timestamp;
+        const slip = {
+            player: p2address,
+            opponent: p1address,
+            raceId: "1234567",
+            wheelId: "6",
+            opponentWheelId: "5000",
+            raceStartTimestamp: startTime,
+        };
+
+        const p2signature = await p2._signTypedData(domain, types, slip);
+        const wilderworldSignature = await p1._signTypedData(domain, types, slip);
+
+        //const v1 = ethers.utils.verifyTypedData(domain, types, slip, p2signature);
+        //const v2 = ethers.utils.verifyTypedData(domain, types, slip, wilderworldSignature);
+
+        await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.revertedWith("WR: Player wheel unstaked");
     });
     it("Should not allow claiming a win with invalid wilderworld signature", async function () {
-        // populate winnerDeclaration and raceStartDeclaration with invalid data
-        await expect(WheelsRace.connect(p1).claimWin([], "invalidSignature", "invalidSignature")).to.be.reverted;
+        const latestBlockNumber = await ethers.provider.getBlockNumber();
+        const latestBlock = await ethers.provider.getBlock(latestBlockNumber);
+        const startTime = latestBlock.timestamp;
+        const slip = {
+            player: p2address,
+            opponent: p1address,
+            raceId: "1234567",
+            wheelId: "6",
+            opponentWheelId: "5",
+            raceStartTimestamp: startTime,
+        };
+
+        const p2signature = await p2._signTypedData(domain, types, slip);
+        const invalidSignature = await p2._signTypedData(domain, types, slip);
+
+        //const v1 = ethers.utils.verifyTypedData(domain, types, slip, p2signature);
+        //const v2 = ethers.utils.verifyTypedData(domain, types, slip, wilderworldSignature);
+
+        await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, invalidSignature)).to.be.revertedWith("WR: Not signed by WW");
     });
     it("Should not allow transfer of Wheel_Staked token", async function () {
         await wheelsInstance.mint(p1address);
@@ -484,8 +566,7 @@ describe("WWRace", function () {
     });
 
     it("Goerli: p1 wheel unstaked", async function () {
-        let l = await goerliWheels.connect(p1g).ownerOf("16182371156789264589045257455208882703455605296569376559339298298769691645037");
-        console.log(l);
+        await goerliWheels.connect(p1g).ownerOf("16182371156789264589045257455208882703455605296569376559339298298769691645037");
     });
 
 

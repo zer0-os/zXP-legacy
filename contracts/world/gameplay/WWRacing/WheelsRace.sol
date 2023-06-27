@@ -133,7 +133,7 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
         );
         require(
             ECDSA.recover(hash, wilderWorldSignature) == wilderWorld,
-            "WR: Not signed by Wilder World"
+            "WR: Not signed by WW"
         );
         require(
             block.timestamp < opponentSlip.raceStartTimestamp + expirePeriod,
@@ -143,21 +143,24 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
             block.timestamp > opponentSlip.raceStartTimestamp,
             "WR: Race hasnt started"
         );
-        require(!canceled[hash], "Canceled before start");
+        require(!canceled[hash], "WR: Slip Canceled");
         require(
             block.timestamp >= lockTime[opponentSlip.wheelId] + expirePeriod,
             "WR: Within lock period"
         );
-        require(msg.sender == opponentSlip.opponent, "WR: Wrong player");
+        require(
+            msg.sender == opponentSlip.opponent,
+            "WR: Sender isnt opponent"
+        );
         require(
             msg.sender == stakedBy[opponentSlip.opponentWheelId],
             "WR: Player wheel unstaked"
         );
         require(
             stakedBy[opponentSlip.wheelId] == opponentSlip.player,
-            "WR: Opponent isnt staker"
+            "WR: Opponent wheel unstaked"
         );
-        require(!consumed[opponentSlip.raceId], "RaceId already used");
+        require(!consumed[opponentSlip.raceId], "WR: RaceId used");
 
         ///Consume raceID
         consumed[opponentSlip.raceId] = true;
