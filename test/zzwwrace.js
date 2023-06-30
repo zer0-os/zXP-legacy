@@ -5,8 +5,6 @@ const {
     SignTypedDataVersion,
 } = require("@metamask/eth-sig-util");
 const axios = require('axios');
-const goerliRaceABI = require('./abis/goerliRaceABI');
-const goerliWheelsABI = require('./abis/goerliWheelsABI');
 
 describe("WWRace", function () {
     var p1address;
@@ -14,25 +12,10 @@ describe("WWRace", function () {
     var p1;
     var p2;
     var WheelsRace;
-    var goerliRace;
     var wheelsInstance;
-    // Generate a random private key
-    //0x24a87341149402922AEE8230e30324864Bd4f5C3
-    //61542046481300809449350218852237881182759362590482592350887904669406209867305
-    const p1pkey = "0x4ca9fa9d82c86267303de3dbeab29d66433850ececbcf2acc82a30618dd49320";
-
-    //0x3387B9eA13Bc6c97E11DC93650f753353A499Aca
-    //33984923448272799104450017303065461695744043458962660621372049648542077111162
-    const p2pkey = "0x71fc96cf1cc30404aea060459b940bebbe6807732e94d3ee7d04d830bf953437";
-    //const p1k = new ethers.utils.SigningKey(p1pkey);
-    //const p2k = new ethers.utils.SigningKey(p2pkey);
 
     const p1gid = "61542046481300809449350218852237881182759362590482592350887904669406209867305";
     const p2gid = "33984923448272799104450017303065461695744043458962660621372049648542077111162";
-
-    const goerliProvider = new ethers.providers.JsonRpcProvider("https://goerli.infura.io/v3/d18cedabbb184eacbb538718ffbbe100");
-    const p1g = new ethers.Wallet(p1pkey, goerliProvider);
-    const p2g = new ethers.Wallet(p2pkey, goerliProvider);
 
     const apiurl = "http://localhost:8181"; //http://54.196.218.144:3000/
 
@@ -48,12 +31,6 @@ describe("WWRace", function () {
             "name": "Wilder Wheels"
         });
         await wheelsInstance.deployed();
-
-        const gwaddress = "0x009A11617dF427319210e842D6B202f3831e0116";
-        goerliWheels = new ethers.Contract(gwaddress, goerliWheelsABI, goerliProvider);
-
-        const gaddress = "0xdC2E35268DcD06406d659D339290FD0c43A3143a";
-        goerliRace = new ethers.Contract(gaddress, goerliRaceABI, goerliProvider);
 
         [p1, p2] = await ethers.getSigners();
         p1address = p1.address;
@@ -564,11 +541,6 @@ describe("WWRace", function () {
         await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 7);
         await expect(WheelsRace.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 7)).to.be.revertedWith("WR: Token is soulbound");
     });
-
-    it("Goerli: p1 wheel unstaked", async function () {
-        await goerliWheels.connect(p1g).ownerOf("16182371156789264589045257455208882703455605296569376559339298298769691645037");
-    });
-
 
 
 

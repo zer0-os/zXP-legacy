@@ -176,6 +176,55 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
     }
 
     /**
+     * @dev Allows a player to remove a staked token in two steps.
+     * The player must wait for a delay period as long as the race expiration.
+     *
+     * Requirements:
+     * - The wheel token must not be currently locked.
+     *
+     * @param tokenId The wheel token
+     */
+    function requestUnstake(
+        uint tokenId
+    ) public isStakerOrOperator(msg.sender, tokenId) isUnlocked(tokenId) {
+        unstakeRequests[tokenId] = block.timestamp;
+    }
+
+    /**
+     * @dev Transfers the token back to the stakedBy address.
+     *
+     * Requirements:
+     * - There must be an unstakeRequest
+     * - The current time must be after the delay
+     *
+     * After successful execution:
+     * - The stakedBy state is deleted
+     * - The unstakeRequest time is deleted
+     * - The staked wheel token is burned
+     */
+    function performUnstake(
+        uint tokenId
+    ) public isStakerOrOperator(msg.sender, tokenId) {
+        require(unstakeRequests[tokenId] != 0, "No unstake request");
+        require(
+            block.timestamp >= unstakeRequests[tokenId] + expirePeriod,
+            "WR: Unstake delayed"
+        );
+
+        wheels.safeTransferFrom(address(this), msg.sender, tokenId);
+
+        delete stakedBy[tokenId];
+        delete unstakeRequests[tokenId];
+        _burn(tokenId);
+    }
+
+    function cancelUnstake(
+        uint tokenId
+    ) public isStakerOrOperator(msg.sender, tokenId) {
+        unstakeRequests[tokenId] = 0;
+    }
+
+    /**
      * @dev Allows a player to cancel a slip they may have signed, as long as the race has not started yet.
      *
      * Requirements:
@@ -247,59 +296,6 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
         _setTokenURI(tokenId, incomingTokenURI);
 
         return this.onERC721Received.selector;
-    }
-
-    /**
-     * @dev Allows a player to remove a staked token in two steps.
-     * The player must wait for a delay period as long as the race expiration.
-     *
-     * Requirements:
-     * - The wheel token must not be currently locked.
-     *
-     * @param tokenId The wheel token
-     */
-    function requestUnstake(
-        uint tokenId
-    ) public isStakerOrOperator(msg.sender, tokenId) {
-        require(
-            block.timestamp >= lockTime[tokenId] + expirePeriod,
-            "WR: Within lock period"
-        );
-        unstakeRequests[tokenId] = block.timestamp;
-    }
-
-    /**
-     * @dev Transfers the token back to the stakedBy address.
-     *
-     * Requirements:
-     * - There must be an unstakeRequest
-     * - The current time must be after the delay
-     *
-     * After successful execution:
-     * - The stakedBy state is deleted
-     * - The unstakeRequest time is deleted
-     * - The staked wheel token is burned
-     */
-    function performUnstake(
-        uint tokenId
-    ) public isStakerOrOperator(msg.sender, tokenId) {
-        require(unstakeRequests[tokenId] != 0, "No unstake request");
-        require(
-            block.timestamp >= unstakeRequests[tokenId] + expirePeriod,
-            "WR: Unstake delayed"
-        );
-
-        wheels.safeTransferFrom(address(this), msg.sender, tokenId);
-
-        delete stakedBy[tokenId];
-        delete unstakeRequests[tokenId];
-        _burn(tokenId);
-    }
-
-    function cancelUnstake(
-        uint tokenId
-    ) public isStakerOrOperator(msg.sender, tokenId) {
-        unstakeRequests[tokenId] = 0;
     }
 
     /** @notice
