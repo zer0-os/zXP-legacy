@@ -490,7 +490,7 @@ describe("zXP", function () {
       const baseMod = 3;
       const beastID = 1;
 
-      for (let level = 1; level < 20; level++) {
+      for (let level = 1; level < 99; level++) {
         let lto = "levels to " + (level + 1).toString();
         it(lto, async function () {
           await _zxp.levelUp(beastID);
@@ -675,7 +675,7 @@ describe("zXP", function () {
       }
     });*/
     describe("battle royale storm closing", function () {
-      const mapsize = 2;
+      const mapsize = 24;
       let numpass = [];
       for (let p = 0; p <= 100000; p += 10000) {
         let numPassable = 0;

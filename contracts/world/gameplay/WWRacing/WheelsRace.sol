@@ -298,7 +298,7 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
         return this.onERC721Received.selector;
     }
 
-    /** @notice
+    /**
      * @dev Errors if start conditions arent met.
      * This is a helper function for the offchain element of the game.
      * It should be called in the time window between (startTime - cancelBuffer) and startTime.
