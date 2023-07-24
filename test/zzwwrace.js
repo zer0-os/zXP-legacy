@@ -50,10 +50,10 @@ describe("WWRace", function () {
             RaceSlip: [
                 { name: 'player', type: 'address' },
                 { name: 'opponent', type: 'address' },
-                { name: 'raceId', type: 'uint256' },
-                { name: 'wheelId', type: 'uint256' },
-                { name: 'opponentWheelId', type: 'uint256' },
-                { name: 'raceStartTimestamp', type: 'uint256' },
+                { name: 'raceId', type: 'uint' },
+                { name: 'wheelId', type: 'uint' },
+                { name: 'opponentWheelId', type: 'uint' },
+                { name: 'raceStartTimestamp', type: 'uint' },
             ]
         }
     });
@@ -129,7 +129,7 @@ describe("WWRace", function () {
     });
 
     it("Should not allow canRace for a locked token", async function () {
-        await expect(WheelsRace.connect(p1).canRace(p1address, 4, p1address, 4)).to.be.revertedWith('WR: P1Wheel locked');
+        await expect(WheelsRace.connect(p1).canRace(p1address, 4, p1address, 4)).to.be.revertedWith('Locked');
     });
 
     it("Should not allow a player to claim win on a locked token", async function () {
