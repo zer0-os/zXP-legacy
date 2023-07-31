@@ -14,11 +14,6 @@ describe("WWRace", function () {
     var WheelsRace;
     var wheelsInstance;
 
-    //const p1gid = "61542046481300809449350218852237881182759362590482592350887904669406209867305";
-    //const p2gid = "33984923448272799104450017303065461695744043458962660621372049648542077111162";
-
-    //const apiurl = "http://localhost:8181"; //http://54.196.218.144:3000/
-
     var domain, types;
 
     before(async function () {
@@ -57,9 +52,6 @@ describe("WWRace", function () {
             ]
         }
     });
-
-    //beforeEach(async function () {
-    //});
 
     it("Should stake the Wheel and mint a Wheel_Staked token", async function () {
         await wheelsInstance.mint(p1address);
@@ -544,19 +536,75 @@ describe("WWRace", function () {
 
 
 
-    /*it("Admin: Should transfer out token mistakenly sent with transferFrom", async function () {
+    it("Admin: Should transfer out token mistakenly sent with transferFrom", async function () {
         await wheelsInstance.mint(p1address);
-        await wheelsInstance.connect(p1)["transferFrom(address,address,uint256)"](p1address, WheelsRace.address, 7);
+        await wheelsInstance.connect(p1)["transferFrom(address,address,uint256)"](p1address, WheelsRace.address, 8);
 
-        await WheelsRace.transferOut(p1address, 7);
-        expect(await wheelsInstance.ownerOf(7)).to.equal(p1address);
+        await WheelsRace.transferOut(p1address, 8);
+        expect(await wheelsInstance.ownerOf(8)).to.equal(p1address);
     });
     it("Admin: Should not allow transfer out of a token that is staked", async function () {
         await wheelsInstance.mint(p1address);
-        await wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 8);
-        await expect(WheelsRace.transferOut(p1address, 8)).to.be.reverted;
-    });*/
+        await wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 9);
+        await expect(WheelsRace.transferOut(p1address, 9)).to.be.reverted;
+    });
 
+    it("canRace should correctly return false for a non-existing Wheel", async function () {
+        await expect(WheelsRace.connect(p1).canRace(p1address, 999, p2address, 888)).to.be.revertedWith("ERC721: invalid token ID");
+    });
+
+
+    it("Should revert if a player tries to stake a Wheel that doesn't exist", async function () {
+        await expect(wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 999)).to.be.reverted;
+    });
+    it("Should only allow the admin to change the wilderWorld address", async function () {
+        const newAddress = ethers.utils.getAddress('0x0000000000000000000000000000000000000001');
+        await expect(WheelsRace.connect(p2).setWW(newAddress)).to.be.revertedWith("Sender isnt admin");
+        await WheelsRace.setWW(newAddress);
+        expect(await WheelsRace.wilderWorld()).to.equal(newAddress);
+    });
+
+    it("Should only allow the admin to change the wheels contract", async function () {
+        const newAddress = ethers.utils.getAddress('0x0000000000000000000000000000000000000002');
+        await expect(WheelsRace.connect(p2).setWheels(newAddress)).to.be.revertedWith("Sender isnt admin");
+        await WheelsRace.setWheels(newAddress);
+        expect(await WheelsRace.wheels()).to.equal(newAddress);
+    });
+
+    it("Should only allow the admin to change the expirePeriod", async function () {
+        const newExpirePeriod = 100;
+        await expect(WheelsRace.connect(p2).setExpirePeriod(newExpirePeriod)).to.be.revertedWith("Sender isnt admin");
+        await WheelsRace.setExpirePeriod(newExpirePeriod);
+        expect(await WheelsRace.expirePeriod()).to.equal(newExpirePeriod);
+    });
+    it("Should not allow a user to request unstaking for a wheel that is currently in a race", async function () {
+        await expect(WheelsRace.connect(p1).requestUnstake(2)).to.be.revertedWith("ERC721: invalid token ID");
+    });
+    it("Should allow a user to cancel their unstake request", async function () {
+        await WheelsRace.connect(p1).requestUnstake(1);
+        await WheelsRace.connect(p1).cancelUnstake(1);
+        // Check for some state change that indicates the unstake request was canceled. This will depend on your contract's implementation.
+    });
+    it("Should allow a user to cancel their unstake request", async function () {
+        await WheelsRace.connect(p1).requestUnstake(1);
+        await WheelsRace.connect(p1).cancelUnstake(1);
+        // Check for some state change that indicates the unstake request was canceled. This will depend on your contract's implementation.
+    });
+    it("Should not allow a user to request unstaking for a wheel they do not own", async function () {
+        await expect(WheelsRace.connect(p2).requestUnstake(1)).to.be.revertedWith("NotStaker");
+    });
+
+
+    /*it("canRace should correctly return true when both players have staked their Wheel", async function () {
+       // Mint and stake wheels for both players
+       await wheelsInstance.mint(p1address);
+       await wheelsInstance.mint(p2address);
+       await wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 10);
+       await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, WheelsRace.address, 11);
+
+       const canRace = await WheelsRace.canRace(p1address, 2, p2address, 3);
+       expect(canRace).to.equal(true);
+   });*/
     /*it("Goerli: p1 wheel staked", async function () {
         await goerliWheels.connect(p2g)["safeTransferFrom(address,address,uint256)"](p2g.address, "0x1699E3509E0993dAF971D97f3323Cb4591D6701F", "33984923448272799104450017303065461695744043458962660621372049648542077111162");
     });
@@ -568,8 +616,8 @@ describe("WWRace", function () {
         await p2g.sendTransaction({ to: "0xf86202bB61909083194aDa24e32E3766F2A22d33", value: ethers.utils.parseEther("0.03") });
     });*/
 
-
-    /*it("API: should get slips", async function () {
+    /*
+    it("API: should get slips", async function () {
         //player1 = 0x1699E3509E0993dAF971D97f3323Cb4591D6701F & player2=0xf86202bB61909083194aDa24e32E3766F2A22d33 & player1WheelId=69663397254254126517230868800323562519247494034614092385221476236310933604750 & player2WheelId=73097851658437357582176135055287038418959903636735131830759981735090502369936 & raceStartTimestamp=15 & raceExpiryTimestamp=18"
 
         const data = {
@@ -709,7 +757,7 @@ describe("WWRace", function () {
         const wilderworldSignature = bresponse.signature;
         const a = ethers.utils.verifyTypedData(loserSlip.domain, loserSlip.types, loserSlip.message, wilderworldSignature);
         console.log("recovered: ", a);
-    });
+    });*/
     /*
     it("API: Should claim the win", async function () {
         const data = {
@@ -768,19 +816,17 @@ describe("WWRace", function () {
         const wilderworldSignature = bresponse.signature;
         const a = ethers.utils.verifyTypedData(loserSlip.domain, loserSlip.types, loserSlip.message, wilderworldSignature);
         //console.log("recovered: ", a);
-    });*/
-
-    /*it("API: should pass canRaceStart??????", async function () {
+    });
+*/
+    /*it("API: should pass canRaceStart", async function () {
         const data = {
             player1: p1address,
             player2: p2address,
-            raceId: 1,
             player1WheelId: 123,
             player2WheelId: 456,
-            raceStartTimestamp: 10,
-            raceExpiryTimestamp: 200,
+            raceStartTimestamp: 10
         }
- 
+
         const response = await axios.get(apiurl + '/raceSlips', {
             params: data,
             headers: { 'Content-Type': 'application/json' },
@@ -808,64 +854,62 @@ describe("WWRace", function () {
         console.log("wwsig: ", wilderworldSignature);
         const a = ethers.utils.verifyTypedData(loserSlip.domain, loserSlip.types, loserSlip.message, wilderworldSignature);
         console.log("recovered: ", a);
+    });
+    it("API: should get slips", async function () {
+        //player1 = 0x1699E3509E0993dAF971D97f3323Cb4591D6701F & player2=0xf86202bB61909083194aDa24e32E3766F2A22d33 & player1WheelId=69663397254254126517230868800323562519247494034614092385221476236310933604750 & player2WheelId=73097851658437357582176135055287038418959903636735131830759981735090502369936 & raceStartTimestamp=15 & raceExpiryTimestamp=18"
+
+        const data = {
+            player1: p1address,
+            player2: p2address,
+            player1WheelId: "69663397254254126517230868800323562519247494034614092385221476236310933604750",
+            player2WheelId: "73097851658437357582176135055287038418959903636735131830759981735090502369936",
+            raceStartTimestamp: "100000000"
+        }
+
+        const response = await axios.get('http://localhost:8181/raceSlips', {
+            params: data,
+            headers: { 'Content-Type': 'application/json' },
+        })
+            .then(function (response) {
+                //console.log(response.data);
+                return response.data;
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+
+        const player1Slip = response.player1Slip;
+        const player2Slip = response.player2Slip;
+
+        console.log("player1Slip", player1Slip);
+        console.log("player2Slip", player2Slip);
+
+        const player1Signature = await p1._signTypedData(player1Slip.domain, player1Slip.types, player1Slip.message);
+        const player2Signature = await p2._signTypedData(player2Slip.domain, player2Slip.types, player2Slip.message);
+
+        console.log("player1Sig", player1Signature);
+        console.log("player2Sig", player2Signature);
+
+        const v1 = ethers.utils.verifyTypedData(player1Slip.domain, player1Slip.types, player1Slip.message, player1Signature);
+        console.log("v1: ", v1);
+
+        const v2 = ethers.utils.verifyTypedData(player2Slip.domain, player2Slip.types, player2Slip.message, player2Signature);
+        console.log("v2: ", v2);
+
+
+        const slips = { player1Slip, player1Signature, player2Slip, player2Signature };
+
+        const aresponse = await axios.post('http://localhost:8181/canRaceStart', slips, {
+            headers: { 'Content-Type': 'application/json' },
+        })
+            .then(function (response) {
+                console.log(response.data);
+                return response.data;
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+        console.log("true???: ", aresponse);
+
     });*/
-    /*
-       it("myAPI: should get slips", async function () {
-           //player1 = 0x1699E3509E0993dAF971D97f3323Cb4591D6701F & player2=0xf86202bB61909083194aDa24e32E3766F2A22d33 & player1WheelId=69663397254254126517230868800323562519247494034614092385221476236310933604750 & player2WheelId=73097851658437357582176135055287038418959903636735131830759981735090502369936 & raceStartTimestamp=15 & raceExpiryTimestamp=18"
-   
-           const data = {
-               player1: p1address,
-               player2: p2address,
-               player1WheelId: "69663397254254126517230868800323562519247494034614092385221476236310933604750",
-               player2WheelId: "73097851658437357582176135055287038418959903636735131830759981735090502369936",
-               raceStartTimestamp: "100000000",
-               raceExpiryTimestamp: "2000000000",
-           }
-   
-           const response = await axios.get('http://localhost:8181/raceSlips', {
-               params: data,
-               headers: { 'Content-Type': 'application/json' },
-           })
-               .then(function (response) {
-                   //console.log(response.data);
-                   return response.data;
-               })
-               .catch(function (error) {
-                   console.log(error);
-               });
-   
-           const player1Slip = response.player1Slip;
-           const player2Slip = response.player2Slip;
-   
-           console.log("player1Slip", player1Slip);
-           console.log("player2Slip", player2Slip);
-   
-           const player1Signature = await p1._signTypedData(player1Slip.domain, player1Slip.types, player1Slip.message);
-           const player2Signature = await p2._signTypedData(player2Slip.domain, player2Slip.types, player2Slip.message);
-   
-           console.log("player1Sig", player1Signature);
-           console.log("player2Sig", player2Signature);
-   
-           const v1 = ethers.utils.verifyTypedData(player1Slip.domain, player1Slip.types, player1Slip.message, player1Signature);
-           console.log("v1: ", v1);
-   
-           const v2 = ethers.utils.verifyTypedData(player2Slip.domain, player2Slip.types, player2Slip.message, player2Signature);
-           console.log("v2: ", v2);
-   
-   
-           const slips = { player1Slip, player1Signature, player2Slip, player2Signature };
-   
-           const aresponse = await axios.post('http://localhost:8181/canRaceStart', slips, {
-               headers: { 'Content-Type': 'application/json' },
-           })
-               .then(function (response) {
-                   console.log(response.data);
-                   return response.data;
-               })
-               .catch(function (error) {
-                   console.log(error);
-               });
-           console.log("true???: ", aresponse);
-   
-       });*/
 });

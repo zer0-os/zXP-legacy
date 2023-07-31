@@ -36,11 +36,11 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
     address private admin;
 
     /// Contract address of Wilder Wheels
-    IERC721 private wheels;
+    IERC721 public wheels;
 
     /// Length of time before races expire after their startTimestamp
     /// Also controls unstake delay period, making the races secure by disallowing unstaking during a race, as long as canRace is checked before.
-    uint private expirePeriod = 24 hours;
+    uint public expirePeriod = 24 hours;
 
     ///RaceIds that have been used
     mapping(uint => bool) private consumed;

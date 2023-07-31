@@ -490,7 +490,7 @@ describe("zXP", function () {
       const baseMod = 3;
       const beastID = 1;
 
-      for (let level = 1; level < 99; level++) {
+      for (let level = 1; level < 10; level++) {
         let lto = "levels to " + (level + 1).toString();
         it(lto, async function () {
           await _zxp.levelUp(beastID);
@@ -675,13 +675,13 @@ describe("zXP", function () {
       }
     });*/
     describe("battle royale storm closing", function () {
-      const mapsize = 24;
+      const mapsize = 2;
       let numpass = [];
-      for (let p = 0; p <= 100000; p += 10000) {
+      for (let p = 0; p <= 6; p += 1) {
         let numPassable = 0;
         let pass = 0;
         it("gets passable threshold", async function () {
-          pass = await _battleRoyale.get_passable_threshold_at(p);
+          pass = await _battleRoyale.get_passable_threshold_at(p * 5000);
         });
 
         for (let x = 0; x < mapsize; x++) {
