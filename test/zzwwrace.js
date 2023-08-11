@@ -15,7 +15,7 @@ describe("WWRace", function () {
     var wheelsInstance;
     var domain, types;
 
-    const apiurl = "localhost:8181"
+    const apiurl = "http://localhost:8181"
 
     before(async function () {
         const erc721wheelToken = await ethers.getContractFactory("ERC721TestToken");
@@ -46,10 +46,10 @@ describe("WWRace", function () {
             RaceSlip: [
                 { name: 'player', type: 'address' },
                 { name: 'opponent', type: 'address' },
-                { name: 'raceId', type: 'uint' },
-                { name: 'wheelId', type: 'uint' },
-                { name: 'opponentWheelId', type: 'uint' },
-                { name: 'raceStartTimestamp', type: 'uint' },
+                { name: 'raceId', type: 'uint256' },
+                { name: 'wheelId', type: 'uint256' },
+                { name: 'opponentWheelId', type: 'uint256' },
+                { name: 'raceStartTimestamp', type: 'uint256' },
             ]
         }
     });
@@ -854,7 +854,7 @@ describe("WWRace", function () {
             });
         const wilderworldSignature = aresponse.signature;
         console.log("wwsig: ", wilderworldSignature);
-        const a = ethers.utils.verifyTypedData(loserSlip.domain, loserSlip.types, loserSlip.message, wilderworldSignature);
+        const a = ethers.utils.verifyTypedData(loserSlip.domain, types, loserSlip.message, wilderworldSignature);
         console.log("recovered: ", a);
     });
     it("API: should get slips", async function () {
@@ -888,16 +888,6 @@ describe("WWRace", function () {
 
         const player1Signature = await p1._signTypedData(player1Slip.domain, types, player1Slip.message);
         const player2Signature = await p2._signTypedData(player2Slip.domain, types, player2Slip.message);
-
-        console.log("player1Sig", player1Signature);
-        console.log("player2Sig", player2Signature);
-
-        const v1 = ethers.utils.verifyTypedData(player1Slip.domain, types, player1Slip.message, player1Signature);
-        console.log("v1: ", v1);
-
-        const v2 = ethers.utils.verifyTypedData(player2Slip.domain, types, player2Slip.message, player2Signature);
-        console.log("v2: ", v2);
-
 
         const slips = { player1Slip, player1Signature, player2Slip, player2Signature };
 

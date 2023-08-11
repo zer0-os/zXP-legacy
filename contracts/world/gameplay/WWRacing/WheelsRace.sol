@@ -17,16 +17,16 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
     struct RaceSlip {
         address player;
         address opponent;
-        uint raceId;
-        uint wheelId;
-        uint opponentWheelId;
-        uint raceStartTimestamp;
+        uint256 raceId;
+        uint256 wheelId;
+        uint256 opponentWheelId;
+        uint256 raceStartTimestamp;
     }
 
     /// The EIP-712 domain separators
     bytes32 private constant RACE_SLIP_TYPEHASH =
         keccak256(
-            "RaceSlip(address player,address opponent,uint raceId,uint wheelId,uint opponentWheelId,uint raceStartTimestamp)"
+            "RaceSlip(address player,address opponent,uint256 raceId,uint256 wheelId,uint256 opponentWheelId,uint256 raceStartTimestamp)"
         );
 
     /// Wallet address of wilder world used to sign losing opponents race slip
@@ -40,26 +40,26 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
 
     /// Length of time before races expire after their startTimestamp
     /// Also controls unstake delay period, making the races secure by disallowing unstaking during a race, as long as canRace is checked before.
-    uint public expirePeriod = 24 hours;
+    uint256 public expirePeriod = 24 hours;
 
     ///RaceIds that have been used
-    mapping(uint => bool) private consumed;
+    mapping(uint256 => bool) private consumed;
 
     /// Mapping from tokenId to holder address
-    mapping(uint => address) public stakedBy;
+    mapping(uint256 => address) public stakedBy;
 
     /// Mapping from slip hash to canceled status
     mapping(bytes32 => bool) private canceled;
-    uint private cancelBuffer;
+    uint256 private cancelBuffer;
 
     /// Mapping from wheelId to time locked after win claim
-    mapping(uint => uint) lockTime;
+    mapping(uint256 => uint256) lockTime;
     //uint private lockPeriod = 24 hours;
 
     /// Mapping from tokenId to unstake request time
-    mapping(uint => uint) private unstakeRequests;
+    mapping(uint256 => uint256) private unstakeRequests;
 
-    modifier isStakerOrOperator(address stakerOperator, uint tokenId) {
+    modifier isStakerOrOperator(address stakerOperator, uint256 tokenId) {
         if (
             stakedBy[tokenId] != stakerOperator &&
             getApproved(tokenId) != stakerOperator
@@ -185,7 +185,7 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
      * @param tokenId The wheel token
      */
     function requestUnstake(
-        uint tokenId
+        uint256 tokenId
     ) public isStakerOrOperator(msg.sender, tokenId) isUnlocked(tokenId) {
         unstakeRequests[tokenId] = block.timestamp;
     }
@@ -203,7 +203,7 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
      * - The staked wheel token is burned
      */
     function performUnstake(
-        uint tokenId
+        uint256 tokenId
     ) public isStakerOrOperator(msg.sender, tokenId) {
         require(unstakeRequests[tokenId] != 0, "No unstake request");
         require(
@@ -219,7 +219,7 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
     }
 
     function cancelUnstake(
-        uint tokenId
+        uint256 tokenId
     ) public isStakerOrOperator(msg.sender, tokenId) {
         unstakeRequests[tokenId] = 0;
     }
@@ -279,7 +279,7 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
     function onERC721Received(
         address,
         address from,
-        uint tokenId,
+        uint256 tokenId,
         bytes calldata
     ) public override returns (bytes4) {
         require(msg.sender == address(wheels), "NFT isnt Wilder Wheel");
@@ -309,9 +309,9 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
      */
     function canRace(
         address p1,
-        uint p1TokenId,
+        uint256 p1TokenId,
         address p2,
-        uint p2TokenId
+        uint256 p2TokenId
     )
         public
         view
@@ -345,19 +345,19 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
         wheels = newWheels;
     }
 
-    function setExpirePeriod(uint newLock) public onlyAdmin {
+    function setExpirePeriod(uint256 newLock) public onlyAdmin {
         require(newLock != 0, "WR: missing newLock");
         expirePeriod = newLock;
     }
 
     ///Ability to return NFTs mistakenly sent with transferFrom instead of safeTransferFrom
-    function transferOut(address to, uint tokenId) public onlyAdmin {
+    function transferOut(address to, uint256 tokenId) public onlyAdmin {
         require(stakedBy[tokenId] == address(0));
         wheels.safeTransferFrom(address(this), to, tokenId);
     }
 
     ///Ability to 'undo' a race by removing a locked nft
-    function transferLocked(address to, uint tokenId) public onlyAdmin {
+    function transferLocked(address to, uint256 tokenId) public onlyAdmin {
         require(block.timestamp >= lockTime[tokenId], "WR: token not locked");
         require(
             block.timestamp < lockTime[tokenId] + expirePeriod,
@@ -366,17 +366,17 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
         wheels.safeTransferFrom(address(this), to, tokenId);
     }
 
-    function cancelRace(uint raceId) public onlyAdmin {
+    function cancelRace(uint256 raceId) public onlyAdmin {
         consumed[raceId] = true;
     }
 
     // Overriding transfer functions
-    function transferFrom(address, address, uint) public pure override {
+    function transferFrom(address, address, uint256) public pure override {
         require(false, "WR: Token is soulbound");
     }
 
     // Overriding transfer function
-    function safeTransferFrom(address, address, uint) public pure override {
+    function safeTransferFrom(address, address, uint256) public pure override {
         require(false, "WR: Token is soulbound");
     }
 }
