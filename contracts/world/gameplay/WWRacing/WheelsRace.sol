@@ -12,6 +12,7 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
     error NotStaker(address player, uint256 tokenId, address stakedBy);
     error Unstaking(uint256 tokenId, uint256 unstakeTime);
     error Locked(uint256 tokenId, uint256 lockTime);
+    error NotAdmin(address sender);
 
     /// The EIP-712 type definitions
     struct RaceSlip {
@@ -84,7 +85,9 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
     }
 
     modifier onlyAdmin() {
-        require(admin == msg.sender, "Sender isnt admin");
+        if (msg.sender != admin) {
+            revert NotAdmin(msg.sender);
+        }
         _;
     }
 
@@ -300,7 +303,7 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
 
     /**
      * @dev Errors if start conditions arent met.
-     * This is a helper function for the offchain element of the game.
+     * This is a helper function for the offchain element.
      * It should be called in the time window between (startTime - cancelBuffer) and startTime.
      * @param p1 Player 1 address
      * @param p1TokenId Player 1 Wheel Token ID
@@ -324,9 +327,6 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
         return true;
     }
 
-    /**
-     *
-     */
     function _recoverSigner(
         bytes32 hash,
         bytes calldata signature
@@ -338,11 +338,6 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
     function setWW(address newAdmin) public onlyAdmin {
         require(newAdmin != address(0), "WR: missing newAdmin");
         wilderWorld = newAdmin;
-    }
-
-    function setWheels(IERC721 newWheels) public onlyAdmin {
-        require(address(newWheels) != address(0), "WR: missing newWheels");
-        wheels = newWheels;
     }
 
     function setExpirePeriod(uint256 newLock) public onlyAdmin {
@@ -368,6 +363,10 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
 
     function cancelRace(uint256 raceId) public onlyAdmin {
         consumed[raceId] = true;
+    }
+
+    function unCancelRace(uint256 raceId) public onlyAdmin {
+        consumed[raceId] = false;
     }
 
     // Overriding transfer functions
