@@ -63,7 +63,7 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
     modifier isStakerOrOperator(address stakerOperator, uint256 tokenId) {
         if (
             stakedBy[tokenId] != stakerOperator &&
-            getApproved(tokenId) != stakerOperator
+            wheels.getApproved(tokenId) != stakerOperator
         ) {
             revert NotStaker(stakerOperator, tokenId, stakedBy[tokenId]);
         }
