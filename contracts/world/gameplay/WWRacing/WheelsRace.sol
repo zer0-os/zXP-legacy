@@ -2,18 +2,11 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "./WheelStaker.sol";
 
-contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
-    error NotStaker(address player, uint256 tokenId, address stakedBy);
-    error Unstaking(uint256 tokenId, uint256 unstakeTime);
-    error Locked(uint256 tokenId, uint256 lockTime);
-    error NotAdmin(address sender);
-
+contract WheelsRace is EIP712 {
     /// The EIP-712 type definitions
     struct RaceSlip {
         address player;
@@ -34,10 +27,7 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
     address public wilderWorld;
 
     /// Admin
-    address private admin;
-
-    /// Contract address of Wilder Wheels
-    IERC721 public wheels;
+    address public admin;
 
     /// Length of time before races expire after their startTimestamp
     /// Also controls unstake delay period, making the races secure by disallowing unstaking during a race, as long as canRace is checked before.
@@ -46,43 +36,9 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
     ///RaceIds that have been used
     mapping(uint256 => bool) private consumed;
 
-    /// Mapping from tokenId to holder address
-    mapping(uint256 => address) public stakedBy;
-
     /// Mapping from slip hash to canceled status
     mapping(bytes32 => bool) private canceled;
     uint256 private cancelBuffer;
-
-    /// Mapping from wheelId to time locked after win claim
-    mapping(uint256 => uint256) lockTime;
-    //uint private lockPeriod = 24 hours;
-
-    /// Mapping from tokenId to unstake request time
-    mapping(uint256 => uint256) private unstakeRequests;
-
-    modifier isStakerOrOperator(address stakerOperator, uint256 tokenId) {
-        if (
-            stakedBy[tokenId] != stakerOperator &&
-            wheels.getApproved(tokenId) != stakerOperator
-        ) {
-            revert NotStaker(stakerOperator, tokenId, stakedBy[tokenId]);
-        }
-        _;
-    }
-
-    modifier isStaked(uint256 tokenId) {
-        if (unstakeRequests[tokenId] != 0) {
-            revert Unstaking(tokenId, unstakeRequests[tokenId]);
-        }
-        _;
-    }
-
-    modifier isUnlocked(uint256 tokenId) {
-        if (block.timestamp <= lockTime[tokenId] + expirePeriod) {
-            revert Locked(tokenId, lockTime[tokenId]);
-        }
-        _;
-    }
 
     modifier onlyAdmin() {
         if (msg.sender != admin) {
@@ -96,11 +52,9 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
         string memory version,
         string memory tokenName,
         string memory tokenSymbol,
-        address _wilderWorld,
-        IERC721 _wheels
-    ) EIP712(name, version) ERC721(tokenName, tokenSymbol) {
+        address _wilderWorld
+    ) EIP712(name, version) {
         wilderWorld = _wilderWorld;
-        wheels = _wheels;
         admin = msg.sender;
     }
 
@@ -176,55 +130,6 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
         lockTime[opponentSlip.wheelId] = block.timestamp;
         ///Transfer wheel_staked
         _transfer(opponentSlip.player, msg.sender, opponentSlip.wheelId);
-    }
-
-    /**
-     * @dev Allows a player to remove a staked token in two steps.
-     * The player must wait for a delay period as long as the race expiration.
-     *
-     * Requirements:
-     * - The wheel token must not be currently locked.
-     *
-     * @param tokenId The wheel token
-     */
-    function requestUnstake(
-        uint256 tokenId
-    ) public isStakerOrOperator(msg.sender, tokenId) isUnlocked(tokenId) {
-        unstakeRequests[tokenId] = block.timestamp;
-    }
-
-    /**
-     * @dev Transfers the token back to the stakedBy address.
-     *
-     * Requirements:
-     * - There must be an unstakeRequest
-     * - The current time must be after the delay
-     *
-     * After successful execution:
-     * - The stakedBy state is deleted
-     * - The unstakeRequest time is deleted
-     * - The staked wheel token is burned
-     */
-    function performUnstake(
-        uint256 tokenId
-    ) public isStakerOrOperator(msg.sender, tokenId) {
-        require(unstakeRequests[tokenId] != 0, "No unstake request");
-        require(
-            block.timestamp >= unstakeRequests[tokenId] + expirePeriod,
-            "WR: Unstake delayed"
-        );
-
-        wheels.safeTransferFrom(address(this), msg.sender, tokenId);
-
-        delete stakedBy[tokenId];
-        delete unstakeRequests[tokenId];
-        _burn(tokenId);
-    }
-
-    function cancelUnstake(
-        uint256 tokenId
-    ) public isStakerOrOperator(msg.sender, tokenId) {
-        unstakeRequests[tokenId] = 0;
     }
 
     /**
@@ -367,15 +272,5 @@ contract WheelsRace is ERC721URIStorage, EIP712, IERC721Receiver {
 
     function unCancelRace(uint256 raceId) public onlyAdmin {
         consumed[raceId] = false;
-    }
-
-    // Overriding transfer functions
-    function transferFrom(address, address, uint256) public pure override {
-        require(false, "WR: Token is soulbound");
-    }
-
-    // Overriding transfer function
-    function safeTransferFrom(address, address, uint256) public pure override {
-        require(false, "WR: Token is soulbound");
     }
 }
