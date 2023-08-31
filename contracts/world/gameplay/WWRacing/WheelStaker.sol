@@ -4,7 +4,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 
-contract WheelStaker is ERC721URIStorage, IERC721Receiver {
+contract StakedWheel is ERC721URIStorage, IERC721Receiver {
     error NotStaker(address player, uint256 tokenId, address stakedBy);
     error Unstaking(uint256 tokenId, uint256 unstakeTime);
     error Locked(uint256 tokenId, uint256 lockTime);
@@ -18,6 +18,9 @@ contract WheelStaker is ERC721URIStorage, IERC721Receiver {
 
     /// Wheel Stake manager
     address public wheelStaker;
+
+    /// Time that must be waited after an unstakeRequest
+    uint256 private expirePeriod;
 
     /// Mapping from tokenId to holder address
     mapping(uint256 => address) public stakedBy;
@@ -34,10 +37,12 @@ contract WheelStaker is ERC721URIStorage, IERC721Receiver {
         string memory tokenName,
         string memory tokenSymbol,
         address _wilderWorld,
-        IERC721 _wheels
+        IERC721 _wheels,
+        uint256 _expirePeriod
     ) ERC721(tokenName, tokenSymbol) {
         wheels = _wheels;
         admin = msg.sender;
+        expirePeriod = _expirePeriod;
     }
 
     modifier isStakerOrOperator(address stakerOperator, uint256 tokenId) {

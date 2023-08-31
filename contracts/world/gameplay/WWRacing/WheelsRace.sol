@@ -50,8 +50,6 @@ contract WheelsRace is EIP712 {
     constructor(
         string memory name,
         string memory version,
-        string memory tokenName,
-        string memory tokenSymbol,
         address _wilderWorld
     ) EIP712(name, version) {
         wilderWorld = _wilderWorld;
