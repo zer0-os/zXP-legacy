@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "./WheelStaker.sol";
+import "./StakedWheel.sol";
 
 contract WheelsRace is EIP712 {
     /// The EIP-712 type definitions

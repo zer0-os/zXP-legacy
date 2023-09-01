@@ -32,11 +32,8 @@ contract StakedWheel is ERC721URIStorage, IERC721Receiver {
     mapping(uint256 => uint256) lockTime;
 
     constructor(
-        string memory name,
-        string memory version,
         string memory tokenName,
         string memory tokenSymbol,
-        address _wilderWorld,
         IERC721 _wheels,
         uint256 _expirePeriod
     ) ERC721(tokenName, tokenSymbol) {
