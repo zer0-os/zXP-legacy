@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "./StakedWheel.sol";
 
 contract WheelsRace is EIP712 {
+    error NotAdmin(address sender);
     /// The EIP-712 type definitions
     struct RaceSlip {
         address player;
@@ -25,6 +26,8 @@ contract WheelsRace is EIP712 {
 
     /// Wallet address of wilder world used to sign losing opponents race slip
     address public wilderWorld;
+
+    StakedWheel stakedWheels;
 
     /// Admin
     address public admin;
@@ -50,10 +53,14 @@ contract WheelsRace is EIP712 {
     constructor(
         string memory name,
         string memory version,
-        address _wilderWorld
+        address _admin,
+        address _wilderWorld,
+        StakedWheel _stakedWheels
     ) EIP712(name, version) {
-        wilderWorld = _wilderWorld;
-        admin = msg.sender;
+        stakedWheels = _stakedWheels;
+        admin = _admin;
+        wilderWorld = _stakedWheels.wilderWorld();
+        expirePeriod = _stakedWheels.expirePeriod();
     }
 
     /**
@@ -104,19 +111,20 @@ contract WheelsRace is EIP712 {
         );
         require(!canceled[hash], "WR: Slip Canceled");
         require(
-            block.timestamp >= lockTime[opponentSlip.wheelId] + expirePeriod,
+            block.timestamp >=
+                stakedWheels.lockTime(opponentSlip.wheelId) + expirePeriod,
             "WR: Within lock period"
         );
         require(
             msg.sender == opponentSlip.opponent,
-            "WR: Sender isnt opponent"
+            "WR: Sender isnt opponentSlip.opponent"
         );
         require(
-            msg.sender == stakedBy[opponentSlip.opponentWheelId],
+            msg.sender == stakedWheels.stakedBy(opponentSlip.opponentWheelId),
             "WR: Player wheel unstaked"
         );
         require(
-            stakedBy[opponentSlip.wheelId] == opponentSlip.player,
+            stakedWheels.stakedBy(opponentSlip.wheelId) == opponentSlip.player,
             "WR: Opponent wheel unstaked"
         );
         require(!consumed[opponentSlip.raceId], "WR: RaceId used");
@@ -124,10 +132,14 @@ contract WheelsRace is EIP712 {
         ///Consume raceID
         consumed[opponentSlip.raceId] = true;
         ///Set state for wheel
-        stakedBy[opponentSlip.wheelId] = msg.sender;
-        lockTime[opponentSlip.wheelId] = block.timestamp;
+        stakedWheels.stakedBy(opponentSlip.wheelId) = msg.sender;
+        stakedWheels.lockTime(opponentSlip.wheelId) = block.timestamp;
         ///Transfer wheel_staked
-        _transfer(opponentSlip.player, msg.sender, opponentSlip.wheelId);
+        stakedWheels._transfer(
+            opponentSlip.player,
+            msg.sender,
+            opponentSlip.wheelId
+        );
     }
 
     /**
@@ -178,33 +190,6 @@ contract WheelsRace is EIP712 {
     }
 
     /**
-     * @dev Fails if the transferred token is not a Wilder Wheel NFT
-     * @param from The players EOA
-     * @param tokenId  The wheel token
-     */
-    function onERC721Received(
-        address,
-        address from,
-        uint256 tokenId,
-        bytes calldata
-    ) public override returns (bytes4) {
-        require(msg.sender == address(wheels), "NFT isnt Wilder Wheel");
-        stakedBy[tokenId] = from;
-        unstakeRequests[tokenId] = 0;
-
-        IERC721Metadata token = IERC721Metadata(msg.sender);
-
-        // Get the tokenURI of the incoming token
-        string memory incomingTokenURI = token.tokenURI(tokenId);
-
-        // Mint a new token with the same tokenId and tokenURI
-        _mint(from, tokenId);
-        _setTokenURI(tokenId, incomingTokenURI);
-
-        return this.onERC721Received.selector;
-    }
-
-    /**
      * @dev Errors if start conditions arent met.
      * This is a helper function for the offchain element.
      * It should be called in the time window between (startTime - cancelBuffer) and startTime.
@@ -218,16 +203,12 @@ contract WheelsRace is EIP712 {
         uint256 p1TokenId,
         address p2,
         uint256 p2TokenId
-    )
-        public
-        view
-        isStakerOrOperator(p1, p1TokenId)
-        isStakerOrOperator(p2, p2TokenId)
-        isUnlocked(p1TokenId)
-        isUnlocked(p2TokenId)
-        returns (bool)
-    {
-        return true;
+    ) public view returns (bool) {
+        return
+            stakedWheels.isStakerOrOperator(p1, p1TokenId) &&
+            stakedWheels.isStakerOrOperator(p2, p2TokenId) &&
+            stakedWheels.isUnlocked(p1TokenId) &&
+            stakedWheels.isUnlocked(p2TokenId);
     }
 
     function _recoverSigner(
@@ -235,33 +216,6 @@ contract WheelsRace is EIP712 {
         bytes calldata signature
     ) private pure returns (address) {
         return ECDSA.recover(hash, signature);
-    }
-
-    ///To turn off claimWin, set this to a burn address other than 0
-    function setWW(address newAdmin) public onlyAdmin {
-        require(newAdmin != address(0), "WR: missing newAdmin");
-        wilderWorld = newAdmin;
-    }
-
-    function setExpirePeriod(uint256 newLock) public onlyAdmin {
-        require(newLock != 0, "WR: missing newLock");
-        expirePeriod = newLock;
-    }
-
-    ///Ability to return NFTs mistakenly sent with transferFrom instead of safeTransferFrom
-    function transferOut(address to, uint256 tokenId) public onlyAdmin {
-        require(stakedBy[tokenId] == address(0));
-        wheels.safeTransferFrom(address(this), to, tokenId);
-    }
-
-    ///Ability to 'undo' a race by removing a locked nft
-    function transferLocked(address to, uint256 tokenId) public onlyAdmin {
-        require(block.timestamp >= lockTime[tokenId], "WR: token not locked");
-        require(
-            block.timestamp < lockTime[tokenId] + expirePeriod,
-            "WR: token unlocked"
-        );
-        wheels.safeTransferFrom(address(this), to, tokenId);
     }
 
     function cancelRace(uint256 raceId) public onlyAdmin {
