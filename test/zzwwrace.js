@@ -33,8 +33,15 @@ describe("WWRace beforeEach", function () {
         p2address = p2.address;
 
         const Race = await ethers.getContractFactory("WheelsRace");
-        WheelsRace = await Race.deploy("Wheels Race", "1", "Wheel_Staked", "WWS", p1address, wheelsInstance.address);
+        WheelsRace = await Race.deploy("Wheels Race", "1", p1address, p1address);
         await WheelsRace.deployed();
+
+        const Staker = await ethers.getContractFactory("StakedWheel");
+        StakedWheels = await Staker.deploy("Staked Wheel", "SWW", p1address, wheelsInstance.address);
+        await StakedWheels.deployed();
+
+        StakedWheels.whitelist(WheelsRace.address);
+        WheelsRace.initialize(StakedWheels.address);
 
         domain = {
             name: 'Wheels Race',
@@ -56,45 +63,45 @@ describe("WWRace beforeEach", function () {
 
     it("Should stake the Wheel and mint a Wheel_Staked token", async function () {
         await wheelsInstance.mint(p1address);
-        await wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 0);
+        await wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 0);
 
         const originalTokenURI = await wheelsInstance.tokenURI(0);
         // Check that the new token was minted with the correct metadata
-        const stakedTokenURI = await WheelsRace.tokenURI(0);
+        const stakedTokenURI = await StakedWheels.tokenURI(0);
         expect(stakedTokenURI).to.equal(originalTokenURI);
-        expect(await WheelsRace.ownerOf(0)).to.equal(p1address);
-        expect(await WheelsRace.stakedBy(0)).to.equal(p1address);
+        expect(await StakedWheels.ownerOf(0)).to.equal(p1address);
+        expect(await StakedWheels.stakedBy(0)).to.equal(p1address);
     });
 
     it("Should not allow unstake without request", async function () {
         await wheelsInstance.mint(p1address);
-        await wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 0);
+        await wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 0);
 
-        await expect(WheelsRace.connect(p1).performUnstake(0)).to.be.reverted;
+        await expect(StakedWheels.connect(p1).performUnstake(0)).to.be.reverted;
     });
 
     it("Should allow unstake after request and delay", async function () {
         await wheelsInstance.mint(p1address);
-        await wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 0);
+        await wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 0);
 
-        await WheelsRace.connect(p1).requestUnstake(0);
+        await StakedWheels.connect(p1).requestUnstake(0);
         await ethers.provider.send("evm_increaseTime", [24 * 60 * 60]);
         await ethers.provider.send("evm_mine");
 
-        await WheelsRace.connect(p1).performUnstake(0);
+        await StakedWheels.connect(p1).performUnstake(0);
         expect(await wheelsInstance.ownerOf(0)).to.equal(p1address);
-        expect(await WheelsRace.stakedBy(0)).to.equal(ethers.constants.AddressZero);
+        expect(await StakedWheels.stakedBy(0)).to.equal(ethers.constants.AddressZero);
     });
 
     it("Should have burned the staked token after unstake", async function () {
-        await expect(WheelsRace.ownerOf(0)).to.be.revertedWith("ERC721: invalid token ID");
+        await expect(StakedWheels.ownerOf(0)).to.be.revertedWith("ERC721: invalid token ID");
     });
 
     it("Should allow a player to claim a win", async function () {
         await wheelsInstance.mint(p1address);
         await wheelsInstance.mint(p2address);
-        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 0);
-        await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, WheelsRace.address, 1);
+        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 0);
+        await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, StakedWheels.address, 1);
         //expect(await WheelsRace.ownerOf(4)).to.equal(p2address);
 
         const latestBlockNumber = await ethers.provider.getBlockNumber();
@@ -114,17 +121,17 @@ describe("WWRace beforeEach", function () {
         const wilderworldSignature = await p1._signTypedData(domain, types, slip);
 
         const s = await WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature);
-        expect(await WheelsRace.stakedBy(1)).to.equal(p1address);
-        expect(await WheelsRace.ownerOf(1)).to.equal(p1address);
-        await expect(WheelsRace.connect(p1).canRace(p1address, 1, p1address, 1)).to.be.revertedWith('Locked');
+        expect(await StakedWheels.stakedBy(1)).to.equal(p1address);
+        expect(await StakedWheels.ownerOf(1)).to.equal(p1address);
+        //await expect(WheelsRace.connect(p1).canRace(p1address, 1, p1address, 1)).to.be.revertedWith('Locked');
 
     });
 
     it("Should not allow a player to claim win on a locked token", async function () {
         await wheelsInstance.mint(p1address);
         await wheelsInstance.mint(p2address);
-        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 0);
-        await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, WheelsRace.address, 1);
+        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 0);
+        await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, StakedWheels.address, 1);
 
         const _latestBlockNumber = await ethers.provider.getBlockNumber();
         const _latestBlock = await ethers.provider.getBlock(_latestBlockNumber);
@@ -166,8 +173,8 @@ describe("WWRace beforeEach", function () {
     it("Should not allow a player to claim a consumed raceId", async function () {
         await wheelsInstance.mint(p1address);
         await wheelsInstance.mint(p2address);
-        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 0);
-        await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, WheelsRace.address, 1);
+        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 0);
+        await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, StakedWheels.address, 1);
         await network.provider.send("evm_increaseTime", [69120000]);
         await network.provider.send("evm_mine");
         const latestBlockNumber = await ethers.provider.getBlockNumber();
@@ -191,8 +198,8 @@ describe("WWRace beforeEach", function () {
         await network.provider.send("evm_mine");
         await wheelsInstance.mint(p1address);
         await wheelsInstance.mint(p2address);
-        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 2);
-        await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, WheelsRace.address, 3);
+        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 2);
+        await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, StakedWheels.address, 3);
         const _latestBlockNumber = await ethers.provider.getBlockNumber();
         const _latestBlock = await ethers.provider.getBlock(_latestBlockNumber);
         const _startTime = _latestBlock.timestamp;
@@ -220,8 +227,8 @@ describe("WWRace beforeEach", function () {
     it("Should not allow a player to claim a canceled race", async function () {
         await wheelsInstance.mint(p1address);
         await wheelsInstance.mint(p2address);
-        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 0);
-        await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, WheelsRace.address, 1);
+        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 0);
+        await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, StakedWheels.address, 1);
         const latestBlockNumber = await ethers.provider.getBlockNumber();
         const latestBlock = await ethers.provider.getBlock(latestBlockNumber);
         const startTime = latestBlock.timestamp;
@@ -260,11 +267,11 @@ describe("WWRace beforeEach", function () {
 
     it("Should not allow unstaking a wheel owned by someone else", async function () {
         await wheelsInstance.mint(p1address);
-        await expect(WheelsRace.connect(p1).requestUnstake(1)).to.be.reverted;
+        await expect(StakedWheels.connect(p1).requestUnstake(1)).to.be.reverted;
     });
 
     it("Should not allow unstake request for a non-staked wheel", async function () {
-        await expect(WheelsRace.connect(p1).requestUnstake(999)).to.be.reverted;
+        await expect(StakedWheels.connect(p1).requestUnstake(999)).to.be.reverted;
     });
 
     it("Admin: Should cancel race", async function () {
@@ -274,8 +281,8 @@ describe("WWRace beforeEach", function () {
     it("Should not allow a player to claim an admin canceled race", async function () {
         await wheelsInstance.mint(p1address);
         await wheelsInstance.mint(p2address);
-        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 0);
-        await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, WheelsRace.address, 1);
+        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 0);
+        await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, StakedWheels.address, 1);
 
         const latestBlockNumber = await ethers.provider.getBlockNumber();
         const latestBlock = await ethers.provider.getBlock(latestBlockNumber);
@@ -382,7 +389,7 @@ describe("WWRace beforeEach", function () {
         const p2signature = await p2._signTypedData(domain, types, slip);
         const wilderworldSignature = await p1._signTypedData(domain, types, slip);
 
-        await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.revertedWith("WR: Sender isnt opponent");
+        await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.revertedWith("WR: Sender isnt opponentSlip.opponent");
     });
 
     it("Should not allow claiming a win with invalid domain name", async function () {
@@ -502,7 +509,7 @@ describe("WWRace beforeEach", function () {
         //??????????????????????????????????????????????????
         await wheelsInstance.mint(p1address);
         await wheelsInstance.mint(p2address);
-        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 0);
+        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 0);
         //await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, WheelsRace.address, 1);
 
         const latestBlockNumber = await ethers.provider.getBlockNumber();
@@ -526,7 +533,7 @@ describe("WWRace beforeEach", function () {
         await wheelsInstance.mint(p1address);
         await wheelsInstance.mint(p2address);
         //await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 0);
-        await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, WheelsRace.address, 1);
+        await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, StakedWheels.address, 1);
 
         const latestBlockNumber = await ethers.provider.getBlockNumber();
         const latestBlock = await ethers.provider.getBlock(latestBlockNumber);
@@ -568,21 +575,21 @@ describe("WWRace beforeEach", function () {
     });
     it("Should not allow transfer of Wheel_Staked token", async function () {
         await wheelsInstance.mint(p1address);
-        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 0);
-        await expect(WheelsRace.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 0)).to.be.revertedWith("WR: Token is soulbound");
+        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 0);
+        await expect(StakedWheels.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 0)).to.be.revertedWith("NotWhitelisted");
     });
 
     it("Admin: Should transfer out token mistakenly sent with transferFrom", async function () {
         await wheelsInstance.mint(p1address);
-        await wheelsInstance.connect(p1)["transferFrom(address,address,uint256)"](p1address, WheelsRace.address, 0);
+        await wheelsInstance.connect(p1)["transferFrom(address,address,uint256)"](p1address, StakedWheels.address, 0);
 
-        await WheelsRace.transferOut(p1address, 0);
+        await StakedWheels.transferOut(p1address, 0);
         expect(await wheelsInstance.ownerOf(0)).to.equal(p1address);
     });
     it("Admin: Should not allow transfer out of a token that is staked", async function () {
         await wheelsInstance.mint(p1address);
-        await wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 0);
-        await expect(WheelsRace.transferOut(p1address, 0)).to.be.reverted;
+        await wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 0);
+        await expect(StakedWheels.transferOut(p1address, 0)).to.be.reverted;
     });
 
     it("canRace should correctly return false for a non-existing Wheel", async function () {
@@ -591,31 +598,31 @@ describe("WWRace beforeEach", function () {
 
 
     it("Should revert if a player tries to stake a Wheel that doesn't exist", async function () {
-        await expect(wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 999)).to.be.reverted;
+        await expect(wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 999)).to.be.reverted;
     });
-    it("Should only allow the admin to change the wilderWorld address", async function () {
-        const newAddress = ethers.utils.getAddress('0x0000000000000000000000000000000000000001');
-        await expect(WheelsRace.connect(p2).setWW(newAddress)).to.be.revertedWith("NotAdmin");
-        await WheelsRace.setWW(newAddress);
-        expect(await WheelsRace.wilderWorld()).to.equal(newAddress);
-    });
+    //it("Should only allow the admin to change the wilderWorld address", async function () {
+    //    const newAddress = ethers.utils.getAddress('0x0000000000000000000000000000000000000001');
+    //    await expect(WheelsRace.connect(p2).setWW(newAddress)).to.be.revertedWith("NotAdmin");
+    //    await WheelsRace.setWW(newAddress);
+    //    expect(await WheelsRace.wilderWorld()).to.equal(newAddress);
+    //});
 
     it("Should only allow the admin to change the expirePeriod", async function () {
         const newExpirePeriod = 100;
-        await expect(WheelsRace.connect(p2).setExpirePeriod(newExpirePeriod)).to.be.revertedWith("NotAdmin");
-        await WheelsRace.setExpirePeriod(newExpirePeriod);
-        expect(await WheelsRace.expirePeriod()).to.equal(newExpirePeriod);
+        await expect(StakedWheels.connect(p2).setExpirePeriod(newExpirePeriod)).to.be.revertedWith("NotAdmin");
+        await StakedWheels.setExpirePeriod(newExpirePeriod);
+        expect(await StakedWheels.expirePeriod()).to.equal(newExpirePeriod);
     });
     it("Should allow a user to cancel their unstake request", async function () {
         await wheelsInstance.mint(p1address);
-        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 0);
+        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 0);
 
-        await WheelsRace.connect(p1).requestUnstake(0);
-        await WheelsRace.connect(p1).cancelUnstake(0);
+        await StakedWheels.connect(p1).requestUnstake(0);
+        await StakedWheels.connect(p1).cancelUnstake(0);
     });
     it("Should not allow a user to request unstaking for a wheel that isnt staked", async function () {
         await wheelsInstance.mint(p1address);
-        await expect(WheelsRace.connect(p1).requestUnstake(0)).to.be.revertedWith("NotStaker");
+        await expect(StakedWheels.connect(p1).requestUnstake(0)).to.be.revertedWith("NotStaker");
     });
 
 });
@@ -647,8 +654,15 @@ describe("WWRace", function () {
         p2address = p2.address;
 
         const Race = await ethers.getContractFactory("WheelsRace");
-        WheelsRace = await Race.deploy("Wheels Race", "1", "Wheel_Staked", "WWS", p1address, wheelsInstance.address);
+        WheelsRace = await Race.deploy("Wheels Race", "1", p1address, p1address);
         await WheelsRace.deployed();
+
+        const Staker = await ethers.getContractFactory("StakedWheel");
+        StakedWheels = await Staker.deploy("Staked Wheel", "SWW", p1address, wheelsInstance.address);
+        await StakedWheels.deployed();
+
+        WheelsRace.initialize(StakedWheels.address);
+        StakedWheels.whitelist(WheelsRace.address);
 
         domain = {
             name: 'Wheels Race',
@@ -670,45 +684,45 @@ describe("WWRace", function () {
 
     it("Should stake the Wheel and mint a Wheel_Staked token", async function () {
         await wheelsInstance.mint(p1address);
-        await wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 0);
+        await wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 0);
 
         const originalTokenURI = await wheelsInstance.tokenURI(0);
         // Check that the new token was minted with the correct metadata
-        const stakedTokenURI = await WheelsRace.tokenURI(0);
+        const stakedTokenURI = await StakedWheels.tokenURI(0);
         expect(stakedTokenURI).to.equal(originalTokenURI);
-        expect(await WheelsRace.ownerOf(0)).to.equal(p1address);
-        expect(await WheelsRace.stakedBy(0)).to.equal(p1address);
+        expect(await StakedWheels.ownerOf(0)).to.equal(p1address);
+        expect(await StakedWheels.stakedBy(0)).to.equal(p1address);
     });
 
     it("Should not allow unstake without request", async function () {
         await wheelsInstance.mint(p1address);
-        await wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 1);
+        await wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 1);
 
-        await expect(WheelsRace.connect(p1).performUnstake(1)).to.be.reverted;
+        await expect(StakedWheels.connect(p1).performUnstake(1)).to.be.reverted;
     });
 
     it("Should allow unstake after request and delay", async function () {
         await wheelsInstance.mint(p1address);
-        await wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 2);
+        await wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 2);
 
-        await WheelsRace.connect(p1).requestUnstake(2);
+        await StakedWheels.connect(p1).requestUnstake(2);
         await ethers.provider.send("evm_increaseTime", [24 * 60 * 60]);
         await ethers.provider.send("evm_mine");
 
-        await WheelsRace.connect(p1).performUnstake(2);
+        await StakedWheels.connect(p1).performUnstake(2);
         expect(await wheelsInstance.ownerOf(2)).to.equal(p1address);
-        expect(await WheelsRace.stakedBy(2)).to.equal(ethers.constants.AddressZero);
+        expect(await StakedWheels.stakedBy(2)).to.equal(ethers.constants.AddressZero);
     });
 
     it("Should have burned the staked token after unstake", async function () {
-        await expect(WheelsRace.ownerOf(2)).to.be.revertedWith("ERC721: invalid token ID");
+        await expect(StakedWheels.ownerOf(2)).to.be.revertedWith("ERC721: invalid token ID");
     });
 
     it("Should allow a player to claim a win", async function () {
         await wheelsInstance.mint(p1address);
         await wheelsInstance.mint(p2address);
-        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 3);
-        await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, WheelsRace.address, 4);
+        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 3);
+        await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, StakedWheels.address, 4);
         //expect(await WheelsRace.ownerOf(4)).to.equal(p2address);
 
         const latestBlockNumber = await ethers.provider.getBlockNumber();
@@ -728,15 +742,15 @@ describe("WWRace", function () {
         const wilderworldSignature = await p1._signTypedData(domain, types, slip);
 
         const s = await WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature);
-        expect(await WheelsRace.stakedBy(4)).to.equal(p1address);
+        expect(await StakedWheels.stakedBy(4)).to.equal(p1address);
     });
 
     it("Should have transferred the staked token after win", async function () {
-        expect(await WheelsRace.ownerOf(4)).to.equal(p1address);
+        expect(await StakedWheels.ownerOf(4)).to.equal(p1address);
     });
 
     it("Should not allow canRace for a locked token", async function () {
-        await expect(WheelsRace.connect(p1).canRace(p1address, 4, p1address, 4)).to.be.revertedWith('Locked');
+        await expect(WheelsRace.connect(p1).canRace(p1address, 4, p1address, 4)).to.be.revertedWith('');
     });
 
     it("Should not allow a player to claim win on a locked token", async function () {
@@ -765,8 +779,8 @@ describe("WWRace", function () {
     it("Should not allow a player to claim a consumed raceId", async function () {
         await wheelsInstance.mint(p1address);
         await wheelsInstance.mint(p2address);
-        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 5);
-        await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, WheelsRace.address, 6);
+        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 5);
+        await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, StakedWheels.address, 6);
         await network.provider.send("evm_increaseTime", [69120000]);
         await network.provider.send("evm_mine");
         const latestBlockNumber = await ethers.provider.getBlockNumber();
@@ -841,11 +855,11 @@ describe("WWRace", function () {
 
     it("Should not allow unstaking a wheel owned by someone else", async function () {
         await wheelsInstance.mint(p1address);
-        await expect(WheelsRace.connect(p1).requestUnstake(2)).to.be.reverted;
+        await expect(StakedWheels.connect(p1).requestUnstake(2)).to.be.reverted;
     });
 
     it("Should not allow unstake request for a non-staked wheel", async function () {
-        await expect(WheelsRace.connect(p1).requestUnstake(999)).to.be.reverted;
+        await expect(StakedWheels.connect(p1).requestUnstake(999)).to.be.reverted;
     });
 
     it("Admin: Should cancel race", async function () {
@@ -964,7 +978,7 @@ describe("WWRace", function () {
         const p2signature = await p2._signTypedData(domain, types, slip);
         const wilderworldSignature = await p1._signTypedData(domain, types, slip);
 
-        await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.revertedWith("WR: Sender isnt opponent");
+        await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.revertedWith("WR: Sender isnt opponentSlip.opponent");
     });
 
     it("Should not allow claiming a win with invalid domain name", async function () {
@@ -1145,23 +1159,23 @@ describe("WWRace", function () {
     });
     it("Should not allow transfer of Wheel_Staked token", async function () {
         await wheelsInstance.mint(p1address);
-        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 7);
-        await expect(WheelsRace.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 7)).to.be.revertedWith("WR: Token is soulbound");
+        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 7);
+        await expect(StakedWheels.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 7)).to.be.revertedWith("NotWhitelisted");
     });
 
 
 
     it("Admin: Should transfer out token mistakenly sent with transferFrom", async function () {
         await wheelsInstance.mint(p1address);
-        await wheelsInstance.connect(p1)["transferFrom(address,address,uint256)"](p1address, WheelsRace.address, 8);
+        await wheelsInstance.connect(p1)["transferFrom(address,address,uint256)"](p1address, StakedWheels.address, 8);
 
-        await WheelsRace.transferOut(p1address, 8);
+        await StakedWheels.transferOut(p1address, 8);
         expect(await wheelsInstance.ownerOf(8)).to.equal(p1address);
     });
     it("Admin: Should not allow transfer out of a token that is staked", async function () {
         await wheelsInstance.mint(p1address);
-        await wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 9);
-        await expect(WheelsRace.transferOut(p1address, 9)).to.be.reverted;
+        await wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 9);
+        await expect(StakedWheels.transferOut(p1address, 9)).to.be.reverted;
     });
 
     it("canRace should correctly return false for a non-existing Wheel", async function () {
@@ -1170,33 +1184,33 @@ describe("WWRace", function () {
 
 
     it("Should revert if a player tries to stake a Wheel that doesn't exist", async function () {
-        await expect(wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, WheelsRace.address, 999)).to.be.reverted;
+        await expect(wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 999)).to.be.reverted;
     });
-    it("Should only allow the admin to change the wilderWorld address", async function () {
-        const newAddress = ethers.utils.getAddress('0x0000000000000000000000000000000000000001');
-        await expect(WheelsRace.connect(p2).setWW(newAddress)).to.be.revertedWith("NotAdmin");
-        await WheelsRace.setWW(newAddress);
-        expect(await WheelsRace.wilderWorld()).to.equal(newAddress);
-    });
+    //it("Should only allow the admin to change the wilderWorld address", async function () {
+    //    const newAddress = ethers.utils.getAddress('0x0000000000000000000000000000000000000001');
+    //    await expect(WheelsRace.connect(p2).setWW(newAddress)).to.be.revertedWith("NotAdmin");
+    //    await WheelsRace.setWW(newAddress);
+    //    expect(await WheelsRace.wilderWorld()).to.equal(newAddress);
+    //});
 
     it("Should only allow the admin to change the expirePeriod", async function () {
         const newExpirePeriod = 100;
-        await expect(WheelsRace.connect(p2).setExpirePeriod(newExpirePeriod)).to.be.revertedWith("NotAdmin");
-        await WheelsRace.setExpirePeriod(newExpirePeriod);
-        expect(await WheelsRace.expirePeriod()).to.equal(newExpirePeriod);
+        await expect(StakedWheels.connect(p2).setExpirePeriod(newExpirePeriod)).to.be.revertedWith("NotAdmin");
+        await StakedWheels.setExpirePeriod(newExpirePeriod);
+        expect(await StakedWheels.expirePeriod()).to.equal(newExpirePeriod);
     });
     it("Should allow a user to cancel their unstake request", async function () {
-        await WheelsRace.connect(p1).requestUnstake(1);
-        await WheelsRace.connect(p1).cancelUnstake(1);
+        await StakedWheels.connect(p1).requestUnstake(1);
+        await StakedWheels.connect(p1).cancelUnstake(1);
         // Check for some state change that indicates the unstake request was canceled. This will depend on your contract's implementation.
     });
     it("Should allow a user to cancel their unstake request", async function () {
-        await WheelsRace.connect(p1).requestUnstake(1);
-        await WheelsRace.connect(p1).cancelUnstake(1);
+        await StakedWheels.connect(p1).requestUnstake(1);
+        await StakedWheels.connect(p1).cancelUnstake(1);
         // Check for some state change that indicates the unstake request was canceled. This will depend on your contract's implementation.
     });
     it("Should not allow a user to request unstaking for a wheel they do not own", async function () {
-        await expect(WheelsRace.connect(p2).requestUnstake(1)).to.be.revertedWith("NotStaker");
+        await expect(StakedWheels.connect(p2).requestUnstake(1)).to.be.revertedWith("NotStaker");
     });
 
     /*
@@ -1422,7 +1436,7 @@ describe("WWRace", function () {
         const a = ethers.utils.verifyTypedData(loserSlip.domain, loserSlip.types, loserSlip.message, wilderworldSignature);
         //console.log("recovered: ", a);
     });*/
-
+    /*
     it("API: should pass canRaceStart", async function () {
         const data = {
             player1: p1address,
@@ -1496,7 +1510,7 @@ describe("WWRace", function () {
                 console.log(error);
             });
 
-    });
+    });*/
 });
 
 

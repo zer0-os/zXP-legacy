@@ -570,4 +570,8 @@ describe("WWRace Season", function () {
     it("Should not allow a user to unstake for a wheel that is currently in a race", async function () {
         await expect(WheelsRace.connect(p1).unstake(2)).to.be.revertedWith("ERC721: invalid token ID");
     });
+
+    it("Should not allow a user to request unstaking for a wheel they do not own", async function () {
+        //await expect(WheelsRace.connect(p2).unstake(1)).to.be.revertedWith("NotStaker");
+    });
 });

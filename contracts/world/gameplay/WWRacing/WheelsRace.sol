@@ -54,13 +54,17 @@ contract WheelsRace is EIP712 {
         string memory name,
         string memory version,
         address _admin,
-        address _wilderWorld,
-        StakedWheel _stakedWheels
+        address _wilderWorld
     ) EIP712(name, version) {
-        stakedWheels = _stakedWheels;
         admin = _admin;
-        wilderWorld = _stakedWheels.wilderWorld();
-        expirePeriod = _stakedWheels.expirePeriod();
+        wilderWorld = _wilderWorld;
+    }
+
+    function initialize(StakedWheel _stakedWheels) public onlyAdmin {
+        require(address(_stakedWheels) != address(0), "WR: No StakedWheels");
+        require(address(stakedWheels) == address(0), "WR: Cant reinitialize");
+        stakedWheels = _stakedWheels;
+        //expirePeriod = _stakedWheels.expirePeriod();
     }
 
     /**
@@ -131,14 +135,13 @@ contract WheelsRace is EIP712 {
 
         ///Consume raceID
         consumed[opponentSlip.raceId] = true;
-        ///Set state for wheel
-        stakedWheels.stakedBy(opponentSlip.wheelId) = msg.sender;
-        stakedWheels.lockTime(opponentSlip.wheelId) = block.timestamp;
-        ///Transfer wheel_staked
-        stakedWheels._transfer(
+
+        ///Transfer wheel_staked, overridden to provide the necessary staking/locking functions on transfer
+        stakedWheels.safeTransferFrom(
             opponentSlip.player,
             msg.sender,
-            opponentSlip.wheelId
+            opponentSlip.wheelId,
+            ""
         );
     }
 
@@ -204,11 +207,11 @@ contract WheelsRace is EIP712 {
         address p2,
         uint256 p2TokenId
     ) public view returns (bool) {
-        return
-            stakedWheels.isStakerOrOperator(p1, p1TokenId) &&
-            stakedWheels.isStakerOrOperator(p2, p2TokenId) &&
-            stakedWheels.isUnlocked(p1TokenId) &&
-            stakedWheels.isUnlocked(p2TokenId);
+        stakedWheels.isStakerOrOperator(p1, p1TokenId);
+        stakedWheels.isStakerOrOperator(p2, p2TokenId);
+        stakedWheels.isUnlocked(p1TokenId);
+        stakedWheels.isUnlocked(p2TokenId);
+        return true;
     }
 
     function _recoverSigner(

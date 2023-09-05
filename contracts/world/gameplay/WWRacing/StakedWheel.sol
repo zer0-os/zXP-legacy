@@ -8,22 +8,20 @@ contract StakedWheel is ERC721URIStorage, IERC721Receiver {
     error NotStaker(address player, uint256 tokenId, address stakedBy);
     error Unstaking(uint256 tokenId, uint256 unstakeTime);
     error Locked(uint256 tokenId, uint256 lockTime);
-    error NotAdmin(address sender);
+    error NotAdmin(address caller);
+    error NotWhitelisted(address caller);
 
     /// Contract address of Wilder Wheels
     IERC721 public wheels;
 
-    /// Wilder World address
-    address public wilderWorld;
-
     /// Admin
     address public admin;
 
-    /// Wheel Stake manager
-    address public wheelStaker;
-
     /// Time that must be waited after an unstakeRequest, must be the same as WheelsRace
     uint256 public expirePeriod = 24 hours;
+
+    /// Contracts that are allowed to transfer staked tokens
+    mapping(address => bool) whitelisted;
 
     /// Mapping from tokenId to holder address
     mapping(uint256 => address) public stakedBy;
@@ -31,31 +29,17 @@ contract StakedWheel is ERC721URIStorage, IERC721Receiver {
     /// Mapping from tokenId to unstake request time
     mapping(uint256 => uint256) public unstakeRequests;
 
-    /// Mapping from wheelId to time locked after win claim
+    /// Mapping from wheelId to time locked after transfer
     mapping(uint256 => uint256) public lockTime;
 
     constructor(
         string memory tokenName,
         string memory tokenSymbol,
-        IERC721 _wheels,
-        uint256 _expirePeriod,
         address _admin,
-        address _wilderWorld
+        IERC721 _wheels
     ) ERC721(tokenName, tokenSymbol) {
-        wheels = _wheels;
         admin = _admin;
-        expirePeriod = _expirePeriod;
-        wilderWorld = _wilderWorld;
-    }
-
-    modifier _isStakerOrOperator(address stakerOperator, uint256 tokenId) {
-        if (
-            stakedBy[tokenId] != stakerOperator &&
-            wheels.getApproved(tokenId) != stakerOperator
-        ) {
-            revert NotStaker(stakerOperator, tokenId, stakedBy[tokenId]);
-        }
-        _;
+        wheels = _wheels;
     }
 
     modifier _isStaked(uint256 tokenId) {
@@ -64,17 +48,26 @@ contract StakedWheel is ERC721URIStorage, IERC721Receiver {
         }
         _;
     }
+    modifier _isStakerOrOperator(address stakerOperator, uint256 tokenId) {
+        isStakerOrOperator(stakerOperator, tokenId);
+        _;
+    }
 
     modifier _isUnlocked(uint256 tokenId) {
-        if (block.timestamp <= lockTime[tokenId] + expirePeriod) {
-            revert Locked(tokenId, lockTime[tokenId]);
-        }
+        require(isUnlocked(tokenId), "its fucking locked");
         _;
     }
 
     modifier onlyAdmin() {
         if (msg.sender != admin) {
             revert NotAdmin(msg.sender);
+        }
+        _;
+    }
+
+    modifier onlyWhitelisted(address a) {
+        if (!whitelisted[a]) {
+            revert NotWhitelisted(msg.sender);
         }
         _;
     }
@@ -129,23 +122,47 @@ contract StakedWheel is ERC721URIStorage, IERC721Receiver {
     }
 
     /// Overriding transfer function, token is soulbound
-    function transferFrom(address, address, uint256) public pure override {
-        require(false, "WR: Token is soulbound");
+    function transferFrom(
+        address from,
+        address to,
+        uint256 wheelId
+    ) public override onlyWhitelisted(msg.sender) {
+        stakedBy[wheelId] = to;
+        lockTime[wheelId] = block.timestamp;
+        _transfer(from, to, wheelId);
     }
 
     /// Overriding transfer function, token is soulbound
-    function safeTransferFrom(address, address, uint256) public pure override {
-        require(false, "WR: Token is soulbound");
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 wheelId,
+        bytes memory data
+    ) public override onlyWhitelisted(msg.sender) {
+        stakedBy[wheelId] = to;
+        lockTime[wheelId] = block.timestamp;
+        _safeTransfer(from, to, wheelId, data);
     }
 
     function isStakerOrOperator(
-        address a,
+        address stakerOperator,
         uint256 tokenId
-    ) public view _isStakerOrOperator(a, tokenId) returns (bool) {}
+    ) public view returns (bool) {
+        if (
+            stakedBy[tokenId] != stakerOperator &&
+            wheels.getApproved(tokenId) != stakerOperator
+        ) {
+            revert NotStaker(stakerOperator, tokenId, stakedBy[tokenId]);
+        }
+        return true;
+    }
 
-    function isUnlocked(
-        uint256 tokenId
-    ) public view _isUnlocked(tokenId) returns (bool) {}
+    function isUnlocked(uint256 tokenId) public view returns (bool) {
+        if (block.timestamp <= lockTime[tokenId] + expirePeriod) {
+            revert Locked(tokenId, lockTime[tokenId]);
+        }
+        return true;
+    }
 
     /**
      * @dev Fails if the transferred token is not a Wilder Wheel NFT.
@@ -175,6 +192,16 @@ contract StakedWheel is ERC721URIStorage, IERC721Receiver {
         _setTokenURI(tokenId, incomingTokenURI);
 
         return this.onERC721Received.selector;
+    }
+
+    function whitelist(address newContract) public onlyAdmin {
+        require(newContract != address(0), "WR: no contract given");
+        whitelisted[newContract] = true;
+    }
+
+    function whitelistRemove(address whitelistedContract) public onlyAdmin {
+        require(whitelisted[whitelistedContract], "Contract isnt whitelisted");
+        whitelisted[whitelistedContract] = false;
     }
 
     function setExpirePeriod(uint256 newLock) public onlyAdmin {
