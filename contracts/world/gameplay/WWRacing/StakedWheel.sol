@@ -8,8 +8,7 @@ contract StakedWheel is ERC721URIStorage, IERC721Receiver {
     error NotStaker(address player, uint256 tokenId, address stakedBy);
     error Unstaking(uint256 tokenId, uint256 unstakeTime);
     error Locked(uint256 tokenId, uint256 lockTime);
-    error NotAdmin(address caller);
-    error NotWhitelisted(address caller);
+    error NotAuthorized(address caller);
 
     /// Contract address of Wilder Wheels
     IERC721 public wheels;
@@ -20,8 +19,8 @@ contract StakedWheel is ERC721URIStorage, IERC721Receiver {
     /// Time that must be waited after an unstakeRequest, must be the same as WheelsRace
     uint256 public expirePeriod = 24 hours;
 
-    /// Contracts that are allowed to transfer staked tokens
-    mapping(address => bool) whitelisted;
+    /// Contract that is allowed to transfer staked tokens
+    mapping(address => bool) racingContract;
 
     /// Mapping from tokenId to holder address
     mapping(uint256 => address) public stakedBy;
@@ -60,14 +59,14 @@ contract StakedWheel is ERC721URIStorage, IERC721Receiver {
 
     modifier onlyAdmin() {
         if (msg.sender != admin) {
-            revert NotAdmin(msg.sender);
+            revert NotAuthorized(msg.sender);
         }
         _;
     }
 
-    modifier onlyWhitelisted(address a) {
-        if (!whitelisted[a]) {
-            revert NotWhitelisted(msg.sender);
+    modifier onlyRacingContract() {
+        if (msg.sender != racingContract) {
+            revert NotAuthorized(msg.sender);
         }
         _;
     }
