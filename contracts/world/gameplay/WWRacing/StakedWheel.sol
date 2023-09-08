@@ -16,11 +16,11 @@ contract StakedWheel is ERC721URIStorage, IERC721Receiver {
     /// Admin
     address public admin;
 
+    /// Contract that is allowed to transfer staked tokens
+    address controller;
+
     /// Time that must be waited after an unstakeRequest, must be the same as WheelsRace
     uint256 public expirePeriod = 24 hours;
-
-    /// Contract that is allowed to transfer staked tokens
-    mapping(address => bool) racingContract;
 
     /// Mapping from tokenId to holder address
     mapping(uint256 => address) public stakedBy;
@@ -48,24 +48,28 @@ contract StakedWheel is ERC721URIStorage, IERC721Receiver {
         _;
     }
     modifier _isStakerOrOperator(address stakerOperator, uint256 tokenId) {
-        isStakerOrOperator(stakerOperator, tokenId);
+        if (!isStakerOrOperator(stakerOperator, tokenId)) {
+            revert NotStaker(stakerOperator, tokenId, stakedBy[tokenId]);
+        }
         _;
     }
 
     modifier _isUnlocked(uint256 tokenId) {
-        require(isUnlocked(tokenId), "its fucking locked");
+        if (!isUnlocked(tokenId)) {
+            revert Locked(tokenId, lockTime[tokenId]);
+        }
         _;
     }
 
-    modifier onlyAdmin() {
-        if (msg.sender != admin) {
+    modifier onlyAdmin(address a) {
+        if (a != admin) {
             revert NotAuthorized(msg.sender);
         }
         _;
     }
 
-    modifier onlyRacingContract() {
-        if (msg.sender != racingContract) {
+    modifier onlyController(address c) {
+        if (c != controller) {
             revert NotAuthorized(msg.sender);
         }
         _;
@@ -120,47 +124,39 @@ contract StakedWheel is ERC721URIStorage, IERC721Receiver {
         unstakeRequests[tokenId] = 0;
     }
 
-    /// Overriding transfer function, token is soulbound
-    function transferFrom(
-        address from,
-        address to,
-        uint256 wheelId
-    ) public override onlyWhitelisted(msg.sender) {
-        stakedBy[wheelId] = to;
-        lockTime[wheelId] = block.timestamp;
-        _transfer(from, to, wheelId);
+    function updateController(
+        address newController
+    ) public onlyAdmin(msg.sender) {
+        require(newController != address(0), "WR: no controller given");
+        controller = newController;
     }
 
-    /// Overriding transfer function, token is soulbound
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 wheelId,
-        bytes memory data
-    ) public override onlyWhitelisted(msg.sender) {
-        stakedBy[wheelId] = to;
-        lockTime[wheelId] = block.timestamp;
-        _safeTransfer(from, to, wheelId, data);
+    function setExpirePeriod(uint256 newLock) public onlyAdmin(msg.sender) {
+        require(newLock != 0, "WR: missing newLock");
+        expirePeriod = newLock;
     }
 
-    function isStakerOrOperator(
-        address stakerOperator,
+    ///Ability to return NFTs mistakenly sent with transferFrom instead of safeTransferFrom
+    function transferOut(
+        address to,
         uint256 tokenId
-    ) public view returns (bool) {
-        if (
-            stakedBy[tokenId] != stakerOperator &&
-            wheels.getApproved(tokenId) != stakerOperator
-        ) {
-            revert NotStaker(stakerOperator, tokenId, stakedBy[tokenId]);
-        }
-        return true;
+    ) public onlyAdmin(msg.sender) {
+        require(stakedBy[tokenId] == address(0));
+        wheels.safeTransferFrom(address(this), to, tokenId);
     }
 
-    function isUnlocked(uint256 tokenId) public view returns (bool) {
-        if (block.timestamp <= lockTime[tokenId] + expirePeriod) {
-            revert Locked(tokenId, lockTime[tokenId]);
-        }
-        return true;
+    /// Ability to 'undo' a completed race by removing a locked nft
+    /// Only works within the lock period that is set on transfer
+    function transferLocked(
+        address to,
+        uint256 tokenId
+    ) public onlyAdmin(msg.sender) {
+        require(block.timestamp >= lockTime[tokenId], "WR: token not locked");
+        require(
+            block.timestamp < lockTime[tokenId] + expirePeriod,
+            "WR: token unlocked"
+        );
+        wheels.safeTransferFrom(address(this), to, tokenId);
     }
 
     /**
@@ -193,34 +189,52 @@ contract StakedWheel is ERC721URIStorage, IERC721Receiver {
         return this.onERC721Received.selector;
     }
 
-    function whitelist(address newContract) public onlyAdmin {
-        require(newContract != address(0), "WR: no contract given");
-        whitelisted[newContract] = true;
+    /// Overriding transfer function, token is soulbound
+    function transferFrom(
+        address from,
+        address to,
+        uint256 wheelId
+    ) public override onlyController(msg.sender) {
+        _transfer(from, to, wheelId);
     }
 
-    function whitelistRemove(address whitelistedContract) public onlyAdmin {
-        require(whitelisted[whitelistedContract], "Contract isnt whitelisted");
-        whitelisted[whitelistedContract] = false;
+    /// Overriding transfer function, token is soulbound
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 wheelId,
+        bytes memory data
+    ) public override onlyController(msg.sender) {
+        _safeTransfer(from, to, wheelId, data);
     }
 
-    function setExpirePeriod(uint256 newLock) public onlyAdmin {
-        require(newLock != 0, "WR: missing newLock");
-        expirePeriod = newLock;
+    function _transfer(
+        address from,
+        address to,
+        uint256 id
+    ) internal virtual override {
+        stakedBy[id] = to;
+        lockTime[id] = block.timestamp;
+        super._transfer(from, to, id);
     }
 
-    ///Ability to return NFTs mistakenly sent with transferFrom instead of safeTransferFrom
-    function transferOut(address to, uint256 tokenId) public onlyAdmin {
-        require(stakedBy[tokenId] == address(0));
-        wheels.safeTransferFrom(address(this), to, tokenId);
+    function isStakerOrOperator(
+        address stakerOperator,
+        uint256 tokenId
+    ) public view returns (bool) {
+        if (
+            stakedBy[tokenId] != stakerOperator &&
+            wheels.getApproved(tokenId) != stakerOperator
+        ) {
+            return false;
+        }
+        return true;
     }
 
-    ///Ability to 'undo' a race by removing a locked nft
-    function transferLocked(address to, uint256 tokenId) public onlyAdmin {
-        require(block.timestamp >= lockTime[tokenId], "WR: token not locked");
-        require(
-            block.timestamp < lockTime[tokenId] + expirePeriod,
-            "WR: token unlocked"
-        );
-        wheels.safeTransferFrom(address(this), to, tokenId);
+    function isUnlocked(uint256 tokenId) public view returns (bool) {
+        if (block.timestamp <= lockTime[tokenId] + expirePeriod) {
+            return false;
+        }
+        return true;
     }
 }
