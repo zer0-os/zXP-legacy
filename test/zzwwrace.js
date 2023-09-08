@@ -40,7 +40,7 @@ describe("WWRace beforeEach", function () {
         StakedWheels = await Staker.deploy("Staked Wheel", "SWW", p1address, wheelsInstance.address);
         await StakedWheels.deployed();
 
-        StakedWheels.whitelist(WheelsRace.address);
+        StakedWheels.setController(WheelsRace.address);
         WheelsRace.initialize(StakedWheels.address);
 
         domain = {
@@ -506,7 +506,6 @@ describe("WWRace beforeEach", function () {
         await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.revertedWith("WR: Not signed by opponent");
     });
     it("Should not allow claiming a win with unstaked player wheel", async function () {
-        //??????????????????????????????????????????????????
         await wheelsInstance.mint(p1address);
         await wheelsInstance.mint(p2address);
         await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 0);
@@ -576,7 +575,7 @@ describe("WWRace beforeEach", function () {
     it("Should not allow transfer of Wheel_Staked token", async function () {
         await wheelsInstance.mint(p1address);
         await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 0);
-        await expect(StakedWheels.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 0)).to.be.revertedWith("NotWhitelisted");
+        await expect(StakedWheels.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 0)).to.be.revertedWith("NotAuthorized");
     });
 
     it("Admin: Should transfer out token mistakenly sent with transferFrom", async function () {
@@ -600,16 +599,10 @@ describe("WWRace beforeEach", function () {
     it("Should revert if a player tries to stake a Wheel that doesn't exist", async function () {
         await expect(wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 999)).to.be.reverted;
     });
-    //it("Should only allow the admin to change the wilderWorld address", async function () {
-    //    const newAddress = ethers.utils.getAddress('0x0000000000000000000000000000000000000001');
-    //    await expect(WheelsRace.connect(p2).setWW(newAddress)).to.be.revertedWith("NotAdmin");
-    //    await WheelsRace.setWW(newAddress);
-    //    expect(await WheelsRace.wilderWorld()).to.equal(newAddress);
-    //});
 
     it("Should only allow the admin to change the expirePeriod", async function () {
         const newExpirePeriod = 100;
-        await expect(StakedWheels.connect(p2).setExpirePeriod(newExpirePeriod)).to.be.revertedWith("NotAdmin");
+        await expect(StakedWheels.connect(p2).setExpirePeriod(newExpirePeriod)).to.be.revertedWith("NotAuthorized");
         await StakedWheels.setExpirePeriod(newExpirePeriod);
         expect(await StakedWheels.expirePeriod()).to.equal(newExpirePeriod);
     });
@@ -661,8 +654,8 @@ describe("WWRace", function () {
         StakedWheels = await Staker.deploy("Staked Wheel", "SWW", p1address, wheelsInstance.address);
         await StakedWheels.deployed();
 
+        StakedWheels.setController(WheelsRace.address);
         WheelsRace.initialize(StakedWheels.address);
-        StakedWheels.whitelist(WheelsRace.address);
 
         domain = {
             name: 'Wheels Race',
@@ -1160,7 +1153,7 @@ describe("WWRace", function () {
     it("Should not allow transfer of Wheel_Staked token", async function () {
         await wheelsInstance.mint(p1address);
         await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 7);
-        await expect(StakedWheels.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 7)).to.be.revertedWith("NotWhitelisted");
+        await expect(StakedWheels.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 7)).to.be.revertedWith("NotAuthorized");
     });
 
 
@@ -1195,7 +1188,7 @@ describe("WWRace", function () {
 
     it("Should only allow the admin to change the expirePeriod", async function () {
         const newExpirePeriod = 100;
-        await expect(StakedWheels.connect(p2).setExpirePeriod(newExpirePeriod)).to.be.revertedWith("NotAdmin");
+        await expect(StakedWheels.connect(p2).setExpirePeriod(newExpirePeriod)).to.be.revertedWith("NotAuthorized");
         await StakedWheels.setExpirePeriod(newExpirePeriod);
         expect(await StakedWheels.expirePeriod()).to.equal(newExpirePeriod);
     });
@@ -1212,6 +1205,12 @@ describe("WWRace", function () {
     it("Should not allow a user to request unstaking for a wheel they do not own", async function () {
         await expect(StakedWheels.connect(p2).requestUnstake(1)).to.be.revertedWith("NotStaker");
     });
+
+    ///Upgrade
+    it("Should upgrade to a new version of the racing contract", async function () {
+        await expect(StakedWheels.connect(p2).requestUnstake(1)).to.be.revertedWith("NotStaker");
+    });
+
 
     /*
     it("canRace should correctly return true when both players have staked their Wheel", async function () {

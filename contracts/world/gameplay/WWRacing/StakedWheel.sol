@@ -131,9 +131,16 @@ contract StakedWheel is ERC721URIStorage, IERC721Receiver {
         controller = newController;
     }
 
-    function setExpirePeriod(uint256 newLock) public onlyAdmin(msg.sender) {
-        require(newLock != 0, "WR: missing newLock");
-        expirePeriod = newLock;
+    function setExpirePeriod(
+        uint256 newExpirePeriod
+    ) public onlyAdmin(msg.sender) {
+        require(newExpirePeriod != 0, "WR: missing newExpirePeriod");
+        expirePeriod = newExpirePeriod;
+    }
+
+    function setController(address newController) public onlyAdmin(msg.sender) {
+        require(newController != address(0), "WR: missing newController");
+        controller = newController;
     }
 
     ///Ability to return NFTs mistakenly sent with transferFrom instead of safeTransferFrom
