@@ -1103,9 +1103,6 @@ describe("WWRace", function () {
         const p2signature = await p2._signTypedData(domain, types, slip);
         const wilderworldSignature = await p1._signTypedData(domain, types, slip);
 
-        //const v1 = ethers.utils.verifyTypedData(domain, types, slip, p2signature);
-        //const v2 = ethers.utils.verifyTypedData(domain, types, slip, wilderworldSignature);
-
         await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.revertedWith("WR: Opponent wheel unstaked");
     });
     it("Should not allow claiming a win with unstaked opponent wheel", async function () {
@@ -1123,9 +1120,6 @@ describe("WWRace", function () {
 
         const p2signature = await p2._signTypedData(domain, types, slip);
         const wilderworldSignature = await p1._signTypedData(domain, types, slip);
-
-        //const v1 = ethers.utils.verifyTypedData(domain, types, slip, p2signature);
-        //const v2 = ethers.utils.verifyTypedData(domain, types, slip, wilderworldSignature);
 
         await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, wilderworldSignature)).to.be.revertedWith("WR: Player wheel unstaked");
     });
@@ -1145,9 +1139,6 @@ describe("WWRace", function () {
         const p2signature = await p2._signTypedData(domain, types, slip);
         const invalidSignature = await p2._signTypedData(domain, types, slip);
 
-        //const v1 = ethers.utils.verifyTypedData(domain, types, slip, p2signature);
-        //const v2 = ethers.utils.verifyTypedData(domain, types, slip, wilderworldSignature);
-
         await expect(WheelsRace.connect(p1).claimWin(slip, p2signature, invalidSignature)).to.be.revertedWith("WR: Not signed by WW");
     });
     it("Should not allow transfer of Wheel_Staked token", async function () {
@@ -1155,8 +1146,6 @@ describe("WWRace", function () {
         await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 7);
         await expect(StakedWheels.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 7)).to.be.revertedWith("NotAuthorized");
     });
-
-
 
     it("Admin: Should transfer out token mistakenly sent with transferFrom", async function () {
         await wheelsInstance.mint(p1address);
@@ -1175,16 +1164,9 @@ describe("WWRace", function () {
         await expect(WheelsRace.connect(p1).canRace(p1address, 999, p2address, 888)).to.be.revertedWith("ERC721: invalid token ID");
     });
 
-
     it("Should revert if a player tries to stake a Wheel that doesn't exist", async function () {
         await expect(wheelsInstance["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 999)).to.be.reverted;
     });
-    //it("Should only allow the admin to change the wilderWorld address", async function () {
-    //    const newAddress = ethers.utils.getAddress('0x0000000000000000000000000000000000000001');
-    //    await expect(WheelsRace.connect(p2).setWW(newAddress)).to.be.revertedWith("NotAdmin");
-    //    await WheelsRace.setWW(newAddress);
-    //    expect(await WheelsRace.wilderWorld()).to.equal(newAddress);
-    //});
 
     it("Should only allow the admin to change the expirePeriod", async function () {
         const newExpirePeriod = 100;
@@ -1195,12 +1177,10 @@ describe("WWRace", function () {
     it("Should allow a user to cancel their unstake request", async function () {
         await StakedWheels.connect(p1).requestUnstake(1);
         await StakedWheels.connect(p1).cancelUnstake(1);
-        // Check for some state change that indicates the unstake request was canceled. This will depend on your contract's implementation.
     });
     it("Should allow a user to cancel their unstake request", async function () {
         await StakedWheels.connect(p1).requestUnstake(1);
         await StakedWheels.connect(p1).cancelUnstake(1);
-        // Check for some state change that indicates the unstake request was canceled. This will depend on your contract's implementation.
     });
     it("Should not allow a user to request unstaking for a wheel they do not own", async function () {
         await expect(StakedWheels.connect(p2).requestUnstake(1)).to.be.revertedWith("NotStaker");
@@ -1208,7 +1188,47 @@ describe("WWRace", function () {
 
     ///Upgrade
     it("Should upgrade to a new version of the racing contract", async function () {
-        await expect(StakedWheels.connect(p2).requestUnstake(1)).to.be.revertedWith("NotStaker");
+        const Race = await ethers.getContractFactory("WheelsRace");
+        WheelsRaceV2 = await Race.deploy("Wheels Race", "2", p1address, p1address);
+        await WheelsRaceV2.deployed();
+
+        StakedWheels.setController(WheelsRaceV2.address);
+        WheelsRaceV2.initialize(StakedWheels.address);
+
+        domain = {
+            name: 'Wheels Race',
+            version: '2',
+            chainId: (await ethers.provider.getNetwork()).chainId,
+            verifyingContract: WheelsRaceV2.address
+        }
+    });
+
+    it("Should allow a player to claim a win", async function () {
+        await wheelsInstance.mint(p1address); //11
+        await wheelsInstance.mint(p2address); //12
+        await wheelsInstance.connect(p1)["safeTransferFrom(address,address,uint256)"](p1address, StakedWheels.address, 11);
+        await wheelsInstance.connect(p2)["safeTransferFrom(address,address,uint256)"](p2address, StakedWheels.address, 12);
+        //expect(await WheelsRace.ownerOf(4)).to.equal(p2address);
+
+
+        const latestBlockNumber = await ethers.provider.getBlockNumber();
+        const latestBlock = await ethers.provider.getBlock(latestBlockNumber);
+        const startTime = latestBlock.timestamp;
+
+        const slip = {
+            player: p2address,
+            opponent: p1address,
+            raceId: "100000000000000000000000000000000000000000000000000",
+            wheelId: "12",
+            opponentWheelId: "11",
+            raceStartTimestamp: startTime
+        };
+
+        const p2signature = await p2._signTypedData(domain, types, slip);
+        const wilderworldSignature = await p1._signTypedData(domain, types, slip);
+
+        const s = await WheelsRaceV2.connect(p1).claimWin(slip, p2signature, wilderworldSignature);
+        expect(await StakedWheels.stakedBy(12)).to.equal(p1address);
     });
 
 
