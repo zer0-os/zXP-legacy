@@ -244,4 +244,8 @@ contract StakedWheel is ERC721URIStorage, IERC721Receiver {
         }
         return true;
     }
+
+    function setWW(IERC721 ww) public onlyAdmin(msg.sender) {
+        wheels = ww;
+    }
 }

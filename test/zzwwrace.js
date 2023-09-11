@@ -1231,7 +1231,6 @@ describe("WWRace", function () {
         expect(await StakedWheels.stakedBy(12)).to.equal(p1address);
     });
 
-
     /*
     it("canRace should correctly return true when both players have staked their Wheel", async function () {
         // Mint and stake wheels for both players
