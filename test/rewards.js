@@ -1,14 +1,14 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe("ERC20 Vault", function () {
+describe("XP Vault", function () {
     let Token, token, Vault, vault, Controller, controller, owner, addr1, addr2;
 
     beforeEach(async function () {
         [owner, addr1, addr2, ...addrs] = await ethers.getSigners();
 
         Token = await ethers.getContractFactory("ERC20TestToken");
-        token = await Token.deploy("Test Token", "TT"); // Assuming it has a standard ERC20 constructor
+        token = await Token.deploy("Experience points", "XP"); // Assuming it has a standard ERC20 constructor
 
         Vault = await ethers.getContractFactory("WildVault");
         vault = await Vault.deploy(token.address, owner.address);

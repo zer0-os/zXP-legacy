@@ -1188,6 +1188,7 @@ describe("WWRace", function () {
 
     ///Upgrade
     it("Should upgrade to a new version of the racing contract", async function () {
+        console.log("Upgrade to WheelsRaceV2");
         const Race = await ethers.getContractFactory("WheelsRace");
         WheelsRaceV2 = await Race.deploy("Wheels Race", "2", p1address, p1address);
         await WheelsRaceV2.deployed();
