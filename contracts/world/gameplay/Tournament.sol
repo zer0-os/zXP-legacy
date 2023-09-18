@@ -6,10 +6,11 @@ import "../../interfaces/IZXP.sol";
 import "../RegistryClient.sol";
 import "../base/XpRecipient.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "../CharacterManager.sol";
 
 contract Tournament is Officiated, RegistryClient {
     mapping(uint => bool) roundResolved;
-    mapping(uint => uint) winnings;
+    mapping(bytes32 => uint) winnings;
 
     constructor(
         IRegistry registry,
@@ -20,9 +21,9 @@ contract Tournament is Officiated, RegistryClient {
 
     ///Each round interval, the official may submit results and divvy rewards
     function submitTop3Results(
-        uint firstPlace,
-        uint secondPlace,
-        uint thirdPlace,
+        bytes32 firstPlace,
+        bytes32 secondPlace,
+        bytes32 thirdPlace,
         uint firstPrize,
         uint secondPrize,
         uint thirdPrize
@@ -35,15 +36,19 @@ contract Tournament is Officiated, RegistryClient {
         winnings[secondPlace] += secondPrize;
         winnings[thirdPlace] += thirdPrize;
 
-        IZXP(addressOf("ZXP", season)).awardXP(firstPlace, roundXpReward);
-        IZXP(addressOf("ZXP", season)).awardXP(secondPlace, roundXpReward);
-        IZXP(addressOf("ZXP", season)).awardXP(thirdPlace, roundXpReward);
+        IZXP(addressOf("ZXP", season)).awardXP(uint(firstPlace), roundXpReward);
+        IZXP(addressOf("ZXP", season)).awardXP(
+            uint(secondPlace),
+            roundXpReward
+        );
+        IZXP(addressOf("ZXP", season)).awardXP(uint(thirdPlace), roundXpReward);
     }
 
-    function claimWinnings(uint character) external virtual {
-        address player = IERC721(registry.addressOf("Character", season))
-            .ownerOf(character);
-        require(player != address(0), "ZXP No character");
-        payable(player).transfer(winnings[character]);
+    function claimWinnings(bytes32 name) external virtual {
+        address player = CharacterManager(
+            registry.addressOf("CharacterManager", 1)
+        ).characterPlayer(name);
+        require(player == msg.sender, "ZXP Not character player");
+        payable(player).transfer(winnings[name]);
     }
 }

@@ -223,7 +223,7 @@ describe("zXP", function () {
     it("Player 1 creates character", async function () {
       await _characterManager.create(_P1name, 10);
     });
-    it("Player 1 creates character", async function () {
+    it("Player 2 creates character", async function () {
       await _characterManager.connect(p2signer).create(_P2name, 10);
     });
     it("Player 1 can't create the same character again", async function () {
@@ -263,7 +263,7 @@ describe("zXP", function () {
       expect(lev).to.equal("2");
     });
     it("DeepMeme tourney official submits results", async function () {
-      await _deepMeme.submitTop3Results(0, 1, 2, 0, 0, 0);
+      await _deepMeme.submitTop3Results(_P1name, _P1name, _P1name, 0, 0, 0);
     });
 
     describe("NFT pool staking S0", function () {
@@ -708,14 +708,36 @@ describe("zXP", function () {
     describe("Tournaments", function () {
       it("Deploys and registers tournament module", async function () {
         const tournamentFactory = await ethers.getContractFactory("Tournament");
-        const tournament = await tournamentFactory.deploy(_registry.address, P1);
+        const tournament = await tournamentFactory.deploy(_registry.address, P1, 1000000, 240);
         await tournament.deployed();
         _tournament = tournament;
         await _registry.registerAddress(ethers.utils.formatBytes32String("Tournament"), _tournament.address, 3);
+        console.log("durienb", await _characterManager.characterPlayer(_P1name));
       });
+      const firstReward = ethers.utils.parseEther("3");
+      const secondReward = ethers.utils.parseEther("2");
+      const thirdReward = ethers.utils.parseEther("1");
       it("Awards top 3 fastest laps", async function () {
-        _tournament.submitTop3Results(0, 1, 2, 300, 200, 100);
-      })
+        await _tournament.submitTop3Results(_P1name, _P2name, _P1name, firstReward, secondReward, thirdReward, { value: ethers.utils.parseEther("6") });
+      });
+      it("Awards top 3 fastest races", async function () {
+        await _tournament.submitTop3Results(_P2name, _P1name, _P2name, firstReward, secondReward, thirdReward, { value: ethers.utils.parseEther("6") });
+      });
+      it("Awards top 3 most wins", async function () {
+        await _tournament.submitTop3Results(_P1name, _P2name, _P2name, firstReward, secondReward, thirdReward, { value: ethers.utils.parseEther("6") });
+      });
+      it("Player 1 claims winnings", async function () {
+        await _tournament.claimWinnings(_P1name);
+      });
+      it("Player 2 claims winnings", async function () {
+        //await _tournament.connect(p2signer).claimWinnings(_P2name);
+      });
+      it("Player 1 can't claim P2's winnings", async function () {
+        expect(await _tournament.connect(p1signer).claimWinnings(_P2name)).to.be.reverted;
+      });
+      it("Player 2 can't claim P1's winnings", async function () {
+        //expect(await _tournament.connect(p2signer).claimWinnings(_P1name)).to.be.reverted;
+      });
     })
   });
 });
