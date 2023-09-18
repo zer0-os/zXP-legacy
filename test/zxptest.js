@@ -12,9 +12,9 @@ describe("zXP", function () {
   var _beast;
   var _beastBattle;
   var _battleRoyale;
-  var _wheelRace;
   var _characterS0;
   var _deepMeme;
+  var _tournament;
   var _meme;
   var _zxp;
   var _memeLord;
@@ -704,5 +704,18 @@ describe("zXP", function () {
         }
       }
     });
+
+    describe("Tournaments", function () {
+      it("Deploys and registers tournament module", async function () {
+        const tournamentFactory = await ethers.getContractFactory("Tournament");
+        const tournament = await tournamentFactory.deploy(_registry.address, P1);
+        await tournament.deployed();
+        _tournament = tournament;
+        await _registry.registerAddress(ethers.utils.formatBytes32String("Tournament"), _tournament.address, 3);
+      });
+      it("Awards top 3 fastest laps", async function () {
+        _tournament.submitTop3Results(0, 1, 2, 300, 200, 100);
+      })
+    })
   });
 });

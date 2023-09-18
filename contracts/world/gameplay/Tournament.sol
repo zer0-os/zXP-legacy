@@ -5,6 +5,7 @@ import "../../Officiated.sol";
 import "../../interfaces/IZXP.sol";
 import "../RegistryClient.sol";
 import "../base/XpRecipient.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 contract Tournament is Officiated, RegistryClient {
     mapping(uint => bool) roundResolved;
@@ -30,19 +31,19 @@ contract Tournament is Officiated, RegistryClient {
             msg.value == firstPrize + secondPrize + thirdPrize,
             "ZXP invalid payment"
         );
-        require(
-            !roundResolved[(block.timestamp - startTime) / roundLength],
-            "ZXP round already resolved"
-        );
-
         winnings[firstPlace] += firstPrize;
         winnings[secondPlace] += secondPrize;
         winnings[thirdPlace] += thirdPrize;
-        roundResolved[(block.timestamp - startTime) / roundLength] = true;
 
         IZXP(addressOf("ZXP", season)).awardXP(firstPlace, roundXpReward);
         IZXP(addressOf("ZXP", season)).awardXP(secondPlace, roundXpReward);
         IZXP(addressOf("ZXP", season)).awardXP(thirdPlace, roundXpReward);
-        //IZXP(addressOf("ZXP", season)).awardXP(official, roundXpReward);
+    }
+
+    function claimWinnings(uint character) external virtual {
+        address player = IERC721(registry.addressOf("Character", season))
+            .ownerOf(character);
+        require(player != address(0), "ZXP No character");
+        payable(player).transfer(winnings[character]);
     }
 }

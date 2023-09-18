@@ -64,7 +64,6 @@ contract WheelsRace is EIP712 {
         require(address(_stakedWheels) != address(0), "WR: No StakedWheels");
         require(address(stakedWheels) == address(0), "WR: Cant reinitialize");
         stakedWheels = _stakedWheels;
-        //expirePeriod = _stakedWheels.expirePeriod();
     }
 
     /**
